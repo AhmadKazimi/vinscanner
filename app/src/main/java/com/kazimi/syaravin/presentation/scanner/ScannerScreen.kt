@@ -274,9 +274,9 @@ private suspend fun processImage(
         Timber.d("Image converted to Bitmap with dimensions: ${bitmap.width}x${bitmap.height}")
         
         try {
-            // Run object detection to get bounding boxes
-            Timber.d("Detecting VIN boxes...")
-            val detectionResult = vinDetector.detect(bitmap)
+            // Use a lower confidence threshold (0.2) to capture weaker VIN detections;
+            // this threshold can be tuned or exposed via settings in the future.
+            val detectionResult = vinDetector.detect(bitmap, confidenceThreshold = 0.2f)
 
             val annotatedBoxes = mutableListOf<com.kazimi.syaravin.domain.model.BoundingBox>()
 
