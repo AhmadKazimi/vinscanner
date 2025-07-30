@@ -58,8 +58,8 @@ val mlModule = module {
     // VIN Detector
     single<VinDetector> { VinDetectorImpl(get()) }
     
-    // Text Extractor
-    single<TextExtractor> { TextExtractorImpl(get()) }
+    // Text Extractor – now uses ML Kit and requires Context
+    single<TextExtractor> { TextExtractorImpl(androidContext()) }
     
     // VIN Validator
     single<VinValidator> { VinValidatorImpl() }

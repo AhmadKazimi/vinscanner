@@ -1,79 +1,76 @@
 package com.kazimi.syaravin.data.datasource.ml
 
+import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Rect
+import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.text.TextRecognition
+import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import com.kazimi.syaravin.domain.model.BoundingBox
-import org.tensorflow.lite.Interpreter
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import timber.log.Timber
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 
+/**
+ * Text extraction implementation powered by ML Kit's on-device text recogniser.
+ * This replaces the previous placeholder that attempted to use the same TFLite
+ * model for OCR and, as a result, always returned an empty list.
+ */
 class TextExtractorImpl(
-    private val interpreter: Interpreter
+    private val context: Context
 ) : TextExtractor {
-    
-    override suspend fun extractText(bitmap: Bitmap, boundingBox: BoundingBox): String? {
-        // This function is not used with the new LiteRT model,
-        // as the model returns all the text at once.
-        return null
+
+    // Lazily initialise recogniser – it is thread-safe and can be reused.
+    private val recogniser by lazy {
+        TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
     }
-    
-    override suspend fun extractAllText(bitmap: Bitmap): List<String> {
-        Timber.d("Starting text extraction from image...")
-        return try {
-            // Preprocess the image
-            Timber.d("Preprocessing image with dimensions: ${bitmap.width}x${bitmap.height}")
-            val inputBuffer = preprocessImage(bitmap)
-            Timber.d("Image preprocessed successfully.")
-            
-            // Run inference
-            val outputBuffer = Array(1) { Array(100) { Array(4) { FloatArray(2) } } }
-            Timber.d("Running inference on the model...")
-            interpreter.run(inputBuffer, outputBuffer)
-            Timber.d("Inference completed.")
-            
-            // Log the raw output
-            Timber.d("Raw model output: ${outputBuffer.contentDeepToString()}")
-            
-            // Postprocess the output
-            val extractedText = postprocessOutput(outputBuffer)
-            
-            Timber.d("Extracted ${extractedText.size} text blocks from image")
-            extractedText
+
+    override suspend fun extractText(bitmap: Bitmap, boundingBox: BoundingBox): String? =
+        withContext(Dispatchers.Default) {
+            try {
+                val cropRect = toPixelRect(bitmap, boundingBox)
+                if (cropRect.width() <= 0 || cropRect.height() <= 0) return@withContext null
+
+                val cropped = Bitmap.createBitmap(
+                    bitmap,
+                    cropRect.left,
+                    cropRect.top,
+                    cropRect.width(),
+                    cropRect.height()
+                )
+
+                val image = InputImage.fromBitmap(cropped, 0)
+                val result = recogniser.process(image).await()
+                result.text.takeIf { it.isNotBlank() }
+            } catch (e: Exception) {
+                Timber.e(e, "Error extracting text from region")
+                null
+            }
+        }
+
+    override suspend fun extractAllText(bitmap: Bitmap): List<String> = withContext(Dispatchers.Default) {
+        try {
+            val image = InputImage.fromBitmap(bitmap, 0)
+            val result = recogniser.process(image).await()
+            result.textBlocks.flatMap { block ->
+                block.lines.map { it.text }
+            }
         } catch (e: Exception) {
-            Timber.e(e, "Error extracting all text from image")
+            Timber.e(e, "Error extracting text from image")
             emptyList()
         }
     }
-    
-    private fun preprocessImage(bitmap: Bitmap): ByteBuffer {
-        val inputWidth = 640
-        val inputHeight = 640
-        
-        // Resize the bitmap
-        val resizedBitmap = Bitmap.createScaledBitmap(bitmap, inputWidth, inputHeight, true)
-        
-        // Create a ByteBuffer
-        val inputBuffer = ByteBuffer.allocateDirect(1 * inputWidth * inputHeight * 3 * 4) // 1 * 640 * 640 * 3 * 4
-        inputBuffer.order(ByteOrder.nativeOrder())
-        
-        // Normalize the bitmap
-        for (y in 0 until inputHeight) {
-            for (x in 0 until inputWidth) {
-                val pixel = resizedBitmap.getPixel(x, y)
-                inputBuffer.putFloat(((pixel shr 16 and 0xFF) / 255.0f))
-                inputBuffer.putFloat(((pixel shr 8 and 0xFF) / 255.0f))
-                inputBuffer.putFloat(((pixel and 0xFF) / 255.0f))
-            }
-        }
-        
-        return inputBuffer
-    }
-    
-    private fun postprocessOutput(outputBuffer: Array<Array<Array<FloatArray>>>): List<String> {
-        // This is a placeholder for the actual postprocessing logic.
-        // You will need to implement this based on your model's output format.
-        // For now, it returns an empty list.
-        Timber.w("Postprocessing is not yet implemented. Returning empty list.")
-        return emptyList()
+
+    /**
+     * Converts a normalised [BoundingBox] (values in 0..1) to a pixel [Rect]
+     * relative to the supplied [bitmap]. Any out-of-bounds values are clamped.
+     */
+    private fun toPixelRect(bitmap: Bitmap, box: BoundingBox): Rect {
+        val left = (box.left * bitmap.width).toInt().coerceIn(0, bitmap.width)
+        val top = (box.top * bitmap.height).toInt().coerceIn(0, bitmap.height)
+        val right = (box.right * bitmap.width).toInt().coerceIn(left, bitmap.width)
+        val bottom = (box.bottom * bitmap.height).toInt().coerceIn(top, bitmap.height)
+        return Rect(left, top, right, bottom)
     }
 }
