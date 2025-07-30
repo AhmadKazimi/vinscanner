@@ -277,39 +277,49 @@ private suspend fun processImage(
             // Run object detection to get bounding boxes
             Timber.d("Detecting VIN boxes...")
             val detectionResult = vinDetector.detect(bitmap)
-            onBoxesDetected(detectionResult.boundingBoxes)
-            Timber.d("Detected ${detectionResult.boundingBoxes.size} VIN boxes.")
-            
-            // Extract all text from the image
-            Timber.d("Extracting all text from the image...")
-            val allText = textExtractor.extractAllText(bitmap)
-            Timber.d("Extracted text: $allText")
-            
-            // Find the best VIN candidate
-            var bestVin: String? = null
-            var bestConfidence = 0f
-            
-            Timber.d("Finding best VIN candidate...")
-            for (text in allText) {
-                Timber.d("Validating text: $text")
-                val cleanedText = vinValidator.cleanVin(text)
-                Timber.d("Cleaned text: $cleanedText")
-                if (cleanedText.length in 15..19) { // Basic VIN length check
-                    bestVin = cleanedText
-                    bestConfidence = 1.0f // We don't have per-box confidence anymore
-                    Timber.d("Found a valid VIN candidate: $bestVin")
-                    break
+
+            val annotatedBoxes = mutableListOf<com.kazimi.syaravin.domain.model.BoundingBox>()
+
+            var detectedValidVin: String? = null
+            var detectedConfidence = 0f
+
+            for (box in detectionResult.boundingBoxes) {
+                // Try to extract text from the specific bounding box
+                val extracted = textExtractor.extractText(bitmap, box)
+                if (extracted.isNullOrBlank()) {
+                    // No text found – keep original box (neutral colour)
+                    annotatedBoxes.add(box)
+                    continue
+                }
+
+                val cleaned = vinValidator.cleanVin(extracted)
+
+                // Validate the cleaned text
+                val validationResult = vinValidator.validate(cleaned)
+
+                // Copy the box adding validation status and the cleaned text for UI preview
+                val updatedBox = box.copy(
+                    isValid = validationResult.isValid,
+                    text = cleaned
+                )
+
+                annotatedBoxes.add(updatedBox)
+
+                // If this is the first valid VIN we see in this frame – remember it.
+                if (validationResult.isValid && detectedValidVin == null) {
+                    detectedValidVin = cleaned
+                    detectedConfidence = box.confidence
                 }
             }
-            
-            // If a VIN was found, report it
-            if (bestVin != null) {
-                Timber.i("VIN detected: $bestVin with confidence $bestConfidence")
-                onVinDetected(bestVin, bestConfidence)
-            } else {
-                Timber.d("No valid VIN found in the extracted text.")
+
+            // Update UI with coloured boxes (green = valid, red = invalid)
+            onBoxesDetected(annotatedBoxes)
+
+            // Report the first valid VIN, if any
+            detectedValidVin?.let { vin ->
+                Timber.i("Valid VIN detected: $vin with confidence $detectedConfidence")
+                onVinDetected(vin, detectedConfidence)
             }
-            
         } catch (e: Exception) {
             Timber.e(e, "Error processing image")
         } finally {
