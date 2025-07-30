@@ -51,6 +51,10 @@ android {
 			excludes += "/META-INF/{AL2.0,LGPL2.1}"
 		}
 	}
+
+	defaultConfig {
+
+	}
 }
 
 dependencies {
@@ -73,12 +77,16 @@ dependencies {
 	implementation(libs.camera.lifecycle)
 	implementation(libs.camera.view)
 	
-	// TensorFlow Lite dependencies
-	implementation(libs.tensorflow.lite)
-	implementation(libs.tensorflow.lite.gpu)
-	implementation(libs.tensorflow.lite.task.vision)
-	implementation(libs.tensorflow.lite.metadata)
-	
+	// Google AI Edge
+//	implementation(libs.ai.edge.litert.base)
+//	implementation(libs.ai.edge.litert.gpu)
+//	implementation(libs.ai.edge.litert.core)
+
+	implementation("com.google.ai.edge.litert:litert:1.4.0")
+	implementation("com.google.ai.edge.litert:litert-gpu:1.4.0")
+	implementation("com.google.ai.edge.litert:litert-support:1.4.0")
+
+
 	// ML Kit Text Recognition
 	implementation(libs.mlkit.text.recognition)
 	
@@ -89,6 +97,7 @@ dependencies {
 	// Coroutines
 	implementation(libs.kotlinx.coroutines.android)
 	implementation(libs.kotlinx.coroutines.core)
+	implementation(libs.kotlinx.coroutines.play.services)
 	
 	// Utilities
 	implementation(libs.timber)
