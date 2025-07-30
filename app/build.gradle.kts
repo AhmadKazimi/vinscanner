@@ -86,6 +86,8 @@ dependencies {
 	implementation("com.google.ai.edge.litert:litert-gpu:1.4.0")
 	implementation("com.google.ai.edge.litert:litert-support:1.4.0")
 
+	implementation(libs.mlkit.text.recognition)
+	implementation(libs.kotlinx.coroutines.play.services)
 	
 	// Koin for dependency injection
 	implementation(libs.koin.android)
