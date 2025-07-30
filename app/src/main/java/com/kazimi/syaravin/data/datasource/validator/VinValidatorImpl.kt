@@ -32,24 +32,29 @@ class VinValidatorImpl : VinValidator {
     }
     
     override fun validate(vin: String): VinValidationResult {
+        Timber.d("Validating VIN: $vin")
         val cleanedVin = cleanVin(vin)
         
         // Check length
         if (cleanedVin.length != VinNumber.VIN_LENGTH) {
-            return VinValidationResult(
+            val result = VinValidationResult(
                 isValid = false,
                 errorMessage = "VIN must be exactly 17 characters long (found ${cleanedVin.length})",
                 formatValid = false
             )
+            Timber.d("Validation result for '$vin': $result")
+            return result
         }
         
         // Check format
         if (!VinNumber.VALID_PATTERN.matches(cleanedVin)) {
-            return VinValidationResult(
+            val result = VinValidationResult(
                 isValid = false,
                 errorMessage = "VIN contains invalid characters",
                 formatValid = false
             )
+            Timber.d("Validation result for '$vin': $result")
+            return result
         }
         
         // Check for invalid characters
@@ -58,17 +63,19 @@ class VinValidatorImpl : VinValidator {
         }
         
         if (hasInvalidChars) {
-            return VinValidationResult(
+            val result = VinValidationResult(
                 isValid = false,
                 errorMessage = "VIN contains invalid characters (I, O, or Q)",
                 formatValid = false
             )
+            Timber.d("Validation result for '$vin': $result")
+            return result
         }
         
         // Validate checksum (9th position)
         val checksumValid = validateChecksum(cleanedVin)
         
-        return if (checksumValid) {
+        val result = if (checksumValid) {
             VinValidationResult(
                 isValid = true,
                 checksumValid = true,
@@ -82,6 +89,9 @@ class VinValidatorImpl : VinValidator {
                 formatValid = true
             )
         }
+        
+        Timber.d("Validation result for '$vin': $result")
+        return result
     }
     
     override fun cleanVin(vin: String): String {
@@ -96,11 +106,12 @@ class VinValidatorImpl : VinValidator {
         // Remove any non-alphanumeric characters
         cleaned = cleaned.replace(Regex("[^A-Z0-9]"), "")
         
-        Timber.d("Cleaned VIN: $vin -> $cleaned")
+        Timber.d("Cleaned VIN: '$vin' -> '$cleaned'")
         return cleaned
     }
     
     private fun validateChecksum(vin: String): Boolean {
+        Timber.d("Validating checksum for VIN: $vin")
         return try {
             var sum = 0
             
@@ -118,6 +129,8 @@ class VinValidatorImpl : VinValidator {
             
             if (!isValid) {
                 Timber.d("Checksum validation failed: expected $expectedChar, got $actualChar")
+            } else {
+                Timber.d("Checksum validation successful for VIN: $vin")
             }
             
             isValid
