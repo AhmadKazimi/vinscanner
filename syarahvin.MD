@@ -14,6 +14,14 @@ Syarahvin is an Android application that performs real-time VIN (Vehicle Identif
 6. **Performance Optimized**: Efficient processing with minimal latency
 7. **Clean Architecture**: Following MVVM and Clean Architecture principles
 
+## Why Koin over Hilt
+
+- **Simpler Setup**: No annotation processing, faster build times
+- **Pure Kotlin**: Written in Kotlin, more idiomatic for Kotlin projects
+- **Lightweight**: Smaller runtime overhead compared to Hilt
+- **Easy Testing**: Simple module overrides for testing
+- **Flexibility**: More control over injection timing and scope management
+
 ## Technology Stack
 
 ### Core Technologies
@@ -32,7 +40,7 @@ Syarahvin is an Android application that performs real-time VIN (Vehicle Identif
 - **Jetpack Compose**: Modern UI toolkit
 - **ViewModel**: For UI state management
 - **StateFlow/Flow**: For reactive data streams
-- **Hilt**: Dependency injection
+- **Koin**: Lightweight dependency injection framework (v3.5+)
 - **Coroutines**: For asynchronous operations
 
 ### Additional Libraries
@@ -65,7 +73,8 @@ app/
 │   │   ├── AppModule.kt
 │   │   ├── CameraModule.kt
 │   │   ├── MLModule.kt
-│   │   └── RepositoryModule.kt
+│   │   ├── RepositoryModule.kt
+│   │   └── ViewModelModule.kt
 │   │
 │   ├── data/                        # Data Layer
 │   │   ├── repository/
@@ -110,6 +119,7 @@ app/
 │   │   ├── PermissionUtils.kt
 │   │   └── Extensions.kt
 │   │
+│   ├── SyarahvinApplication.kt     # Application class with Koin setup
 │   └── MainActivity.kt
 │
 ├── assets/
@@ -127,7 +137,7 @@ app/
 1. **Update Gradle Configuration**
    - Add necessary dependencies in `build.gradle.kts`
    - Configure ML Kit and TensorFlow Lite
-   - Set up Hilt for dependency injection
+   - Set up Koin for dependency injection
 
 2. **Permissions Setup**
    - Camera permission handling
@@ -140,8 +150,9 @@ app/
    - Implement base classes and interfaces
 
 2. **Dependency Injection Setup**
-   - Configure Hilt modules
+   - Configure Koin modules
    - Set up providers for camera, ML components
+   - Initialize Koin in Application class
 
 ### Phase 3: Camera Implementation
 
@@ -271,6 +282,40 @@ app/
 3. **Network Errors** (if applicable)
    - Offline capability
    - Retry mechanisms
+
+### 7. Koin Dependency Injection Setup
+
+```kotlin
+// Application class setup
+class SyarahvinApplication : Application() {
+    override fun onCreate() {
+        super.onCreate()
+        startKoin {
+            androidContext(this@SyarahvinApplication)
+            modules(
+                appModule,
+                cameraModule,
+                mlModule,
+                repositoryModule,
+                viewModelModule
+            )
+        }
+    }
+}
+
+// Module examples
+val appModule = module {
+    single { androidContext() }
+}
+
+val viewModelModule = module {
+    viewModel { ScannerViewModel(get(), get(), get()) }
+}
+
+val repositoryModule = module {
+    single<VinScannerRepository> { VinScannerRepositoryImpl(get(), get(), get()) }
+}
+```
 
 ## Testing Strategy
 
