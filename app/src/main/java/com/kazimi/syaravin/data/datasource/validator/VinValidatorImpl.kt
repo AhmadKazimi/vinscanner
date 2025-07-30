@@ -27,7 +27,12 @@ class VinValidatorImpl : VinValidator {
             'O' to '0', 'o' to '0',
             'Q' to '0', 'q' to '0',
             'S' to '5', 's' to '5',
-            'Z' to '2', 'z' to '2'
+            'Z' to '2', 'z' to '2',
+            // Additional common OCR confusions
+            'B' to '8', 'b' to '8',
+            'G' to '6', 'g' to '6',
+            'T' to '7', 't' to '7',
+            'D' to '0', 'd' to '0'
         )
     }
     
