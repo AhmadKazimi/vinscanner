@@ -13,7 +13,12 @@ data class BoundingBox(
     val top: Float,
     val right: Float,
     val bottom: Float,
-    val confidence: Float = 0f
+    val confidence: Float = 0f,
+    // Indicates whether the VIN associated with this box is valid (true),
+    // invalid (false) or not yet evaluated (null).
+    val isValid: Boolean? = null,
+    // The raw/cleaned text extracted from this box (if any).
+    val text: String? = null
 ) {
     /**
      * Width of the bounding box (normalized)
@@ -51,7 +56,9 @@ data class BoundingBox(
             top = top * imageHeight,
             right = right * imageWidth,
             bottom = bottom * imageHeight,
-            confidence = confidence
+            confidence = confidence,
+            isValid = isValid,
+            text = text
         )
     }
 }
