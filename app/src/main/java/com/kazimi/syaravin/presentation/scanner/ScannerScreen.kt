@@ -12,7 +12,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -42,7 +42,7 @@ import java.util.concurrent.ExecutorService
 /**
  * Main scanner screen for VIN detection
  */
-@OptIn(ExperimentalPermissionsApi::class)
+@OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun ScannerScreen(
     viewModel: ScannerViewModel = koinViewModel()
@@ -190,7 +190,7 @@ fun ScannerScreen(
                     ) {
                         Icon(
                             imageVector = if (state.isScanning) {
-                                Icons.Filled.Stop
+                                Icons.Filled.Info
                             } else {
                                 Icons.Filled.PlayArrow
                             },
@@ -224,7 +224,7 @@ fun ScannerScreen(
     // VIN result dialog
     if (state.showVinResult && state.detectedVin != null) {
         VinResultDialog(
-            vinNumber = state.detectedVin,
+            vinNumber = state.detectedVin!!,
             onDismiss = { viewModel.onEvent(ScannerEvent.DismissResult) },
             onRetry = { viewModel.onEvent(ScannerEvent.RetryScanning) },
             onCopy = { vin ->
