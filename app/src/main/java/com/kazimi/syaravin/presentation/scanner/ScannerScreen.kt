@@ -98,7 +98,7 @@ fun ScannerScreen(
                 if (!processing) {
                     processing = true
                     Timber.d("New image received for processing.")
-                    scope.launch {
+                    scope.launch(kotlinx.coroutines.Dispatchers.Default) {
                         processImage(
                             imageProxy = imageProxy,
                             cameraDataSource = cameraDataSource,
@@ -112,7 +112,9 @@ fun ScannerScreen(
                                 viewModel.onDetectionBoxesUpdated(boxes)
                             }
                         )
-                        processing = false
+                        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                            processing = false
+                        }
                     }
                 } else {
                     Timber.v("Skipping image processing, already in progress.")
