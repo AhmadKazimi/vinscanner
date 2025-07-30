@@ -76,7 +76,8 @@ dependencies {
 	// TensorFlow Lite dependencies
 	implementation(libs.tensorflow.lite)
 	implementation(libs.tensorflow.lite.gpu)
-	implementation(libs.tensorflow.lite.support)
+	implementation(libs.tensorflow.lite.task.vision)
+	implementation(libs.tensorflow.lite.metadata)
 	
 	// ML Kit Text Recognition
 	implementation(libs.mlkit.text.recognition)
