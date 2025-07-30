@@ -49,7 +49,9 @@ camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "
 # TensorFlow Lite
 tensorflow-lite = { group = "org.tensorflow", name = "tensorflow-lite", version.ref = "tensorflowLite" }
 tensorflow-lite-gpu = { group = "org.tensorflow", name = "tensorflow-lite-gpu", version.ref = "tensorflowLite" }
-tensorflow-lite-support = { group = "org.tensorflow", name = "tensorflow-lite-support", version.ref = "tensorflowLite" }
+# TensorFlow Lite Task Libraries (replacement for tensorflow-lite-support)
+tensorflow-lite-task-vision = { group = "org.tensorflow", name = "tensorflow-lite-task-vision", version = "0.4.4" }
+tensorflow-lite-metadata = { group = "org.tensorflow", name = "tensorflow-lite-metadata", version.ref = "tensorflowLite" }
 
 # ML Kit
 mlkit-text-recognition = { group = "com.google.mlkit", name = "text-recognition", version.ref = "mlkitTextRecognition" }
