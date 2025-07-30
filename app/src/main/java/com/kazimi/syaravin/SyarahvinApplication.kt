@@ -1,6 +1,7 @@
 package com.kazimi.syaravin
 
 import android.app.Application
+import com.google.android.datatransport.BuildConfig
 import com.kazimi.syaravin.di.appModule
 import com.kazimi.syaravin.di.cameraModule
 import com.kazimi.syaravin.di.mlModule
