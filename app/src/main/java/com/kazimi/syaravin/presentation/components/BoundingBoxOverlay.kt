@@ -31,9 +31,15 @@ fun BoundingBoxOverlay(
         modifier = modifier.fillMaxSize()
     ) {
         boundingBoxes.forEach { box ->
+            val colourForBox = when (box.isValid) {
+                true -> Color.Green
+                false -> Color.Red
+                null -> boxColor
+            }
+
             // Draw bounding box
             drawRect(
-                color = boxColor,
+                color = colourForBox,
                 topLeft = Offset(
                     x = box.left * size.width,
                     y = box.top * size.height
@@ -49,7 +55,7 @@ fun BoundingBoxOverlay(
             if (box.confidence > 0.5f) {
                 drawIntoCanvas { canvas ->
                     val paint = android.graphics.Paint().apply {
-                        color = boxColor.value.toInt()
+                        color = colourForBox.value.toInt()
                         textSize = 40f
                         isAntiAlias = true
                     }
@@ -59,6 +65,23 @@ fun BoundingBoxOverlay(
                         confidenceText,
                         box.left * size.width + 10,
                         box.top * size.height - 10,
+                        paint
+                    )
+                }
+            }
+
+            // Draw extracted VIN text if available
+            if (!box.text.isNullOrBlank()) {
+                drawIntoCanvas { canvas ->
+                    val paint = android.graphics.Paint().apply {
+                        color = colourForBox.value.toInt()
+                        textSize = 48f
+                        isAntiAlias = true
+                    }
+                    canvas.nativeCanvas.drawText(
+                        box.text!!,
+                        box.left * size.width + 10,
+                        (box.bottom * size.height) + 40,
                         paint
                     )
                 }
