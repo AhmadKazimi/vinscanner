@@ -148,7 +148,11 @@ fun ScannerScreen(
 	if (state.showVinResult && state.detectedVin != null) {
 		ModalBottomSheet(
 			onDismissRequest = { viewModel.onEvent(ScannerEvent.DismissResult) },
-			sheetState = sheetState
+			sheetState = sheetState,
+			containerColor = Color.Transparent,
+			contentColor = MaterialTheme.colorScheme.onSurface,
+			dragHandle = null,
+			windowInsets = WindowInsets(0, 0, 0, 0)
 		) {
 			state.detectedVin?.let {
 				VinResultSheetContent(
