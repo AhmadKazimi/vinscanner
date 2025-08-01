@@ -1,5 +1,6 @@
 package com.kazimi.syaravin.presentation.components
 
+import android.graphics.Color.WHITE
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.colorspace.WhitePoint
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -64,14 +66,15 @@ fun VinInputField(
                     .border(
                         width = 1.dp,
                         color = MaterialTheme.colorScheme.primary,
-                        shape = RoundedCornerShape(8.dp)
+                        shape = RoundedCornerShape(2.dp)
                     )
                     .focusRequester(focusRequesters[index]),
                 enabled = enabled,
                 singleLine = true,
                 textStyle = LocalTextStyle.current.copy(
                     textAlign = TextAlign.Center,
-                    fontSize = 18.sp
+                    fontSize = 20.sp,
+                    color = Color.White
                 ),
                 decorationBox = { innerTextField ->
                     Box(
@@ -80,7 +83,7 @@ fun VinInputField(
                         innerTextField()
                         if (textFieldValue.text.isEmpty()) {
                             Text(
-                                text = "-",
+                                text = " ",
                                 color = Color.Gray
                             )
                         }
