@@ -23,13 +23,20 @@ class VinValidatorImpl : VinValidator {
         // Weight factors for each position in VIN
         private val WEIGHTS = intArrayOf(8, 7, 6, 5, 4, 3, 2, 10, 0, 9, 8, 7, 6, 5, 4, 3, 2)
 
-        // Common OCR misreadings
+        // Corrections for characters that are invalid in a VIN
         private val OCR_CORRECTIONS = mapOf(
             'I' to '1', 'i' to '1',
             'O' to '0', 'o' to '0',
-            'Q' to '0', 'q' to '0',
-            'S' to '5', 's' to '5',
-            'Z' to '2', 'z' to '2'
+            'Q' to '0', 'q' to '0'
+        )
+        
+        // Ambiguous characters that can be misread by OCR
+        private val AMBIGUOUS_CHARS = mapOf(
+            'S' to '5', '5' to 'S',
+            'Z' to '2', '2' to 'Z',
+            'B' to '8', '8' to 'B',
+            'A' to '4', '4' to 'A',
+            'G' to '6', '6' to 'G'
         )
     }
 
@@ -75,22 +82,25 @@ class VinValidatorImpl : VinValidator {
         }
 
 
-        // 3. Validate Checksum
-        val checksumValid = validateChecksum(extractedVin)
-        val result = if (checksumValid) {
-            VinValidationResult(
+        // 3. Validate Checksum, trying permutations for ambiguous characters
+        if (validateChecksumWithPermutations(extractedVin)) {
+            val result = VinValidationResult(
                 isValid = true,
                 checksumValid = true,
                 formatValid = true
             )
-        } else {
-            VinValidationResult(
-                isValid = false,
-                errorMessage = "Invalid VIN checksum",
-                checksumValid = false,
-                formatValid = true // Format is valid at this point, but checksum failed
-            )
+            Log.d(TAG, "Validation result for '$vin': $result")
+            return result
         }
+
+
+        val result = VinValidationResult(
+            isValid = false,
+            errorMessage = "Invalid VIN checksum",
+            checksumValid = false,
+            formatValid = true // Format is valid at this point, but checksum failed
+        )
+
 
         Log.d(TAG, "Validation result for '$vin': $result")
         return result
@@ -120,14 +130,9 @@ class VinValidatorImpl : VinValidator {
     private fun validateChecksum(vin: String): Boolean {
         Log.d(TAG, "Validating checksum for VIN: $vin")
 
-        // The 9th character is the check digit; it's not part of the sum calculation.
-        // We use its space for the weight 10, but multiply the actual character value.
-        // The check digit itself is at index 8.
-
         var sum = 0
         for (i in vin.indices) {
-            // Skip the check digit position in the calculation
-            if (i == 8) continue
+            if (i == 8) continue // Skip the check digit position
 
             val char = vin[i]
             val value = TRANSLITERATION[char]
@@ -146,5 +151,35 @@ class VinValidatorImpl : VinValidator {
             Log.w(TAG, "Checksum validation failed for '$vin'. Expected: $expectedDigit, Found: $checkDigit")
         }
         return isValid
+    }
+
+    private fun validateChecksumWithPermutations(vin: String): Boolean {
+        val seenVins = mutableSetOf<String>()
+        val queue = ArrayDeque<String>()
+
+        seenVins.add(vin)
+        queue.addLast(vin)
+
+        while (queue.isNotEmpty()) {
+            val currentVin = queue.removeFirst()
+
+            if (validateChecksum(currentVin)) {
+                Log.i(TAG, "Valid checksum found for permutation: $currentVin")
+                return true
+            }
+
+            // Generate next level of permutations
+            for (i in currentVin.indices) {
+                val char = currentVin[i]
+                if (AMBIGUOUS_CHARS.containsKey(char)) {
+                    val swappedChar = AMBIGUOUS_CHARS[char]!!
+                    val nextVin = currentVin.substring(0, i) + swappedChar + currentVin.substring(i + 1)
+                    if (seenVins.add(nextVin)) {
+                        queue.addLast(nextVin)
+                    }
+                }
+            }
+        }
+        return false
     }
 }
