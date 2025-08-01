@@ -33,7 +33,7 @@ import com.kazimi.syaravin.data.datasource.ml.VinDetector
 import com.kazimi.syaravin.data.datasource.validator.VinValidator
 import com.kazimi.syaravin.presentation.components.BoundingBoxOverlay
 import com.kazimi.syaravin.presentation.components.CameraPreview
-import com.kazimi.syaravin.presentation.components.VinEditBar
+import com.kazimi.syaravin.presentation.components.VinResultSheetContent
 import com.kazimi.syaravin.util.showToast
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
@@ -151,19 +151,18 @@ fun ScannerScreen(
 			sheetState = sheetState
 		) {
 			state.detectedVin?.let {
-
-				VinEditBar(
-					vin = it.value,
+				VinResultSheetContent(
+					vinNumber = it,
+					onCopy = { vin ->
+						copyToClipboard(context, vin)
+						context.showToast("VIN copied to clipboard")
+					},
+					onRetry = {
+						viewModel.onEvent(ScannerEvent.DismissResult)
+						viewModel.onEvent(ScannerEvent.StartScanning)
+					},
 					onVinChanged = { newVin ->
 						viewModel.onEvent(ScannerEvent.UpdateVin(newVin))
-					},
-					onDone = {
-						copyToClipboard(context, it.value)
-						context.showToast("VIN copied to clipboard")
-						viewModel.onEvent(ScannerEvent.DismissResult)
-					},
-					onClear = {
-						viewModel.onEvent(ScannerEvent.UpdateVin(""))
 					}
 				)
 			}
