@@ -21,10 +21,10 @@ class ScannerViewModel(
     private val extractTextUseCase: ExtractTextUseCase,
     private val validateVinUseCase: ValidateVinUseCase
 ) : ViewModel() {
-    
+
     private val _state = MutableStateFlow(ScannerState())
     val state: StateFlow<ScannerState> = _state.asStateFlow()
-    
+
     fun onEvent(event: ScannerEvent) {
         when (event) {
             is ScannerEvent.StartScanning -> startScanning()
@@ -34,27 +34,28 @@ class ScannerViewModel(
             is ScannerEvent.DismissError -> dismissError()
             is ScannerEvent.DismissResult -> dismissResult()
             is ScannerEvent.RetryScanning -> retryScanning()
+            is ScannerEvent.UpdateVin -> onVinUpdated(event.vin)
         }
     }
-    
+
     private fun startScanning() {
         if (!_state.value.hasPermission) {
             _state.update { it.copy(errorMessage = "Camera permission is required") }
             return
         }
-        
+
         _state.update { it.copy(isScanning = true, errorMessage = null) }
-        Log.d("","Starting VIN scanning")
-        
+        Log.d("", "Starting VIN scanning")
+
         // Scanning logic will be implemented in the UI layer with CameraX
         // The ViewModel will receive detected VINs through events
     }
-    
+
     private fun stopScanning() {
         _state.update { it.copy(isScanning = false, isLoading = false) }
-        Log.d("","Stopped VIN scanning")
+        Log.d("", "Stopped VIN scanning")
     }
-    
+
     private fun updatePermissionStatus(granted: Boolean) {
         _state.update { it.copy(hasPermission = granted) }
         if (granted) {
@@ -63,28 +64,42 @@ class ScannerViewModel(
             _state.update { it.copy(errorMessage = "Camera permission is required to scan VINs") }
         }
     }
-    
+
     private fun dismissError() {
         _state.update { it.copy(errorMessage = null) }
     }
-    
+
     private fun dismissResult() {
         _state.update { it.copy(showVinResult = false, detectedVin = null) }
     }
-    
+
     private fun retryScanning() {
         dismissResult()
         startScanning()
     }
-    
+
+    private fun onVinUpdated(vin: String) {
+        viewModelScope.launch {
+            if (_state.value.detectedVin?.value == vin) return@launch
+
+            val validatedVin = validateVinUseCase(vin)
+            _state.update {
+                it.copy(
+                    detectedVin = validatedVin.copy(confidence = it.detectedVin?.confidence ?: 0f)
+                )
+            }
+        }
+    }
+
+
     fun onVinDetected(vin: String, confidence: Float) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
-            
+
             try {
                 // Validate the VIN
                 val validatedVin = validateVinUseCase(vin)
-                
+
                 // Update state with the result
                 _state.update { currentState ->
                     currentState.copy(
@@ -94,11 +109,14 @@ class ScannerViewModel(
                         scanHistory = currentState.scanHistory + validatedVin
                     )
                 }
-                
+
                 // Stop scanning after successful detection
                 stopScanning()
 
-                Log.d("","VIN detected and validated: ${validatedVin.value} (valid: ${validatedVin.isValid})")
+                Log.d(
+                    "",
+                    "VIN detected and validated: ${validatedVin.value} (valid: ${validatedVin.isValid})"
+                )
             } catch (e: Exception) {
                 Log.e(e.message, "Error validating VIN")
                 _state.update {
@@ -110,7 +128,7 @@ class ScannerViewModel(
             }
         }
     }
-    
+
     fun onDetectionBoxesUpdated(boxes: List<com.kazimi.syaravin.domain.model.BoundingBox>) {
         _state.update { it.copy(detectionBoxes = boxes) }
     }
@@ -127,4 +145,5 @@ sealed class ScannerEvent {
     object DismissError : ScannerEvent()
     object DismissResult : ScannerEvent()
     object RetryScanning : ScannerEvent()
+    data class UpdateVin(val vin: String) : ScannerEvent()
 }

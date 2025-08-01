@@ -8,7 +8,7 @@ import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -26,8 +26,13 @@ fun VinResultDialog(
     vinNumber: VinNumber,
     onDismiss: () -> Unit,
     onRetry: () -> Unit,
-    onCopy: (String) -> Unit
+    onCopy: (String) -> Unit,
+    onVinChanged: (String) -> Unit
 ) {
+
+    var vin by remember(vinNumber) { mutableStateOf(vinNumber.value) }
+
+
     Dialog(onDismissRequest = onDismiss) {
         Card(
             modifier = Modifier
@@ -50,30 +55,20 @@ fun VinResultDialog(
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold
                 )
-                
+
                 Spacer(modifier = Modifier.height(16.dp))
-                
+
                 // VIN Value
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
-                    )
-                ) {
-                    Text(
-                        text = vinNumber.value,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        style = MaterialTheme.typography.headlineMedium,
-                        textAlign = TextAlign.Center,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
-                
+                VinInputField(
+                    vin = vin,
+                    onVinChanged = {
+                        vin = it
+                        onVinChanged(it)
+                    }
+                )
+
                 Spacer(modifier = Modifier.height(16.dp))
-                
+
                 // Validation Status
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -90,9 +85,9 @@ fun VinResultDialog(
                         tint = if (vinNumber.isValid) Color.Green else Color.Red,
                         modifier = Modifier.size(24.dp)
                     )
-                    
+
                     Spacer(modifier = Modifier.width(8.dp))
-                    
+
                     Text(
                         text = if (vinNumber.isValid) "Valid VIN" else "Invalid VIN",
                         style = MaterialTheme.typography.bodyLarge,
@@ -100,7 +95,7 @@ fun VinResultDialog(
                         fontWeight = FontWeight.Medium
                     )
                 }
-                
+
                 // Confidence Score
                 if (vinNumber.confidence > 0) {
                     Spacer(modifier = Modifier.height(8.dp))
@@ -110,9 +105,9 @@ fun VinResultDialog(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                
+
                 Spacer(modifier = Modifier.height(24.dp))
-                
+
                 // Action Buttons
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -120,7 +115,7 @@ fun VinResultDialog(
                 ) {
                     // Copy Button
                     OutlinedButton(
-                        onClick = { onCopy(vinNumber.value) },
+                        onClick = { onCopy(vin) },
                         modifier = Modifier.weight(1f)
                     ) {
                         Icon(
@@ -131,7 +126,7 @@ fun VinResultDialog(
                         Spacer(modifier = Modifier.width(4.dp))
                         Text("Copy")
                     }
-                    
+
                     // Retry Button
                     Button(
                         onClick = onRetry,
