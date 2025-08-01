@@ -3,6 +3,7 @@ package com.kazimi.syaravin.data.datasource.ml
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Rect
+import android.util.Log
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
@@ -10,7 +11,8 @@ import com.kazimi.syaravin.domain.model.BoundingBox
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
-import timber.log.Timber
+
+private const val TAG = "TextExtractorImpl"
 
 /**
  * Text extraction implementation powered by ML Kit's on-device text recogniser.
@@ -44,7 +46,7 @@ class TextExtractorImpl(
                 val result = recogniser.process(image).await()
                 result.text.takeIf { it.isNotBlank() }
             } catch (e: Exception) {
-                Timber.e(e, "Error extracting text from region")
+                Log.e(TAG, "Error extracting text from region", e)
                 null
             }
         }
@@ -57,7 +59,7 @@ class TextExtractorImpl(
                 block.lines.map { it.text }
             }
         } catch (e: Exception) {
-            Timber.e(e, "Error extracting text from image")
+            Log.e(TAG, "Error extracting text from image", e)
             emptyList()
         }
     }

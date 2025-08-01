@@ -98,7 +98,6 @@ dependencies {
 	implementation(libs.kotlinx.coroutines.core)
 	
 	// Utilities
-	implementation(libs.timber)
 	debugImplementation(libs.leakcanary)
 	
 	// Permissions handling

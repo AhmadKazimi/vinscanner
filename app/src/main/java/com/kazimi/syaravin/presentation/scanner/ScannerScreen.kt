@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.util.Log
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
@@ -36,8 +37,9 @@ import com.kazimi.syaravin.util.showToast
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
-import timber.log.Timber
 import java.util.concurrent.ExecutorService
+
+private const val TAG = "ScannerScreen"
 
 /**
  * Main scanner screen for VIN detection
@@ -47,11 +49,11 @@ import java.util.concurrent.ExecutorService
 fun ScannerScreen(
     viewModel: ScannerViewModel = koinViewModel()
 ) {
-    Timber.d("ScannerScreen composable started.")
+    Log.d(TAG, "ScannerScreen composable started.")
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    
+
     // Inject dependencies
     val cameraSelector: CameraSelector = koinInject()
     val preview: Preview = koinInject()
@@ -61,43 +63,48 @@ fun ScannerScreen(
     val vinDetector: VinDetector = koinInject()
     val textExtractor: TextExtractor = koinInject()
     val vinValidator: VinValidator = koinInject()
-    
+
     // Camera permission
     val cameraPermissionState = rememberPermissionState(
         permission = Manifest.permission.CAMERA,
         onPermissionResult = { granted ->
             if (granted) {
-                Timber.d("Camera permission granted.")
+                Log.d(TAG, "Camera permission granted.")
                 viewModel.onEvent(ScannerEvent.PermissionGranted)
             } else {
-                Timber.w("Camera permission denied.")
+                Log.w(TAG, "Camera permission denied.")
                 viewModel.onEvent(ScannerEvent.PermissionDenied)
             }
         }
     )
-    
+
     // Request permission on first launch
     LaunchedEffect(Unit) {
-        Timber.d("LaunchedEffect for permission check.")
+        Log.d(TAG, "LaunchedEffect for permission check.")
         if (!cameraPermissionState.status.isGranted) {
-            Timber.d("Permission not granted, launching permission request.")
+            Log.d(TAG, "Permission not granted, launching permission request.")
             cameraPermissionState.launchPermissionRequest()
         } else {
-            Timber.d("Permission already granted.")
+            Log.d(TAG, "Permission already granted.")
             viewModel.onEvent(ScannerEvent.PermissionGranted)
         }
     }
 
     var processing by remember { mutableStateOf(false) }
+    var lastProcessTime by remember { mutableStateOf(0L) }
 
     // Set up image analysis
     DisposableEffect(state.isScanning) {
         if (state.isScanning) {
-            Timber.d("Setting up image analyzer.")
+            Log.d(TAG, "Setting up image analyzer.")
             imageAnalysis.setAnalyzer(executor) { imageProxy ->
-                if (!processing) {
+                val currentTime = System.currentTimeMillis()
+
+
+                if (!processing && currentTime - lastProcessTime >= 500) {
                     processing = true
-                    Timber.d("New image received for processing.")
+                    lastProcessTime = currentTime
+                    Log.d(TAG, "New image received for processing.")
                     scope.launch(kotlinx.coroutines.Dispatchers.Default) {
                         processImage(
                             imageProxy = imageProxy,
@@ -117,18 +124,22 @@ fun ScannerScreen(
                         }
                     }
                 } else {
-                    Timber.v("Skipping image processing, already in progress.")
+                    if (processing) {
+                        Log.v(TAG, "Skipping image processing, already in progress.")
+                    } else {
+                        Log.v(TAG, "Skipping image processing, throttled.")
+                    }
                     imageProxy.close()
                 }
             }
         }
-        
+
         onDispose {
-            Timber.d("Disposing image analyzer.")
+            Log.d(TAG, "Disposing image analyzer.")
             imageAnalysis.clearAnalyzer()
         }
     }
-    
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -142,13 +153,13 @@ fun ScannerScreen(
                 preview = preview,
                 imageAnalyzer = imageAnalysis
             )
-            
+
             // Bounding box overlay
             BoundingBoxOverlay(
                 modifier = Modifier.fillMaxSize(),
                 boundingBoxes = state.detectionBoxes
             )
-            
+
             // Scanning indicator
             if (state.isProcessing) {
                 CircularProgressIndicator(
@@ -171,18 +182,18 @@ fun ScannerScreen(
                     color = Color.White,
                     textAlign = TextAlign.Center
                 )
-                
+
                 Spacer(modifier = Modifier.height(16.dp))
-                
+
                 Text(
                     text = "Please grant camera permission to scan VIN numbers",
                     style = MaterialTheme.typography.bodyLarge,
                     color = Color.Gray,
                     textAlign = TextAlign.Center
                 )
-                
+
                 Spacer(modifier = Modifier.height(32.dp))
-                
+
                 Button(
                     onClick = { cameraPermissionState.launchPermissionRequest() }
                 ) {
@@ -190,7 +201,7 @@ fun ScannerScreen(
                 }
             }
         }
-        
+
         // Top bar with controls
         if (state.hasPermission) {
             TopAppBar(
@@ -223,7 +234,7 @@ fun ScannerScreen(
                 }
             )
         }
-        
+
         // Error snackbar
         state.errorMessage?.let { error ->
             Snackbar(
@@ -242,7 +253,7 @@ fun ScannerScreen(
             }
         }
     }
-    
+
     // VIN result dialog
     if (state.showVinResult && state.detectedVin != null) {
         VinResultDialog(
@@ -267,56 +278,56 @@ private suspend fun processImage(
     onVinDetected: (String, Float) -> Unit,
     onBoxesDetected: (List<com.kazimi.syaravin.domain.model.BoundingBox>) -> Unit
 ) {
-    Timber.d("Processing image...")
+    Log.d(TAG, "Processing image...")
     try {
         // Convert ImageProxy to Bitmap
         val bitmap = cameraDataSource.imageToBitmap(imageProxy)
-        Timber.d("Image converted to Bitmap with dimensions: ${bitmap.width}x${bitmap.height}")
-        
+        Log.d(TAG, "Image converted to Bitmap with dimensions: ${bitmap.width}x${bitmap.height}")
+
         try {
             // Run object detection to get bounding boxes
-            Timber.d("Detecting VIN boxes...")
+            Log.d(TAG, "Detecting VIN boxes...")
             val detectionResult = vinDetector.detect(bitmap)
             onBoxesDetected(detectionResult.boundingBoxes)
-            Timber.d("Detected ${detectionResult.boundingBoxes.size} VIN boxes.")
-            
+            Log.d(TAG, "Detected ${detectionResult.boundingBoxes.size} VIN boxes.")
+
             // Extract all text from the image
-            Timber.d("Extracting all text from the image...")
+            Log.d(TAG, "Extracting all text from the image...")
             val allText = textExtractor.extractAllText(bitmap)
-            Timber.d("Extracted text: $allText")
-            
+            Log.d(TAG, "Extracted text: $allText")
+
             // Find the best VIN candidate
             var bestVin: String? = null
             var bestConfidence = 0f
-            
-            Timber.d("Finding best VIN candidate...")
+
+            Log.d(TAG, "Finding best VIN candidate...")
             for (text in allText) {
-                Timber.d("Validating text: $text")
+                Log.d(TAG, "Validating text: $text")
                 val cleanedText = vinValidator.cleanVin(text)
-                Timber.d("Cleaned text: $cleanedText")
+                Log.d(TAG, "Cleaned text: $cleanedText")
                 if (cleanedText.length in 15..19) { // Basic VIN length check
                     bestVin = cleanedText
                     bestConfidence = 1.0f // We don't have per-box confidence anymore
-                    Timber.d("Found a valid VIN candidate: $bestVin")
+                    Log.d(TAG, "Found a valid VIN candidate: $bestVin")
                     break
                 }
             }
-            
+
             // If a VIN was found, report it
             if (bestVin != null) {
-                Timber.i("VIN detected: $bestVin with confidence $bestConfidence")
+                Log.i(TAG, "VIN detected: $bestVin with confidence $bestConfidence")
                 onVinDetected(bestVin, bestConfidence)
             } else {
-                Timber.d("No valid VIN found in the extracted text.")
+                Log.d(TAG, "No valid VIN found in the extracted text.")
             }
-            
+
         } catch (e: Exception) {
-            Timber.e(e, "Error processing image")
+            Log.e(TAG, "Error processing image", e)
         } finally {
             bitmap.recycle()
         }
     } catch (e: Exception) {
-        Timber.e(e, "Error converting image")
+        Log.e(TAG, "Error converting image", e)
     } finally {
         imageProxy.close()
     }
