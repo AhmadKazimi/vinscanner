@@ -1,5 +1,6 @@
 package com.kazimi.syaravin.presentation.scanner
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kazimi.syaravin.domain.model.VinNumber
@@ -11,7 +12,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 /**
  * ViewModel for the scanner screen
@@ -44,7 +44,7 @@ class ScannerViewModel(
         }
         
         _state.update { it.copy(isScanning = true, errorMessage = null) }
-        Timber.d("Starting VIN scanning")
+        Log.d("","Starting VIN scanning")
         
         // Scanning logic will be implemented in the UI layer with CameraX
         // The ViewModel will receive detected VINs through events
@@ -52,7 +52,7 @@ class ScannerViewModel(
     
     private fun stopScanning() {
         _state.update { it.copy(isScanning = false, isLoading = false) }
-        Timber.d("Stopped VIN scanning")
+        Log.d("","Stopped VIN scanning")
     }
     
     private fun updatePermissionStatus(granted: Boolean) {
@@ -97,10 +97,10 @@ class ScannerViewModel(
                 
                 // Stop scanning after successful detection
                 stopScanning()
-                
-                Timber.d("VIN detected and validated: ${validatedVin.value} (valid: ${validatedVin.isValid})")
+
+                Log.d("","VIN detected and validated: ${validatedVin.value} (valid: ${validatedVin.isValid})")
             } catch (e: Exception) {
-                Timber.e(e, "Error validating VIN")
+                Log.e(e.message, "Error validating VIN")
                 _state.update {
                     it.copy(
                         isLoading = false,

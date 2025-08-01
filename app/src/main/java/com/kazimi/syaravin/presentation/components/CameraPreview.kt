@@ -1,5 +1,6 @@
 package com.kazimi.syaravin.presentation.components
 
+import android.util.Log
 import android.view.ViewGroup
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
@@ -17,8 +18,9 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import com.kazimi.syaravin.util.DisposableEffectWithLifecycle
-import timber.log.Timber
 import java.util.concurrent.ExecutorService
+
+private const val TAG = "CameraPreview"
 
 /**
  * Composable for displaying camera preview using CameraX
@@ -32,7 +34,7 @@ fun CameraPreview(
     lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
 ) {
     val context = LocalContext.current
-    
+
     val previewView = remember {
         PreviewView(context).apply {
             layoutParams = ViewGroup.LayoutParams(
@@ -43,10 +45,10 @@ fun CameraPreview(
             implementationMode = PreviewView.ImplementationMode.PERFORMANCE
         }
     }
-    
+
     DisposableEffectWithLifecycle(
         onStart = {
-            Timber.d("Starting camera preview")
+            Log.d(TAG, "Starting camera preview")
             bindCameraUseCases(
                 context = context,
                 lifecycleOwner = lifecycleOwner,
@@ -57,10 +59,10 @@ fun CameraPreview(
             )
         },
         onStop = {
-            Timber.d("Stopping camera preview")
+            Log.d(TAG, "Stopping camera preview")
         }
     )
-    
+
     AndroidView(
         factory = { previewView },
         modifier = modifier.fillMaxSize()
@@ -76,17 +78,17 @@ private fun bindCameraUseCases(
     imageAnalyzer: ImageAnalysis
 ) {
     val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
-    
+
     cameraProviderFuture.addListener({
         try {
             val cameraProvider = cameraProviderFuture.get()
-            
+
             // Unbind all use cases before rebinding
             cameraProvider.unbindAll()
-            
+
             // Set the surface provider for preview
             preview.setSurfaceProvider(previewView.surfaceProvider)
-            
+
             // Bind use cases to camera
             cameraProvider.bindToLifecycle(
                 lifecycleOwner,
@@ -94,10 +96,10 @@ private fun bindCameraUseCases(
                 preview,
                 imageAnalyzer
             )
-            
-            Timber.d("Camera use cases bound successfully")
+
+            Log.d(TAG, "Camera use cases bound successfully")
         } catch (e: Exception) {
-            Timber.e(e, "Error binding camera use cases")
+            Log.e(TAG, "Error binding camera use cases", e)
         }
     }, ContextCompat.getMainExecutor(context))
 }
