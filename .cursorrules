@@ -1,0 +1,53 @@
+name: Syaravin Assistant Rules
+version: 1
+
+project:
+  language: kotlin
+  frameworks:
+    - android
+    - jetpack-compose
+    - camerax
+    - tflite-litert
+    - mlkit
+    - koin
+
+context:
+  overview_file: project.md
+
+conventions:
+  - Use Koin for DI; add bindings to `di/*.kt` and wire in `SyarahvinApplication` if new modules are created.
+  - Keep UI logic in Compose and frame processing inside the ImageAnalysis analyzer (see `ScannerScreen.processImage`).
+  - Maintain domain/usecase/data separation; all external APIs wrapped by data sources and repository.
+  - Do not block main thread; use coroutines with appropriate dispatchers.
+  - Respect normalized `BoundingBox` coordinates in domain/model; UI maps to pixels.
+
+codegen:
+  - Prefer explicit, descriptive names; avoid cryptic abbreviations.
+  - Add imports and dependencies when introducing new libraries; update `app/build.gradle.kts` and `gradle/libs.versions.toml` as needed.
+  - Preserve formatting consistent with existing files; avoid unrelated refactors.
+  - After edits that affect DI, ensure modules are included in `startKoin { modules(...) }`.
+
+testing:
+  - For logic changes in validation or preprocessing, add unit tests under `app/src/test/...`.
+  - When changing model IO, add lightweight checks asserting tensor shapes and detection mapping.
+
+commands:
+  build_debug: ./gradlew assembleDebug
+  install_debug: ./gradlew :app:installDebug
+  unit_tests: ./gradlew testDebugUnitTest
+  instrumented_tests: ./gradlew connectedDebugAndroidTest
+
+file_routing:
+  - UI components and screens → `app/src/main/java/com/kazimi/syaravin/presentation/**`
+  - ViewModels and state → `presentation/scanner/**`
+  - Use cases and domain models → `domain/**`
+  - Repositories and data sources → `data/**`
+  - DI bindings → `di/**`
+  - Build and dependencies → `app/build.gradle.kts`, `gradle/libs.versions.toml`
+
+notes:
+  - The TFLite model expects 640×640 RGB floats; adjust `VinDetectorImpl` constants if replacing the model.
+  - GPU delegate is optional; app should run without it.
+  - App is landscape by default as per `AndroidManifest.xml`.
+
+
