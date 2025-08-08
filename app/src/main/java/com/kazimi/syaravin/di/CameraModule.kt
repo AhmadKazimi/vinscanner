@@ -24,7 +24,6 @@ val cameraModule = module {
     // Preview use case
     factory {
         Preview.Builder()
-            .setTargetRotation(android.view.Surface.ROTATION_90) // Landscape
             .build()
     }
     
