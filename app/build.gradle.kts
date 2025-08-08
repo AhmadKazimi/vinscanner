@@ -1,3 +1,4 @@
+
 plugins {
 	alias(libs.plugins.android.application)
 	alias(libs.plugins.kotlin.android)
@@ -98,9 +99,9 @@ dependencies {
 	implementation(libs.kotlinx.coroutines.core)
 	
 	// Utilities
-	implementation(libs.timber)
 	debugImplementation(libs.leakcanary)
-	
+	implementation(libs.gson)
+
 	// Permissions handling
 	implementation(libs.accompanist.permissions)
 	
