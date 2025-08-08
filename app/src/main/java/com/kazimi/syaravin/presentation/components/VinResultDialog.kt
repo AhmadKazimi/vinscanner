@@ -180,23 +180,23 @@ fun VinResultSheetContent(
                         )
                         
                         VinInfoRow(
-                            icon = Icons.Filled.DirectionsCar,
+                            icon = Icons.Filled.Build,
                             label = "Manufacturer",
                             value = info.manufacturer
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         
                         VinInfoRow(
-                            icon = Icons.Filled.Public,
+                            icon = Icons.Filled.LocationOn,
                             label = "Country",
                             value = info.country
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         
                         VinInfoRow(
-                            icon = Icons.Filled.CalendarToday,
+                            icon = Icons.Filled.DateRange,
                             label = "Model Year",
-                            value = info.modelYear
+                            value = info.modelYear.toString()
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         
@@ -230,7 +230,7 @@ fun VinResultSheetContent(
                     )
                 ) {
                     Icon(
-                        imageVector = if (showSuccessCopied) Icons.Filled.Check else Icons.Filled.ContentCopy,
+                        imageVector = if (showSuccessCopied) Icons.Filled.Check else Icons.Filled.Clear,
                         contentDescription = null,
                         modifier = Modifier.size(20.dp)
                     )
@@ -252,7 +252,7 @@ fun VinResultSheetContent(
                     )
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.CameraAlt,
+                        imageVector = Icons.Filled.ThumbUp,
                         contentDescription = null,
                         modifier = Modifier.size(20.dp)
                     )

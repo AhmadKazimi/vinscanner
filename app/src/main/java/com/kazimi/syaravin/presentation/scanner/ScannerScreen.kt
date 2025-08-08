@@ -152,7 +152,6 @@ fun ScannerScreen(
 			containerColor = Color.Transparent,
 			contentColor = MaterialTheme.colorScheme.onSurface,
 			dragHandle = null,
-			windowInsets = WindowInsets(0, 0, 0, 0)
 		) {
 			state.detectedVin?.let {
 				VinResultSheetContent(
