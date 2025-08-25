@@ -5,6 +5,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.util.Log
+import android.graphics.Bitmap
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
@@ -34,6 +35,8 @@ import com.kazimi.syaravin.data.datasource.validator.VinValidator
 import com.kazimi.syaravin.presentation.components.BoundingBoxOverlay
 import com.kazimi.syaravin.presentation.components.CameraPreview
 import com.kazimi.syaravin.presentation.components.VinResultSheetContent
+import com.kazimi.syaravin.presentation.components.RoiOverlay
+import com.kazimi.syaravin.util.RoiConfig
 import com.kazimi.syaravin.util.showToast
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
@@ -186,6 +189,12 @@ fun ScannerScreen(
 				imageAnalyzer = imageAnalysis
 			)
 
+			// ROI overlay to guide user
+			RoiOverlay(
+				modifier = Modifier.fillMaxSize(),
+				roiBox = RoiConfig.roi
+			)
+
 			// Bounding box overlay
 			BoundingBoxOverlay(
 				modifier = Modifier.fillMaxSize(),
@@ -303,16 +312,58 @@ private suspend fun processImage(
 		Log.d(TAG, "Image converted to Bitmap with dimensions: ${bitmap.width}x${bitmap.height}")
 
 		try {
-			// Run object detection to get bounding boxes
-			Log.d(TAG, "Detecting VIN boxes...")
-			val detectionResult = vinDetector.detect(bitmap)
-			onBoxesDetected(detectionResult.boundingBoxes)
-			Log.d(TAG, "Detected ${detectionResult.boundingBoxes.size} VIN boxes.")
+			// Crop to ROI first to reduce noise and improve accuracy
+			val roi = RoiConfig.roi
+			val leftPx = (roi.left * bitmap.width).toInt().coerceIn(0, bitmap.width - 1)
+			val topPx = (roi.top * bitmap.height).toInt().coerceIn(0, bitmap.height - 1)
+			val rightPx = (roi.right * bitmap.width).toInt().coerceIn(leftPx + 1, bitmap.width)
+			val bottomPx = (roi.bottom * bitmap.height).toInt().coerceIn(topPx + 1, bitmap.height)
+			val roiWidth = rightPx - leftPx
+			val roiHeight = bottomPx - topPx
+			val shouldCrop = roiWidth > 0 && roiHeight > 0
 
-			// Extract all text from the image
-			Log.d(TAG, "Extracting all text from the image...")
-			val allText = textExtractor.extractAllText(bitmap)
-			Log.d(TAG, "Extracted text: $allText")
+			val processedBitmap: Bitmap = try {
+				if (shouldCrop) {
+					Log.d(TAG, "Cropping to ROI: [$leftPx,$topPx,$rightPx,$bottomPx] -> ${roiWidth}x${roiHeight}")
+					Bitmap.createBitmap(bitmap, leftPx, topPx, roiWidth, roiHeight)
+				} else bitmap
+			} catch (e: Exception) {
+				Log.e(TAG, "Failed to crop to ROI, falling back to full image", e)
+				bitmap
+			}
+
+			var allText: List<String> = emptyList()
+
+			try {
+				// Run object detection to get bounding boxes on ROI image
+				Log.d(TAG, "Detecting VIN boxes...")
+				val detectionResult = vinDetector.detect(processedBitmap)
+				val boxes = detectionResult.boundingBoxes
+				val mappedBoxes = if (shouldCrop) {
+					val roiWidthNorm = roi.right - roi.left
+					val roiHeightNorm = roi.bottom - roi.top
+					boxes.map { box ->
+						com.kazimi.syaravin.domain.model.BoundingBox(
+							left = roi.left + box.left * roiWidthNorm,
+							top = roi.top + box.top * roiHeightNorm,
+							right = roi.left + box.right * roiWidthNorm,
+							bottom = roi.top + box.bottom * roiHeightNorm,
+							confidence = box.confidence
+						)
+					}
+				} else boxes
+				onBoxesDetected(mappedBoxes)
+				Log.d(TAG, "Detected ${boxes.size} VIN boxes (mapped: ${mappedBoxes.size}).")
+
+				// Extract all text from the ROI image
+				Log.d(TAG, "Extracting all text from ROI image...")
+				allText = textExtractor.extractAllText(processedBitmap)
+				Log.d(TAG, "Extracted text: $allText")
+			} finally {
+				if (processedBitmap !== bitmap) {
+					try { processedBitmap.recycle() } catch (_: Throwable) {}
+				}
+			}
 
 			// Find the best VIN candidate
 			var bestVin: String? = null
@@ -342,7 +393,7 @@ private suspend fun processImage(
 		} catch (e: Exception) {
 			Log.e(TAG, "Error processing image", e)
 		} finally {
-			bitmap.recycle()
+			try { bitmap.recycle() } catch (_: Throwable) {}
 		}
 	} catch (e: Exception) {
 		e(TAG, "Error converting image", e)
