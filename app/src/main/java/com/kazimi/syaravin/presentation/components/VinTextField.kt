@@ -113,7 +113,7 @@ fun VinTextField(
                                 Text(
                                     text = "Enter VIN Number",
                                     style = TextStyle(
-                                        fontSize = 24.sp,
+                                        fontSize = 20.sp,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                                         textAlign = TextAlign.Center
                                     )
