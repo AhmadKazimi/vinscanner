@@ -12,6 +12,7 @@ import org.tensorflow.lite.Interpreter
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.min
+import kotlin.math.max
 
 private const val TAG = "VinDetectorImpl"
 
@@ -23,88 +24,142 @@ class VinDetectorImpl(
 ) : VinDetector {
 
     companion object {
-        // Model constants - adjust these based on your model's requirements
-        private const val MODEL_INPUT_SIZE = 640 // Typical size for object detection models
+        // Model constants - Ultralytics YOLO exports use square input (e.g., 640x640)
+        private const val MODEL_INPUT_SIZE = 640
         private const val PIXEL_SIZE = 3 // RGB
-        private const val IMAGE_MEAN = 127.5f
-        private const val IMAGE_STD = 127.5f
 
-        // Output array sizes - adjust based on your model
-        private const val MAX_DETECTIONS = 10
-        private const val NUM_COORDINATES = 4 // [ymin, xmin, ymax, xmax]
-
-        // New constants for YOLO model
-        private const val OUTPUT_TENSOR_WIDTH = 8400
-        private const val OUTPUT_TENSOR_PROPERTIES = 5 // [x, y, w, h, conf]
+        // Thresholds
+        private const val DEFAULT_CONF_THRESHOLD = 0.25f
+        private const val NMS_IOU_THRESHOLD = 0.45f
     }
 
-    // Pre-allocated buffers for better performance
+    // Pre-allocated input buffer for better performance
     private val imgData: ByteBuffer = ByteBuffer.allocateDirect(
         MODEL_INPUT_SIZE * MODEL_INPUT_SIZE * PIXEL_SIZE * 4 // 4 bytes per float
     ).apply {
         order(ByteOrder.nativeOrder())
     }
 
-    private val outputBuffer = Array(1) { Array(OUTPUT_TENSOR_PROPERTIES) { FloatArray(OUTPUT_TENSOR_WIDTH) } }
-
     override suspend fun detect(bitmap: Bitmap, confidenceThreshold: Float): DetectionResult =
         withContext(Dispatchers.Default) {
             val startTime = System.currentTimeMillis()
 
             try {
-                // Preprocessing is likely still correct
+                // Compute letterbox parameters (to later unmap predictions)
+                val scaleFactor = min(
+                    MODEL_INPUT_SIZE.toFloat() / bitmap.width,
+                    MODEL_INPUT_SIZE.toFloat() / bitmap.height
+                )
+                val scaledWidth = (bitmap.width * scaleFactor).toInt()
+                val scaledHeight = (bitmap.height * scaleFactor).toInt()
+                val padLeft = (MODEL_INPUT_SIZE - scaledWidth) / 2f
+                val padTop = (MODEL_INPUT_SIZE - scaledHeight) / 2f
+
+                // Preprocess (letterbox to 640x640)
                 val preprocessedBitmap = preprocessImage(bitmap)
                 convertBitmapToByteBuffer(preprocessedBitmap)
-
-                // Prepare the new output map for a single output
-                val outputMap = mapOf(0 to outputBuffer)
+                
+                // Prepare dynamic output buffer based on actual tensor shape
+                val outShape = interpreter.getOutputTensor(0).shape()
+                // Expected formats (examples): [1, 8400, 6] or [1, 6, 8400] or [1, 8400, 85] / [1, 85, 8400]
+                require(outShape.size == 3) { "Unexpected output tensor rank: ${outShape.contentToString()}" }
+                val dimA = outShape[1]
+                val dimB = outShape[2]
+                val outputDynamic: Array<Array<FloatArray>> = Array(1) { Array(dimA) { FloatArray(dimB) } }
+                val outputMap = mapOf(0 to outputDynamic)
 
                 // Run inference
                 interpreter.runForMultipleInputsOutputs(arrayOf(imgData), outputMap)
 
-                // --- REWRITE THE POST-PROCESSING LOGIC ---
-                val boundingBoxes = mutableListOf<BoundingBox>()
+                val propsCandidates = setOf(5, 6, 84, 85)
+                val propertiesCount: Int
+                val numCandidates: Int
+                val propsFirst: Boolean
+                if (dimA in propsCandidates) {
+                    propertiesCount = dimA
+                    numCandidates = dimB
+                    propsFirst = true
+                } else if (dimB in propsCandidates) {
+                    propertiesCount = dimB
+                    numCandidates = dimA
+                    propsFirst = false
+                } else {
+                    // Fallback heuristic: properties dimension is the smaller one
+                    if (dimA <= dimB) {
+                        propertiesCount = dimA
+                        numCandidates = dimB
+                        propsFirst = true
+                    } else {
+                        propertiesCount = dimB
+                        numCandidates = dimA
+                        propsFirst = false
+                    }
+                }
 
-                // Get the results from the buffer: shape is [5, 8400]
-                val detections = outputBuffer[0]
+                Log.d(TAG, "Output tensor shape=${outShape.contentToString()}, props=${propertiesCount}, num=${numCandidates}, propsFirst=${propsFirst}")
 
-                for (i in 0 until OUTPUT_TENSOR_WIDTH) {
-                    val confidence = detections[4][i] // 5th element is confidence
+                fun getProp(candidateIndex: Int, propIndex: Int): Float {
+                    return if (propsFirst) outputDynamic[0][propIndex][candidateIndex] else outputDynamic[0][candidateIndex][propIndex]
+                }
 
-                    if (confidence >= confidenceThreshold) {
-                        val xCenter = detections[0][i]
-                        val yCenter = detections[1][i]
-                        val width = detections[2][i]
-                        val height = detections[3][i]
+                val rawBoxes = mutableListOf<BoundingBox>()
+                val confThresh = max(confidenceThreshold, DEFAULT_CONF_THRESHOLD)
 
-                        // Convert from [x_center, y_center, width, height] to [left, top, right, bottom]
-                        // The coordinates are likely relative to the 640x640 input size,
-                        // so we normalize them to [0, 1] to match your BoundingBox model.
-                        val left = (xCenter - width / 2) / MODEL_INPUT_SIZE
-                        val top = (yCenter - height / 2) / MODEL_INPUT_SIZE
-                        val right = (xCenter + width / 2) / MODEL_INPUT_SIZE
-                        val bottom = (yCenter + height / 2) / MODEL_INPUT_SIZE
+                for (i in 0 until numCandidates) {
+                    val cx = getProp(i, 0)
+                    val cy = getProp(i, 1)
+                    val w = getProp(i, 2)
+                    val h = getProp(i, 3)
+                    val obj = if (propertiesCount > 4) getProp(i, 4) else 1f
 
-                        boundingBoxes.add(
+                    var clsScore = 1f
+                    if (propertiesCount > 5) {
+                        var maxCls = 0f
+                        var idx = 5
+                        while (idx < propertiesCount) {
+                            val s = getProp(i, idx)
+                            if (s > maxCls) maxCls = s
+                            idx++
+                        }
+                        clsScore = maxCls
+                    }
+
+                    val conf = obj * clsScore
+                    if (conf < confThresh) continue
+
+                    // Convert to pixel box in model space (640x640)
+                    val leftPxModel = cx - w / 2f
+                    val topPxModel = cy - h / 2f
+                    val rightPxModel = cx + w / 2f
+                    val bottomPxModel = cy + h / 2f
+
+                    // Unletterbox: map from 640x640 (with padding) to content area (scaledWidth x scaledHeight)
+                    val leftContent = ((leftPxModel - padLeft) / scaledWidth).coerceIn(0f, 1f)
+                    val topContent = ((topPxModel - padTop) / scaledHeight).coerceIn(0f, 1f)
+                    val rightContent = ((rightPxModel - padLeft) / scaledWidth).coerceIn(0f, 1f)
+                    val bottomContent = ((bottomPxModel - padTop) / scaledHeight).coerceIn(0f, 1f)
+
+                    if (rightContent > leftContent && bottomContent > topContent) {
+                        rawBoxes.add(
                             BoundingBox(
-                                left = left,
-                                top = top,
-                                right = right,
-                                bottom = bottom,
-                                confidence = confidence
+                                left = leftContent,
+                                top = topContent,
+                                right = rightContent,
+                                bottom = bottomContent,
+                                confidence = conf
                             )
                         )
                     }
                 }
 
-                // Note: YOLO models often produce many overlapping boxes.
-                // You may need to add a Non-Max Suppression (NMS) step here for best results.
+                // Apply NMS to reduce duplicates
+                val nmsBoxes = nonMaxSuppression(rawBoxes, NMS_IOU_THRESHOLD)
 
                 val processingTime = System.currentTimeMillis() - startTime
-                Log.d(TAG, "Detection completed in ${processingTime}ms, found ${boundingBoxes.size} potential VIN regions")
+                Log.d(TAG, "Detection completed in ${processingTime}ms, raw=${rawBoxes.size}, nms=${nmsBoxes.size}")
 
                 DetectionResult(
-                    boundingBoxes = boundingBoxes, // You might want to apply NMS to this list
+                    boundingBoxes = nmsBoxes,
                     processingTimeMs = processingTime
                 )
             } catch (e: Exception) {
@@ -157,14 +212,45 @@ class VinDetectorImpl(
 
         // Convert the image pixels to floating point values
         for (pixel in intValues) {
-            val r = (pixel shr 16 and 0xFF)
-            val g = (pixel shr 8 and 0xFF)
-            val b = (pixel and 0xFF)
-
-            // Normalize pixel values
-            imgData.putFloat((r - IMAGE_MEAN) / IMAGE_STD)
-            imgData.putFloat((g - IMAGE_MEAN) / IMAGE_STD)
-            imgData.putFloat((b - IMAGE_MEAN) / IMAGE_STD)
+            val r = (pixel shr 16 and 0xFF) / 255.0f
+            val g = (pixel shr 8 and 0xFF) / 255.0f
+            val b = (pixel and 0xFF) / 255.0f
+            imgData.putFloat(r)
+            imgData.putFloat(g)
+            imgData.putFloat(b)
         }
+    }
+
+    // Basic NMS for single-class detections
+    private fun nonMaxSuppression(boxes: List<BoundingBox>, iouThreshold: Float): List<BoundingBox> {
+        if (boxes.isEmpty()) return emptyList()
+        val sorted = boxes.sortedByDescending { it.confidence }.toMutableList()
+        val result = mutableListOf<BoundingBox>()
+        while (sorted.isNotEmpty()) {
+            val current = sorted.removeAt(0)
+            result.add(current)
+            val it = sorted.iterator()
+            while (it.hasNext()) {
+                val other = it.next()
+                val iou = computeIoU(current, other)
+                if (iou > iouThreshold) it.remove()
+            }
+        }
+        return result
+    }
+
+    private fun computeIoU(a: BoundingBox, b: BoundingBox): Float {
+        val interLeft = max(a.left, b.left)
+        val interTop = max(a.top, b.top)
+        val interRight = min(a.right, b.right)
+        val interBottom = min(a.bottom, b.bottom)
+        val interW = max(0f, interRight - interLeft)
+        val interH = max(0f, interBottom - interTop)
+        val interArea = interW * interH
+        val areaA = (a.right - a.left) * (a.bottom - a.top)
+        val areaB = (b.right - b.left) * (b.bottom - b.top)
+        val union = areaA + areaB - interArea
+        if (union <= 0f) return 0f
+        return interArea / union
     }
 }
