@@ -42,7 +42,9 @@ class VinValidatorImpl : VinValidator {
 
     override fun validate(vin: String): VinValidationResult {
         Log.d(TAG, "Validating text: $vin")
-        val correctedVin = correctOcrErrors(vin)
+        // Strip leading label before applying OCR corrections to avoid turning "VIN" into "V1N"
+        val withoutLabel = stripLeadingVinLabel(vin)
+        val correctedVin = correctOcrErrors(withoutLabel)
         val extractedVin = extractVin(correctedVin)
 
         if (extractedVin == null) {
@@ -107,21 +109,32 @@ class VinValidatorImpl : VinValidator {
     }
 
     override fun cleanVin(vin: String): String {
-        val correctedVin = correctOcrErrors(vin)
+        val withoutLabel = stripLeadingVinLabel(vin)
+        val correctedVin = correctOcrErrors(withoutLabel)
         return extractVin(correctedVin) ?: ""
     }
+    private fun stripLeadingVinLabel(text: String): String {
+        // Remove optional leading label like "VIN:", "vin - ", "VIN no", "VIN#", etc. (case-insensitive)
+        val pattern = Regex("(?i)^\\s*VIN(?:\\s*(?:NUMBER|NO|#))?\\s*[:#=\\u2013\\u2014\\-]?\\s*")
+        return text.replaceFirst(pattern, "")
+    }
+
 
     private fun correctOcrErrors(text: String): String {
         return text.map { OCR_CORRECTIONS[it] ?: it }.joinToString("")
     }
 
     private fun extractVin(text: String): String? {
-        // Remove all non-alphanumeric characters
-        val alphanumericText = text.replace(Regex("[^A-Z0-9]"), "")
+        // Normalize input and remove an optional leading "VIN" label with separators (e.g., "VIN:", "Vin - ", etc.)
+        val normalized = text.trim().uppercase()
+            .replaceFirst(Regex("^VIN\\s*[:#=\u2013\u2014\\-]?\\s*"), "")
+
+        // Remove all non-alphanumeric characters before searching for 17-char sequence
+        val alphanumericText = normalized.replace(Regex("[^A-Z0-9]"), "")
 
         // Find a 17-character VIN
         val vinRegex = Regex("[A-Z0-9]{17}")
-        val match = vinRegex.find(alphanumericText.uppercase())
+        val match = vinRegex.find(alphanumericText)
 
         return match?.value
     }
