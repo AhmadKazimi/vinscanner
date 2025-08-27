@@ -333,6 +333,8 @@ private suspend fun processImage(
 			}
 
 			var allText: List<String> = emptyList()
+			var bestVin: String? = null
+			var bestConfidence = 0f
 
 			try {
 				// Run object detection to get bounding boxes on ROI image
@@ -355,6 +357,21 @@ private suspend fun processImage(
 				onBoxesDetected(mappedBoxes)
 				Log.d(TAG, "Detected ${boxes.size} VIN boxes (mapped: ${mappedBoxes.size}).")
 
+				// Try OCR inside each detected box first (sorted by confidence)
+				for (box in boxes.sortedByDescending { it.confidence }) {
+					val textInBox = textExtractor.extractText(processedBitmap, box)
+					if (!textInBox.isNullOrBlank()) {
+						val candidate = vinValidator.cleanVin(textInBox)
+						val validation = vinValidator.validate(candidate)
+						if (validation.isValid) {
+							bestVin = candidate
+							bestConfidence = box.confidence
+							Log.d(TAG, "Valid VIN from box: $bestVin (conf=${box.confidence})")
+							break
+						}
+					}
+				}
+
 				// Extract all text from the ROI image
 				Log.d(TAG, "Extracting all text from ROI image...")
 				allText = textExtractor.extractAllText(processedBitmap)
@@ -365,20 +382,17 @@ private suspend fun processImage(
 				}
 			}
 
-			// Find the best VIN candidate
-			var bestVin: String? = null
-			var bestConfidence = 0f
-
-			Log.d(TAG, "Finding best VIN candidate...")
-			for (text in allText) {
-				Log.d(TAG, "Validating text: $text")
-				val cleanedText = vinValidator.cleanVin(text)
-				Log.d(TAG, "Cleaned text: $cleanedText")
-				if (cleanedText.length in 15..19) { // Basic VIN length check
-					bestVin = cleanedText
-					bestConfidence = 1.0f // We don't have per-box confidence anymore
-					Log.d(TAG, "Found a valid VIN candidate: $bestVin")
-					break
+			// If none found from boxes, fall back to ROI text lines and require validation
+			if (bestVin == null) {
+				Log.d(TAG, "Falling back to ROI text lines for VIN candidate...")
+				for (text in allText) {
+					val cleanedText = vinValidator.cleanVin(text)
+					val validation = vinValidator.validate(cleanedText)
+					if (validation.isValid) {
+						bestVin = cleanedText
+						bestConfidence = 1.0f
+						break
+					}
 				}
 			}
 
