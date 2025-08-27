@@ -5,8 +5,10 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -65,8 +67,9 @@ fun VinResultSheetContent(
         }
     }
     
-    val isCurrentVinValid = remember(vin) {
-        vin.length == 17 && vin.all { it.isLetterOrDigit() }
+    // Reflect true validity using checksum rules when editable VIN changes
+    val isCurrentVinValid by remember(vin) {
+        mutableStateOf(com.kazimi.syaravin.data.datasource.validator.VinValidatorImpl().validate(vin).isValid)
     }
 
     // Animation for status icon
@@ -99,6 +102,7 @@ fun VinResultSheetContent(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp, vertical = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {

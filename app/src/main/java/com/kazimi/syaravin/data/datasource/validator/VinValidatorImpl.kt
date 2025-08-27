@@ -83,8 +83,20 @@ class VinValidatorImpl : VinValidator {
             return result
         }
 
+        // 3. Basic numeric heuristic – VINs typically contain several digits
+        val digitCount = extractedVin.count { it.isDigit() }
+        if (digitCount < 5) {
+            val result = VinValidationResult(
+                isValid = false,
+                errorMessage = "VIN likely invalid (insufficient digits)",
+                formatValid = false
+            )
+            Log.d(TAG, "Validation result for '$vin': $result")
+            return result
+        }
 
-        // 3. Validate Checksum, trying permutations for ambiguous characters
+
+        // 4. Validate Checksum, trying permutations for ambiguous characters (bounded)
         if (validateChecksumWithPermutations(extractedVin)) {
             val result = VinValidationResult(
                 isValid = true,
@@ -132,8 +144,8 @@ class VinValidatorImpl : VinValidator {
         // Remove all non-alphanumeric characters before searching for 17-char sequence
         val alphanumericText = normalized.replace(Regex("[^A-Z0-9]"), "")
 
-        // Find a 17-character VIN
-        val vinRegex = Regex("[A-Z0-9]{17}")
+        // Find a 17-character VIN (exclude I, O, Q)
+        val vinRegex = Regex("[A-HJ-NPR-Z0-9]{17}")
         val match = vinRegex.find(alphanumericText)
 
         return match?.value
@@ -167,28 +179,35 @@ class VinValidatorImpl : VinValidator {
     }
 
     private fun validateChecksumWithPermutations(vin: String): Boolean {
+        // Prefer the original string; allow at most 1 ambiguous substitution
+        val maxChanges = 1
+        data class Node(val value: String, val changes: Int)
+
         val seenVins = mutableSetOf<String>()
-        val queue = ArrayDeque<String>()
+        val queue = ArrayDeque<Node>()
 
         seenVins.add(vin)
-        queue.addLast(vin)
+        queue.addLast(Node(vin, 0))
 
         while (queue.isNotEmpty()) {
-            val currentVin = queue.removeFirst()
+            val node = queue.removeFirst()
+            val currentVin = node.value
 
             if (validateChecksum(currentVin)) {
                 Log.i(TAG, "Valid checksum found for permutation: $currentVin")
                 return true
             }
 
-            // Generate next level of permutations
+            if (node.changes >= maxChanges) continue
+
+            // Generate next level of permutations (single-position swaps only)
             for (i in currentVin.indices) {
                 val char = currentVin[i]
-                if (AMBIGUOUS_CHARS.containsKey(char)) {
-                    val swappedChar = AMBIGUOUS_CHARS[char]!!
+                val swappedChar = AMBIGUOUS_CHARS[char]
+                if (swappedChar != null) {
                     val nextVin = currentVin.substring(0, i) + swappedChar + currentVin.substring(i + 1)
                     if (seenVins.add(nextVin)) {
-                        queue.addLast(nextVin)
+                        queue.addLast(Node(nextVin, node.changes + 1))
                     }
                 }
             }
