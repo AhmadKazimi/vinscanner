@@ -7,10 +7,10 @@ import com.kazimi.syaravin.domain.model.BoundingBox
  * Coordinates are normalized (0f..1f) relative to the analyzed image.
  */
 object RoiConfig {
-    // The analyzed image aspect ratio after rotation is portrait 9:16 by default
+    // The app runs in portrait mode with 9:16 aspect ratio (540×960)
     const val analyzedImageAspectRatio: Float = 9f / 16f
 
-    // Default ROI focused around the center: wide, short band for VIN
+    // Default ROI focused around the center: wide, short horizontal band for VIN
     // Left/Right padding ~5%, vertical band around center ~20% height
     val roi: BoundingBox = BoundingBox(
         left = 0.05f,

@@ -30,8 +30,8 @@ val cameraModule = module {
     // Image analysis use case
     factory {
         ImageAnalysis.Builder()
-            .setTargetRotation(android.view.Surface.ROTATION_90) // Landscape
-            .setTargetResolution(android.util.Size(1280, 720)) // Optimized for performance
+            .setTargetRotation(android.view.Surface.ROTATION_0) // Portrait
+            .setTargetResolution(android.util.Size(540, 960)) // Optimized for performance (portrait)
             .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
             .build()
     }
