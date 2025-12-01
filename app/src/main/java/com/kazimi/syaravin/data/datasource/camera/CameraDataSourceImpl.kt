@@ -86,7 +86,7 @@ class CameraDataSourceImpl(
         val outputStream = ByteArrayOutputStream()
         yuvImage.compressToJpeg(
             Rect(0, 0, imageProxy.width, imageProxy.height),
-            100,
+            85, // 85% quality for thermal efficiency
             outputStream
         )
 
