@@ -12,7 +12,7 @@ import com.kazimi.syaravin.di.repositoryModule
 import com.kazimi.syaravin.di.viewModelModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
-import org.koin.core.error.KoinAppAlreadyStartedException
+import org.koin.core.error.KoinApplicationAlreadyStartedException
 
 /**
  * Internal initializer for VIN scanner library.
@@ -40,7 +40,7 @@ internal class VinScannerInitializer : ContentProvider() {
 
             Log.d(TAG, "VIN Scanner library initialized successfully")
             true
-        } catch (e: KoinAppAlreadyStartedException) {
+        } catch (e: KoinApplicationAlreadyStartedException) {
             // Koin already started (e.g., in tests or multi-process scenarios)
             Log.d(TAG, "Koin already initialized, skipping")
             true

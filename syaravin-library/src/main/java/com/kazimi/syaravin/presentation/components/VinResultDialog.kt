@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.kazimi.syaravin.domain.model.VinNumber
 import com.kazimi.syaravin.util.VinDecoder
-import org.koin.androidx.compose.get
+import org.koin.compose.koinInject
 
 /**
  * Dialog to display VIN detection results
@@ -64,7 +64,7 @@ internal fun VinResultSheetContent(
     onConfirm: (VinNumber) -> Unit = {}
 ) {
     var vin by remember(vinNumber) { mutableStateOf(vinNumber.value) }
-    val vinDecoder: VinDecoder = get()
+    val vinDecoder: VinDecoder = koinInject()
     var showSuccessCopied by remember { mutableStateOf(false) }
 
     val vinInfo by remember(vin) {
