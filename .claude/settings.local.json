@@ -4,7 +4,9 @@
       "Bash(find:*)",
       "Bash(rsync:*)",
       "Bash(./gradlew clean:*)",
-      "Bash(./gradlew:*)"
+      "Bash(./gradlew:*)",
+      "Bash(git remote:*)",
+      "Bash(git remote add:*)"
     ],
     "deny": [],
     "ask": []
