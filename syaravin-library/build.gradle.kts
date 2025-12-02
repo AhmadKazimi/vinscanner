@@ -47,6 +47,13 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+            withJavadocJar()
+        }
+    }
 }
 
 dependencies {
@@ -109,9 +116,9 @@ afterEvaluate {
                 version = "1.0.0"
 
                 pom {
-                    name.set("Syaravin VIN Scanner")
+                    name.set("Syarah VIN Scanner")
                     description.set("Android library for real-time VIN detection and validation using ML")
-                    url.set("https://bitbucket.org/yourworkspace/syaravin-library")
+                    url.set("https://github.com/syarah/vinscanner")
 
                     licenses {
                         license {
@@ -129,25 +136,41 @@ afterEvaluate {
                     }
 
                     scm {
-                        connection.set("scm:git:git://bitbucket.org/yourworkspace/syaravin-library.git")
-                        developerConnection.set("scm:git:ssh://bitbucket.org/yourworkspace/syaravin-library.git")
-                        url.set("https://bitbucket.org/yourworkspace/syaravin-library")
+                        connection.set("scm:git:git://github.com/syarah/vinscanner.git")
+                        developerConnection.set("scm:git:ssh://github.com/syarah/vinscanner.git")
+                        url.set("https://github.com/syarah/vinscanner")
                     }
                 }
             }
         }
 
         repositories {
+            // Publish to Maven Local for testing
+            mavenLocal()
+
+            // Option 1: GitHub Packages (uncomment to use)
+            // maven {
+            //     name = "GitHubPackages"
+            //     url = uri("https://maven.pkg.github.com/OWNER/REPOSITORY")
+            //     credentials {
+            //         username = project.findProperty("gpr.user") as String? ?: System.getenv("GITHUB_ACTOR")
+            //         password = project.findProperty("gpr.token") as String? ?: System.getenv("GITHUB_TOKEN")
+            //     }
+            // }
+
+            // Option 2: Custom Maven repository
             maven {
-                name = "BitbucketPackages"
-                url = uri("https://api.bitbucket.org/2.0/repositories/${
-                    project.findProperty("bitbucket.workspace") ?: System.getenv("BITBUCKET_WORKSPACE")
-                }/${
-                    project.findProperty("bitbucket.repoSlug") ?: System.getenv("BITBUCKET_REPO_SLUG")
-                }/maven")
+                name = "CustomMaven"
+                url = uri(
+                    project.findProperty("maven.url") as String?
+                        ?: System.getenv("MAVEN_REPOSITORY_URL")
+                        ?: "https://your-maven-repo.com/releases"
+                )
                 credentials {
-                    username = project.findProperty("bitbucket.user") as String? ?: System.getenv("BITBUCKET_USER")
-                    password = project.findProperty("bitbucket.appPassword") as String? ?: System.getenv("BITBUCKET_APP_PASSWORD")
+                    username = project.findProperty("maven.username") as String?
+                        ?: System.getenv("MAVEN_USERNAME")
+                    password = project.findProperty("maven.password") as String?
+                        ?: System.getenv("MAVEN_PASSWORD")
                 }
             }
         }
