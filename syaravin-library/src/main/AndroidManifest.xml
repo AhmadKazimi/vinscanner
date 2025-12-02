@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Camera Permission -->
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <!-- Camera Features -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="true" />
+    <uses-feature
+        android:name="android.hardware.camera.autofocus"
+        android:required="false" />
+
+    <application>
+        <!-- Internal scanner activity -->
+        <activity
+            android:name=".VinScannerActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Syaravin"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:hardwareAccelerated="true" />
+
+        <!-- Auto-initialization via ContentProvider -->
+        <provider
+            android:name=".VinScannerInitializer"
+            android:authorities="${applicationId}.vinscannerinitialization"
+            android:exported="false"
+            android:multiprocess="true" />
+    </application>
+
+</manifest>

@@ -49,9 +49,9 @@ camera-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", versi
 camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "cameraX" }
 
 # Google AI Edge
-ai-edge-litert-base = { group = "com.google.android.edge", name = "litert-base", version.ref = "aiEdge" }
-ai-edge-litert-gpu = { group = "com.google.android.edge", name = "litert-gpu", version.ref = "aiEdge" }
-ai-edge-litert-core = { group = "com.google.android.edge", name = "litert-core", version.ref = "aiEdge" }
+ai-edge-litert-base = { group = "com.google.ai.edge.litert", name = "litert", version.ref = "aiEdge" }
+ai-edge-litert-gpu = { group = "com.google.ai.edge.litert", name = "litert-gpu", version.ref = "aiEdge" }
+ai-edge-litert-core = { group = "com.google.ai.edge.litert", name = "litert-support", version.ref = "aiEdge" }
 
 # ML Kit
 mlkit-text-recognition = { group = "com.google.mlkit", name = "text-recognition", version.ref = "mlkitTextRecognition" }
@@ -78,5 +78,6 @@ accompanist-permissions = { group = "com.google.accompanist", name = "accompanis
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
+android-library = { id = "com.android.library", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
