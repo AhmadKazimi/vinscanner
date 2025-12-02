@@ -20,4 +20,5 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "Syaravin"
-include(":app")
+include(":syaravin-library")
+include(":sample-app")
