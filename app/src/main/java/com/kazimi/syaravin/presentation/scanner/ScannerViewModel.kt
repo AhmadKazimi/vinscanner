@@ -1,5 +1,6 @@
 package com.kazimi.syaravin.presentation.scanner
 
+import android.graphics.Bitmap
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -92,7 +93,7 @@ class ScannerViewModel(
     }
 
 
-    fun onVinDetected(vin: String, confidence: Float) {
+    fun onVinDetected(vin: String, confidence: Float, croppedBitmap: Bitmap?) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
 
@@ -100,11 +101,14 @@ class ScannerViewModel(
                 // Validate the VIN
                 val validatedVin = validateVinUseCase(vin)
 
-                // Update state with the result
+                // Update state with the result, including the cropped bitmap
                 _state.update { currentState ->
                     currentState.copy(
                         isLoading = false,
-                        detectedVin = validatedVin.copy(confidence = confidence),
+                        detectedVin = validatedVin.copy(
+                            confidence = confidence,
+                            croppedImage = croppedBitmap
+                        ),
                         showVinResult = true,
                         scanHistory = currentState.scanHistory + validatedVin
                     )
@@ -115,7 +119,7 @@ class ScannerViewModel(
 
                 Log.d(
                     "",
-                    "VIN detected and validated: ${validatedVin.value} (valid: ${validatedVin.isValid})"
+                    "VIN detected and validated: ${validatedVin.value} (valid: ${validatedVin.isValid}), cropped bitmap: ${croppedBitmap != null}"
                 )
             } catch (e: Exception) {
                 Log.e(e.message, "Error validating VIN")

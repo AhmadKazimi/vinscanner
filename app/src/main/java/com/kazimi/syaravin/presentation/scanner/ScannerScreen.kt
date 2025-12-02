@@ -36,6 +36,7 @@ import com.kazimi.syaravin.presentation.components.BoundingBoxOverlay
 import com.kazimi.syaravin.presentation.components.CameraPreview
 import com.kazimi.syaravin.presentation.components.VinResultSheetContent
 import com.kazimi.syaravin.presentation.components.RoiOverlay
+import com.kazimi.syaravin.util.ImagePreprocessor
 import com.kazimi.syaravin.util.RoiConfig
 import com.kazimi.syaravin.util.showToast
 import kotlinx.coroutines.launch
@@ -116,8 +117,9 @@ fun ScannerScreen(
 							vinDetector = vinDetector,
 							textExtractor = textExtractor,
 							vinValidator = vinValidator,
-							onVinDetected = { vin, confidence ->
-								viewModel.onVinDetected(vin, confidence)
+
+							onVinDetected = { vin, confidence, croppedBitmap ->
+								viewModel.onVinDetected(vin, confidence, croppedBitmap)
 							},
 							onBoxesDetected = { boxes ->
 								viewModel.onDetectionBoxesUpdated(boxes)
@@ -302,7 +304,7 @@ private suspend fun processImage(
 	vinDetector: VinDetector,
 	textExtractor: TextExtractor,
 	vinValidator: VinValidator,
-	onVinDetected: (String, Float) -> Unit,
+	onVinDetected: (String, Float, Bitmap?) -> Unit,
 	onBoxesDetected: (List<com.kazimi.syaravin.domain.model.BoundingBox>) -> Unit
 ) {
 	Log.d(TAG, "Processing image...")
@@ -335,6 +337,7 @@ private suspend fun processImage(
 			var allText: List<String> = emptyList()
 			var bestVin: String? = null
 			var bestConfidence = 0f
+			var croppedVinBitmap: Bitmap? = null
 
 			try {
 				// Run object detection to get bounding boxes on ROI image
@@ -367,6 +370,21 @@ private suspend fun processImage(
 							bestVin = candidate
 							bestConfidence = box.confidence
 							Log.d(TAG, "Valid VIN from box: $bestVin (conf=${box.confidence})")
+
+							// Crop and enhance the bitmap using the AI detection box
+							try {
+								croppedVinBitmap = ImagePreprocessor.cropAndEnhance(
+									processedBitmap,
+									box.left,
+									box.top,
+									box.right,
+									box.bottom,
+									paddingPercent = 0.15f
+								)
+								Log.d(TAG, "Cropped and enhanced VIN from AI detection: ${croppedVinBitmap?.width}x${croppedVinBitmap?.height}")
+							} catch (e: Exception) {
+								Log.e(TAG, "Failed to crop and enhance VIN bitmap", e)
+							}
 							break
 						}
 					}
@@ -376,30 +394,35 @@ private suspend fun processImage(
 				Log.d(TAG, "Extracting all text from ROI image...")
 				allText = textExtractor.extractAllText(processedBitmap)
 				Log.d(TAG, "Extracted text: $allText")
+
+				// If none found from boxes, fall back to ROI text lines and require validation
+				/* Fallback disabled by user request - rely on AI detection only
+				if (bestVin == null) {
+					Log.d(TAG, "Falling back to ROI text lines for VIN candidate...")
+					for (text in allText) {
+						val cleanedText = vinValidator.cleanVin(text)
+						val validation = vinValidator.validate(cleanedText)
+						if (validation.isValid) {
+							bestVin = cleanedText
+							bestConfidence = 1.0f
+							// VIN found from text, AI model did not detect box location
+							Log.d(TAG, "VIN found from text without AI detection box")
+							break
+						}
+					}
+				}
+				*/
 			} finally {
 				if (processedBitmap !== bitmap) {
 					try { processedBitmap.recycle() } catch (_: Throwable) {}
 				}
 			}
 
-			// If none found from boxes, fall back to ROI text lines and require validation
-			if (bestVin == null) {
-				Log.d(TAG, "Falling back to ROI text lines for VIN candidate...")
-				for (text in allText) {
-					val cleanedText = vinValidator.cleanVin(text)
-					val validation = vinValidator.validate(cleanedText)
-					if (validation.isValid) {
-						bestVin = cleanedText
-						bestConfidence = 1.0f
-						break
-					}
-				}
-			}
 
 			// If a VIN was found, report it
 			if (bestVin != null) {
 				Log.i(TAG, "VIN detected: $bestVin with confidence $bestConfidence")
-				onVinDetected(bestVin, bestConfidence)
+				onVinDetected(bestVin, bestConfidence, croppedVinBitmap)
 			} else {
 				Log.d(TAG, "No valid VIN found in the extracted text.")
 			}

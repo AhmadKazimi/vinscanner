@@ -90,12 +90,27 @@ private fun bindCameraUseCases(
             preview.setSurfaceProvider(previewView.surfaceProvider)
 
             // Bind use cases to camera
-            cameraProvider.bindToLifecycle(
+            val camera = cameraProvider.bindToLifecycle(
                 lifecycleOwner,
                 cameraSelector,
                 preview,
                 imageAnalyzer
             )
+
+            // Setup Tap-to-Focus
+            previewView.setOnTouchListener { view, event ->
+                if (event.action == android.view.MotionEvent.ACTION_DOWN) {
+                    val factory = previewView.meteringPointFactory
+                    val point = factory.createPoint(event.x, event.y)
+                    val action = androidx.camera.core.FocusMeteringAction.Builder(point)
+                        .setAutoCancelDuration(3, java.util.concurrent.TimeUnit.SECONDS)
+                        .build()
+                    
+                    camera.cameraControl.startFocusAndMetering(action)
+                    view.performClick()
+                }
+                true
+            }
 
             Log.d(TAG, "Camera use cases bound successfully")
         } catch (e: Exception) {
