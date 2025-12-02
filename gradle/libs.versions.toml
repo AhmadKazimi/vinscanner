@@ -1,30 +1,30 @@
 
 [versions]
-agp = "8.12.0-rc01"
-kotlin = "2.0.21"
-coreKtx = "1.16.0"
+agp = "8.13.1"
+kotlin = "2.2.21"
+coreKtx = "1.17.0"
 junit = "4.13.2"
-junitVersion = "1.2.1"
-espressoCore = "3.6.1"
-lifecycleRuntimeKtx = "2.9.2"
-activityCompose = "1.10.1"
+junitVersion = "1.1.5"
+espressoCore = "3.5.1"
+lifecycleRuntimeKtx = "2.9.4"
+activityCompose = "1.11.0"
 composeBom = "2024.09.00"
 # Camera
-cameraX = "1.3.1"
+cameraX = "1.5.1"
 # ML and Vision
 aiEdge = "1.4.0"
 mlkitTextRecognition = "16.0.0"
 # Dependency Injection
-koin = "3.5.3"
+koin = "4.1.1"
 # Coroutines
-coroutines = "1.7.3"
-play-services-coroutines = "1.7.3"
+coroutines = "1.10.2"
+play-services-coroutines = "1.10.2"
 # Utilities
-leakcanary = "2.12"
+leakcanary = "2.14"
 gson = "2.10.1"
 # Compose additions
-composeViewModel = "2.9.2"
-accompanist = "0.32.0"
+composeViewModel = "2.9.4"
+accompanist = "0.37.3"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -49,9 +49,9 @@ camera-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", versi
 camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "cameraX" }
 
 # Google AI Edge
-ai-edge-litert-base = { group = "com.google.android.edge", name = "litert-base", version.ref = "aiEdge" }
-ai-edge-litert-gpu = { group = "com.google.android.edge", name = "litert-gpu", version.ref = "aiEdge" }
-ai-edge-litert-core = { group = "com.google.android.edge", name = "litert-core", version.ref = "aiEdge" }
+ai-edge-litert-base = { group = "com.google.ai.edge.litert", name = "litert", version.ref = "aiEdge" }
+ai-edge-litert-gpu = { group = "com.google.ai.edge.litert", name = "litert-gpu", version.ref = "aiEdge" }
+ai-edge-litert-core = { group = "com.google.ai.edge.litert", name = "litert-support", version.ref = "aiEdge" }
 
 # ML Kit
 mlkit-text-recognition = { group = "com.google.mlkit", name = "text-recognition", version.ref = "mlkitTextRecognition" }
@@ -78,5 +78,6 @@ accompanist-permissions = { group = "com.google.accompanist", name = "accompanis
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
+android-library = { id = "com.android.library", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
