@@ -557,7 +557,7 @@ for (textBlock in textResult.textBlocks) {
 
 **Test Command**:
 ```bash
-./gradlew :app:installDebug
+./gradlew :sample-app:installDebug
 ```
 
 **What to Look For in Logs**:

@@ -20,10 +20,10 @@ Syaravin is an Android VIN (Vehicle Identification Number) scanner application t
 ./gradlew assembleDebug
 
 # Install debug build on connected device
-./gradlew :app:installDebug
+./gradlew :sample-app:installDebug
 
 # Build and install in one command
-./gradlew :app:installDebug
+./gradlew :sample-app:installDebug
 ```
 
 ### Testing
