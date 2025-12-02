@@ -1,15 +1,19 @@
 package com.kazimi.syaravin.domain.model
 
+import android.graphics.Bitmap
+
 /**
  * Represents a Vehicle Identification Number (VIN)
  * @property value The VIN string (should be 17 characters)
  * @property confidence The confidence score of the detection (0.0 to 1.0)
  * @property isValid Whether the VIN passes validation checks
+ * @property croppedImage The cropped bitmap showing the detected VIN region (optional)
  */
 data class VinNumber(
     val value: String,
     val confidence: Float = 0f,
-    val isValid: Boolean = false
+    val isValid: Boolean = false,
+    val croppedImage: Bitmap? = null
 ) {
     companion object {
         const val VIN_LENGTH = 17

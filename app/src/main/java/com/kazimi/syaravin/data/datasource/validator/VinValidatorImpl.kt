@@ -108,11 +108,13 @@ class VinValidatorImpl : VinValidator {
         }
 
 
+        // Checksum failed, but we allow it (soft validation)
+        Log.w(TAG, "Checksum validation failed for '$extractedVin', but accepting as valid format.")
         val result = VinValidationResult(
-            isValid = false,
-            errorMessage = "Invalid VIN checksum",
+            isValid = true, // Relaxed validation: Accept even if checksum fails
+            errorMessage = "Invalid VIN checksum (accepted)",
             checksumValid = false,
-            formatValid = true // Format is valid at this point, but checksum failed
+            formatValid = true
         )
 
 

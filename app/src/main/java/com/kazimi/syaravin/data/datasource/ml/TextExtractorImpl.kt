@@ -64,6 +64,31 @@ class TextExtractorImpl(
         }
     }
 
+    override suspend fun extractAllTextWithBounds(bitmap: Bitmap): List<TextWithBounds> = withContext(Dispatchers.Default) {
+        try {
+            val image = InputImage.fromBitmap(bitmap, 0)
+            val result = recogniser.process(image).await()
+            result.textBlocks.flatMap { block ->
+                block.lines.mapNotNull { line ->
+                    line.boundingBox?.let { rect ->
+                        // Convert pixel coordinates to normalized coordinates
+                        val normalizedBox = BoundingBox(
+                            left = rect.left.toFloat() / bitmap.width,
+                            top = rect.top.toFloat() / bitmap.height,
+                            right = rect.right.toFloat() / bitmap.width,
+                            bottom = rect.bottom.toFloat() / bitmap.height,
+                            confidence = 1.0f // ML Kit doesn't provide confidence per line
+                        )
+                        TextWithBounds(line.text, normalizedBox)
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error extracting text with bounds from image", e)
+            emptyList()
+        }
+    }
+
     /**
      * Converts a normalised [BoundingBox] (values in 0..1) to a pixel [Rect]
      * relative to the supplied [bitmap]. Any out-of-bounds values are clamped.

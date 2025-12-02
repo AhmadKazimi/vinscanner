@@ -46,6 +46,88 @@ class CameraDataSourceImpl(
     }
 
     private fun convertYuvToBitmap(imageProxy: ImageProxy): Bitmap {
+        Log.d(TAG, "=== YUV Conversion START ===")
+        Log.d(TAG, "ImageProxy format=${imageProxy.format}, width=${imageProxy.width}, height=${imageProxy.height}, rotation=${imageProxy.imageInfo.rotationDegrees}")
+
+        return try {
+            Log.d(TAG, "Attempting direct YUV→RGB conversion (no JPEG compression)")
+            val startTime = System.currentTimeMillis()
+            val bitmap = convertYuvToBitmapDirect(imageProxy)
+            val duration = System.currentTimeMillis() - startTime
+            Log.i(TAG, "✓ Direct YUV→RGB conversion SUCCESS in ${duration}ms - Bitmap: ${bitmap.width}x${bitmap.height}, config=${bitmap.config}")
+            bitmap
+        } catch (e: Exception) {
+            Log.e(TAG, "✗ Direct YUV→RGB conversion FAILED, falling back to JPEG method", e)
+            val startTime = System.currentTimeMillis()
+            val bitmap = convertYuvToBitmapViaJpeg(imageProxy)
+            val duration = System.currentTimeMillis() - startTime
+            Log.w(TAG, "Fallback JPEG conversion completed in ${duration}ms - Bitmap: ${bitmap.width}x${bitmap.height}")
+            bitmap
+        }
+    }
+
+    /**
+     * Direct YUV to RGB conversion for maximum image quality.
+     * Eliminates JPEG compression artifacts that degrade AI detection.
+     */
+    private fun convertYuvToBitmapDirect(imageProxy: ImageProxy): Bitmap {
+        val yBuffer = imageProxy.planes[0].buffer
+        val uBuffer = imageProxy.planes[1].buffer
+        val vBuffer = imageProxy.planes[2].buffer
+
+        val ySize = yBuffer.remaining()
+        val uSize = uBuffer.remaining()
+        val vSize = vBuffer.remaining()
+
+        // Create RGB bitmap directly without JPEG compression
+        val width = imageProxy.width
+        val height = imageProxy.height
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+
+        // Direct YUV to RGB conversion
+        val pixels = IntArray(width * height)
+        val yData = ByteArray(ySize)
+        val uData = ByteArray(uSize)
+        val vData = ByteArray(vSize)
+
+        yBuffer.get(yData)
+        uBuffer.get(uData)
+        vBuffer.get(vData)
+
+        val uvPixelStride = imageProxy.planes[1].pixelStride
+        val uvRowStride = imageProxy.planes[1].rowStride
+
+        for (row in 0 until height) {
+            for (col in 0 until width) {
+                val yIndex = row * imageProxy.planes[0].rowStride + col
+                val uvRow = row / 2
+                val uvCol = col / 2
+                val uvIndex = uvRow * uvRowStride + uvCol * uvPixelStride
+
+                val y = (yData[yIndex].toInt() and 0xFF) - 16
+                val u = (uData[uvIndex].toInt() and 0xFF) - 128
+                val v = (vData[uvIndex].toInt() and 0xFF) - 128
+
+                // YUV to RGB conversion (ITU-R BT.601)
+                val r = (1.164f * y + 1.596f * v).toInt().coerceIn(0, 255)
+                val g = (1.164f * y - 0.392f * u - 0.813f * v).toInt().coerceIn(0, 255)
+                val b = (1.164f * y + 2.017f * u).toInt().coerceIn(0, 255)
+
+                pixels[row * width + col] = (0xFF shl 24) or (r shl 16) or (g shl 8) or b
+            }
+        }
+
+        bitmap.setPixels(pixels, 0, width, 0, 0, width, height)
+
+        // Rotate bitmap if needed (preserve existing rotation handling)
+        return rotateBitmap(bitmap, imageProxy.imageInfo.rotationDegrees)
+    }
+
+    /**
+     * Fallback JPEG-based conversion (original implementation).
+     * Used if direct YUV→RGB conversion fails.
+     */
+    private fun convertYuvToBitmapViaJpeg(imageProxy: ImageProxy): Bitmap {
         val yBuffer = imageProxy.planes[0].buffer
         val uBuffer = imageProxy.planes[1].buffer
         val vBuffer = imageProxy.planes[2].buffer

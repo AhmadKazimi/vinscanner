@@ -44,6 +44,10 @@ class VinDetectorImpl(
         withContext(Dispatchers.Default) {
             val startTime = System.currentTimeMillis()
 
+            Log.d(TAG, "=== AI DETECTION START ===")
+            Log.d(TAG, "Input bitmap: ${bitmap.width}x${bitmap.height}, config=${bitmap.config}")
+            Log.d(TAG, "Requested confidence threshold: $confidenceThreshold")
+
             try {
                 // Compute letterbox parameters (to later unmap predictions)
                 val scaleFactor = min(
@@ -55,8 +59,11 @@ class VinDetectorImpl(
                 val padLeft = (MODEL_INPUT_SIZE - scaledWidth) / 2f
                 val padTop = (MODEL_INPUT_SIZE - scaledHeight) / 2f
 
+                Log.d(TAG, "Letterbox params: scaleFactor=$scaleFactor, scaled=${scaledWidth}x${scaledHeight}, padding=(${padLeft},${padTop})")
+
                 // Preprocess (letterbox to 640x640)
                 val preprocessedBitmap = preprocessImage(bitmap)
+                Log.d(TAG, "Preprocessed bitmap: ${preprocessedBitmap.width}x${preprocessedBitmap.height}")
                 convertBitmapToByteBuffer(preprocessedBitmap)
                 
                 // Prepare dynamic output buffer based on actual tensor shape
@@ -105,11 +112,19 @@ class VinDetectorImpl(
                 val rawBoxes = mutableListOf<BoundingBox>()
                 val confThresh = max(confidenceThreshold, DEFAULT_CONF_THRESHOLD)
 
+                Log.i(TAG, "Using confidence threshold: $confThresh (requested=$confidenceThreshold, default=$DEFAULT_CONF_THRESHOLD)")
+                Log.d(TAG, "Scanning ${numCandidates} candidates...")
+
+                var maxConfidenceSeen = 0f
+                var candidatesAboveHalfThreshold = 0
+
+                val topIndices = java.util.PriorityQueue<Pair<Int, Float>>(6) { a, b -> a.second.compareTo(b.second) }
+
                 for (i in 0 until numCandidates) {
-                    val cx = getProp(i, 0)
-                    val cy = getProp(i, 1)
-                    val w = getProp(i, 2)
-                    val h = getProp(i, 3)
+                    val cx = getProp(i, 0) * MODEL_INPUT_SIZE
+                    val cy = getProp(i, 1) * MODEL_INPUT_SIZE
+                    val w = getProp(i, 2) * MODEL_INPUT_SIZE
+                    val h = getProp(i, 3) * MODEL_INPUT_SIZE
                     val obj = if (propertiesCount > 4) getProp(i, 4) else 1f
 
                     var clsScore = 1f
@@ -125,6 +140,19 @@ class VinDetectorImpl(
                     }
 
                     val conf = obj * clsScore
+
+                    // Track top 5 candidates for debugging
+                    if (topIndices.size < 5) {
+                        topIndices.add(i to conf)
+                    } else if (conf > topIndices.peek().second) {
+                        topIndices.poll()
+                        topIndices.add(i to conf)
+                    }
+
+                    // Track maximum confidence and near-threshold candidates
+                    if (conf > maxConfidenceSeen) maxConfidenceSeen = conf
+                    if (conf > confThresh / 2) candidatesAboveHalfThreshold++
+
                     if (conf < confThresh) continue
 
                     // Convert to pixel box in model space (640x640)
@@ -139,7 +167,9 @@ class VinDetectorImpl(
                     val rightContent = ((rightPxModel - padLeft) / scaledWidth).coerceIn(0f, 1f)
                     val bottomContent = ((bottomPxModel - padTop) / scaledHeight).coerceIn(0f, 1f)
 
-                    if (rightContent > leftContent && bottomContent > topContent) {
+                    val passesValidation = rightContent > leftContent && bottomContent > topContent
+
+                    if (passesValidation) {
                         rawBoxes.add(
                             BoundingBox(
                                 left = leftContent,
@@ -152,11 +182,77 @@ class VinDetectorImpl(
                     }
                 }
 
+                // Log top 5 candidates for debugging
+                Log.d(TAG, "=== TOP 5 CANDIDATES DEBUG ===")
+                val sortedTop = topIndices.sortedByDescending { it.second }
+                for ((idx, conf) in sortedTop) {
+                    val cx = getProp(idx, 0) * MODEL_INPUT_SIZE
+                    val cy = getProp(idx, 1) * MODEL_INPUT_SIZE
+                    val w = getProp(idx, 2) * MODEL_INPUT_SIZE
+                    val h = getProp(idx, 3) * MODEL_INPUT_SIZE
+                    val obj = if (propertiesCount > 4) getProp(idx, 4) else 1f
+                    
+                    // Re-calculate clsScore
+                    var clsScore = 1f
+                    if (propertiesCount > 5) {
+                        var maxCls = 0f
+                        var i = 5
+                        while (i < propertiesCount) {
+                            val s = getProp(idx, i)
+                            if (s > maxCls) maxCls = s
+                            i++
+                        }
+                        clsScore = maxCls
+                    }
+
+                    val leftPxModel = cx - w / 2f
+                    val topPxModel = cy - h / 2f
+                    val rightPxModel = cx + w / 2f
+                    val bottomPxModel = cy + h / 2f
+
+                    val leftContent = ((leftPxModel - padLeft) / scaledWidth)
+                    val topContent = ((topPxModel - padTop) / scaledHeight)
+                    val rightContent = ((rightPxModel - padLeft) / scaledWidth)
+                    val bottomContent = ((bottomPxModel - padTop) / scaledHeight)
+                    
+                    val valid = rightContent > leftContent && bottomContent > topContent
+                    
+                    Log.d(TAG, "Candidate[$idx]: conf=$conf (obj=$obj, cls=$clsScore)")
+                    Log.d(TAG, "  Raw Model Box: cx=$cx, cy=$cy, w=$w, h=$h")
+                    Log.d(TAG, "  Px Model Box: L=$leftPxModel, T=$topPxModel, R=$rightPxModel, B=$bottomPxModel")
+                    Log.d(TAG, "  Content Box (pre-coerce): L=$leftContent, T=$topContent, R=$rightContent, B=$bottomContent")
+                    Log.d(TAG, "  Valid: $valid")
+                    if (!valid) {
+                         val failReason = when {
+                            leftContent >= rightContent && topContent >= bottomContent ->
+                                "left >= right AND top >= bottom"
+                            leftContent >= rightContent -> "left >= right"
+                            topContent >= bottomContent -> "top >= bottom"
+                            else -> "unknown"
+                        }
+                        Log.w(TAG, "  REJECT REASON: $failReason")
+                    }
+                }
+
+                // Log detection statistics
+                Log.i(TAG, "Detection stats: maxConfidence=$maxConfidenceSeen, candidatesAboveHalfThresh=$candidatesAboveHalfThreshold, rawBoxes=${rawBoxes.size}")
+
+                if (rawBoxes.isEmpty() && maxConfidenceSeen > 0f) {
+                    Log.w(TAG, "⚠ NO boxes detected! Max confidence was $maxConfidenceSeen (threshold=$confThresh)")
+                    Log.w(TAG, "⚠ Consider lowering threshold or checking model training data")
+                }
+
                 // Apply NMS to reduce duplicates
                 val nmsBoxes = nonMaxSuppression(rawBoxes, NMS_IOU_THRESHOLD)
 
                 val processingTime = System.currentTimeMillis() - startTime
-                Log.d(TAG, "Detection completed in ${processingTime}ms, raw=${rawBoxes.size}, nms=${nmsBoxes.size}")
+                Log.i(TAG, "Detection completed in ${processingTime}ms, raw=${rawBoxes.size}, nms=${nmsBoxes.size}")
+
+                if (nmsBoxes.isNotEmpty()) {
+                    nmsBoxes.forEachIndexed { idx, box ->
+                        Log.d(TAG, "Box[$idx]: confidence=${box.confidence}, coords=(${box.left},${box.top},${box.right},${box.bottom})")
+                    }
+                }
 
                 DetectionResult(
                     boundingBoxes = nmsBoxes,
