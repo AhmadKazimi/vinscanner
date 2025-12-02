@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "com.kazimi.syaravin"
+    namespace = "com.syarah.vinscanner"
     compileSdk = 36
 
     defaultConfig {
@@ -104,8 +104,8 @@ afterEvaluate {
             create<MavenPublication>("release") {
                 from(components["release"])
 
-                groupId = "com.kazimi"
-                artifactId = "syaravin-scanner"
+                groupId = "com.syarah"
+                artifactId = "vinscanner"
                 version = "1.0.0"
 
                 pom {
@@ -122,9 +122,9 @@ afterEvaluate {
 
                     developers {
                         developer {
-                            id.set("kazimi")
-                            name.set("Kazimi Team")
-                            email.set("team@kazimi.com")
+                            id.set("syarah")
+                            name.set("Syarah Team")
+                            email.set("team@syarah.com")
                         }
                     }
 

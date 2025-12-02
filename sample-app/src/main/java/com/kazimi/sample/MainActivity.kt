@@ -11,9 +11,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.kazimi.syaravin.VinScanner
-import com.kazimi.syaravin.VinScanResult
-import com.kazimi.syaravin.domain.model.VinNumber
+import com.syarah.vinscanner.VinScanner
+import com.syarah.vinscanner.VinScanResult
+import com.syarah.vinscanner.domain.model.VinNumber
 
 class MainActivity : ComponentActivity() {
 
