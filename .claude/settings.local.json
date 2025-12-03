@@ -4,7 +4,12 @@
       "Bash(find:*)",
       "Bash(rsync:*)",
       "Bash(./gradlew clean:*)",
-      "Bash(./gradlew:*)"
+      "Bash(./gradlew:*)",
+      "Bash(git remote set-url:*)",
+      "Bash(cat:*)",
+      "Bash(git ls-tree:*)",
+      "Bash(git merge-base:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []
