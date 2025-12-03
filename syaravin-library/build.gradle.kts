@@ -20,7 +20,7 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = true  // Enable R8 code shrinking & optimization
+            isMinifyEnabled = false  // Enable R8 code shrinking & optimization
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
