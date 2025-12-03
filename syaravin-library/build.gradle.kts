@@ -118,7 +118,7 @@ afterEvaluate {
                 pom {
                     name.set("Syarah VIN Scanner")
                     description.set("Android library for real-time VIN detection and validation using ML")
-                    url.set("https://bitbucket.org/syarah/vinscanner")
+                    url.set("https://bitbucket.org/syarah-hub/vinscanner")
 
                     licenses {
                         license {
@@ -136,9 +136,9 @@ afterEvaluate {
                     }
 
                     scm {
-                        connection.set("scm:git:git://bitbucket.org/syarah/vinscanner.git")
-                        developerConnection.set("scm:git:ssh://git@bitbucket.org/syarah/vinscanner.git")
-                        url.set("https://bitbucket.org/syarah/vinscanner")
+                        connection.set("scm:git:git://bitbucket.org/syarah-hub/vinscanner.git")
+                        developerConnection.set("scm:git:ssh://git@bitbucket.org/syarah-hub/vinscanner.git")
+                        url.set("https://bitbucket.org/syarah-hub/vinscanner")
                     }
                 }
             }
