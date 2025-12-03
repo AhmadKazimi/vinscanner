@@ -9,7 +9,11 @@
       "Bash(cat:*)",
       "Bash(git ls-tree:*)",
       "Bash(git merge-base:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(./gradlew:*)",
+      "Bash(git remote:*)",
+      "Bash(git remote add:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []
