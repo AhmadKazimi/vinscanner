@@ -11,8 +11,9 @@ import com.syarah.vinscanner.di.mlModule
 import com.syarah.vinscanner.di.repositoryModule
 import com.syarah.vinscanner.di.viewModelModule
 import org.koin.android.ext.koin.androidContext
+import org.koin.core.context.GlobalContext
+import org.koin.core.context.loadKoinModules
 import org.koin.core.context.startKoin
-import org.koin.core.error.KoinApplicationAlreadyStartedException
 
 /**
  * Internal initializer for VIN scanner library.
@@ -27,22 +28,27 @@ internal class VinScannerInitializer : ContentProvider() {
         return try {
             Log.d(TAG, "Initializing VIN Scanner library...")
 
-            startKoin {
-                androidContext(context.applicationContext)
-                modules(
-                    appModule,
-                    cameraModule,
-                    mlModule,
-                    repositoryModule,
-                    viewModelModule
-                )
+            val modules = listOf(
+                appModule,
+                cameraModule,
+                mlModule,
+                repositoryModule,
+                viewModelModule
+            )
+
+            // Check if Koin is already started by the host app
+            if (GlobalContext.getOrNull() != null) {
+                Log.d(TAG, "Koin already initialized by host app, loading VIN Scanner modules...")
+                loadKoinModules(modules)
+            } else {
+                Log.d(TAG, "Starting Koin with VIN Scanner modules...")
+                startKoin {
+                    androidContext(context.applicationContext)
+                    modules(modules)
+                }
             }
 
             Log.d(TAG, "VIN Scanner library initialized successfully")
-            true
-        } catch (e: KoinApplicationAlreadyStartedException) {
-            // Koin already started (e.g., in tests or multi-process scenarios)
-            Log.d(TAG, "Koin already initialized, skipping")
             true
         } catch (e: Exception) {
             Log.e(TAG, "Failed to initialize VIN Scanner library", e)
