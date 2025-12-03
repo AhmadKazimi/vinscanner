@@ -11,6 +11,8 @@ import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.Logger.e
 import androidx.camera.core.Preview
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -37,6 +39,9 @@ import com.syarah.vinscanner.presentation.components.BoundingBoxOverlay
 import com.syarah.vinscanner.presentation.components.CameraPreview
 import com.syarah.vinscanner.presentation.components.VinResultSheetContent
 import com.syarah.vinscanner.presentation.components.RoiOverlay
+import com.syarah.vinscanner.ui.theme.RoiInvalidBorder
+import com.syarah.vinscanner.ui.theme.RoiNeutralBorder
+import com.syarah.vinscanner.ui.theme.RoiValidBorder
 import com.syarah.vinscanner.util.ImagePreprocessor
 import com.syarah.vinscanner.util.RoiConfig
 import com.syarah.vinscanner.util.showToast
@@ -126,6 +131,9 @@ internal fun ScannerScreen(
 							},
 							onBoxesDetected = { boxes ->
 								viewModel.onDetectionBoxesUpdated(boxes)
+							},
+							onRoiBorderStateChange = { state ->
+								viewModel.onEvent(ScannerEvent.UpdateRoiBorderState(state))
 							}
 						)
 						kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
@@ -197,10 +205,21 @@ internal fun ScannerScreen(
 				imageAnalyzer = imageAnalysis
 			)
 
-			// ROI overlay to guide user
+			// ROI overlay to guide user with dynamic border color
+			val roiBorderColor by animateColorAsState(
+				targetValue = when (state.roiBorderState) {
+					RoiBorderState.VALID_VIN_DETECTED -> RoiValidBorder
+					RoiBorderState.NEUTRAL -> RoiValidBorder
+					RoiBorderState.NO_DETECTION -> RoiInvalidBorder
+				},
+				animationSpec = tween(durationMillis = 250),
+				label = "roi_border_color"
+			)
+
 			RoiOverlay(
 				modifier = Modifier.fillMaxSize(),
-				roiBox = RoiConfig.roi
+				roiBox = RoiConfig.roi,
+				borderColor = roiBorderColor
 			)
 
 			// Bounding box overlay
@@ -311,7 +330,8 @@ private suspend fun processImage(
 	textExtractor: TextExtractor,
 	vinValidator: VinValidator,
 	onVinDetected: (String, Float, Bitmap?) -> Unit,
-	onBoxesDetected: (List<com.syarah.vinscanner.domain.model.BoundingBox>) -> Unit
+	onBoxesDetected: (List<com.syarah.vinscanner.domain.model.BoundingBox>) -> Unit,
+	onRoiBorderStateChange: (RoiBorderState) -> Unit
 ) {
 	Log.d(TAG, "Processing image...")
 	try {
@@ -365,6 +385,13 @@ private suspend fun processImage(
 				} else boxes
 				onBoxesDetected(mappedBoxes)
 				Log.d(TAG, "Detected ${boxes.size} VIN boxes (mapped: ${mappedBoxes.size}).")
+
+				// Update ROI border state based on detection
+				if (mappedBoxes.isEmpty()) {
+					onRoiBorderStateChange(RoiBorderState.NO_DETECTION)
+				} else {
+					onRoiBorderStateChange(RoiBorderState.NEUTRAL)
+				}
 
 				// Try OCR inside each detected box first (sorted by confidence)
 				for (box in boxes.sortedByDescending { it.confidence }) {
@@ -428,6 +455,7 @@ private suspend fun processImage(
 			// If a VIN was found, report it
 			if (bestVin != null) {
 				Log.i(TAG, "VIN detected: $bestVin with confidence $bestConfidence")
+				onRoiBorderStateChange(RoiBorderState.VALID_VIN_DETECTED)
 				onVinDetected(bestVin, bestConfidence, croppedVinBitmap)
 			} else {
 				Log.d(TAG, "No valid VIN found in the extracted text.")
@@ -439,7 +467,7 @@ private suspend fun processImage(
 			try { bitmap.recycle() } catch (_: Throwable) {}
 		}
 	} catch (e: Exception) {
-		e(TAG, "Error converting image", e)
+		Log.e(TAG, "Error converting image", e)
 	} finally {
 		imageProxy.close()
 	}

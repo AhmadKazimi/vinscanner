@@ -4,6 +4,15 @@ import com.syarah.vinscanner.domain.model.BoundingBox
 import com.syarah.vinscanner.domain.model.VinNumber
 
 /**
+ * Represents the ROI border state for visual feedback
+ */
+internal enum class RoiBorderState {
+    NEUTRAL,              // White - scanning with boxes
+    VALID_VIN_DETECTED,   // Green - valid VIN found
+    NO_DETECTION         // Red - no boxes detected
+}
+
+/**
  * Represents the state of the scanner screen
  */
 internal data class ScannerState(
@@ -14,7 +23,8 @@ internal data class ScannerState(
     val errorMessage: String? = null,
     val hasPermission: Boolean = false,
     val showVinResult: Boolean = false,
-    val scanHistory: List<VinNumber> = emptyList()
+    val scanHistory: List<VinNumber> = emptyList(),
+    val roiBorderState: RoiBorderState = RoiBorderState.NO_DETECTION  // Start with RED
 ) {
     /**
      * Whether the scanner is actively processing
