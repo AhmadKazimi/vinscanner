@@ -36,6 +36,7 @@ internal class ScannerViewModel(
             is ScannerEvent.DismissResult -> dismissResult()
             is ScannerEvent.RetryScanning -> retryScanning()
             is ScannerEvent.UpdateVin -> onVinUpdated(event.vin)
+            is ScannerEvent.UpdateRoiBorderState -> updateRoiBorderState(event.state)
         }
     }
 
@@ -71,7 +72,13 @@ internal class ScannerViewModel(
     }
 
     private fun dismissResult() {
-        _state.update { it.copy(showVinResult = false, detectedVin = null) }
+        _state.update {
+            it.copy(
+                showVinResult = false,
+                detectedVin = null,
+                roiBorderState = RoiBorderState.NO_DETECTION
+            )
+        }
     }
 
     private fun retryScanning() {
@@ -136,6 +143,10 @@ internal class ScannerViewModel(
     fun onDetectionBoxesUpdated(boxes: List<com.syarah.vinscanner.domain.model.BoundingBox>) {
         _state.update { it.copy(detectionBoxes = boxes) }
     }
+
+    private fun updateRoiBorderState(state: RoiBorderState) {
+        _state.update { it.copy(roiBorderState = state) }
+    }
 }
 
 /**
@@ -150,4 +161,5 @@ internal sealed class ScannerEvent {
     object DismissResult : ScannerEvent()
     object RetryScanning : ScannerEvent()
     data class UpdateVin(val vin: String) : ScannerEvent()
+    data class UpdateRoiBorderState(val state: RoiBorderState) : ScannerEvent()
 }
