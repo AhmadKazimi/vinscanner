@@ -1,16 +1,95 @@
 # Consumer ProGuard rules for VIN Scanner Library
 # These rules are automatically applied to apps that consume this library
 
-# Keep public API classes
--keep public class com.syarah.vinscanner.VinScanner { *; }
--keep public class com.syarah.vinscanner.VinScannerContract { *; }
--keep public class com.syarah.vinscanner.VinScanResult { *; }
--keep public class com.syarah.vinscanner.VinScanResult$** { *; }
--keep public class com.syarah.vinscanner.domain.model.VinNumber { *; }
+# ==========================================
+# PUBLIC API - Keep all public classes and prevent obfuscation
+# ==========================================
 
-# Keep Parcelable implementation
+# Main entry point - VinScanner object
+-keep,allowshrinking class com.syarah.vinscanner.VinScanner {
+    public *;
+}
+
+# ActivityResultContract for launching scanner
+-keep,allowshrinking class com.syarah.vinscanner.VinScannerContract {
+    public *;
+}
+
+# Sealed class - VinScanResult and ALL nested classes
+-keep,allowshrinking class com.syarah.vinscanner.VinScanResult {
+    *;
+}
+
+# IMPORTANT: Explicitly keep nested classes (they're obfuscated separately!)
+-keep,allowshrinking class com.syarah.vinscanner.VinScanResult$Success {
+    *;
+}
+
+-keep,allowshrinking class com.syarah.vinscanner.VinScanResult$Error {
+    *;
+}
+
+-keep,allowshrinking class com.syarah.vinscanner.VinScanResult$Cancelled {
+    *;
+}
+
+# VinNumber data class with ALL properties
+-keep,allowshrinking class com.syarah.vinscanner.domain.model.VinNumber {
+    *;
+}
+
+# Keep VinNumber companion object constants (VIN_LENGTH, INVALID_CHARACTERS, VALID_PATTERN)
+-keep,allowshrinking class com.syarah.vinscanner.domain.model.VinNumber$Companion {
+    *;
+}
+
+# ==========================================
+# PARCELABLE - Required for Android parceling
+# ==========================================
+
+# Keep Parcelable CREATOR fields
 -keepclassmembers class com.syarah.vinscanner.domain.model.VinNumber {
     public static final ** CREATOR;
+}
+
+# Keep data class methods (component1, component2, copy, etc.)
+-keepclassmembers class com.syarah.vinscanner.domain.model.VinNumber {
+    *** component1();
+    *** component2();
+    *** component3();
+    *** component4();
+    *** copy(...);
+}
+
+# Keep sealed class subclasses
+-keepclassmembers class com.syarah.vinscanner.VinScanResult {
+    public ** Companion;
+}
+
+# ==========================================
+# ATTRIBUTES - Preserve metadata for debugging
+# ==========================================
+
+# Preserve annotations
+-keepattributes *Annotation*
+
+# Preserve source file names and line numbers
+-keepattributes SourceFile,LineNumberTable
+
+# Keep signatures for generics
+-keepattributes Signature
+
+# Keep exceptions for debugging
+-keepattributes Exceptions
+
+# ==========================================
+# ADDITIONAL SAFETY - Catch any missed public APIs
+# ==========================================
+
+# Keep all public methods in public API package
+-keepclassmembers class com.syarah.vinscanner.** {
+    public <methods>;
+    public <fields>;
 }
 
 # Keep all Parcelable implementations
