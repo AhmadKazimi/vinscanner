@@ -51,7 +51,7 @@ In your app's `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation("com.github.AhmadKazimi:vinscanner:v1.0.0")
+    implementation("com.github.AhmadKazimi:vinscanner:v1.0.1")
 }
 ```
 
