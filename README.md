@@ -1,95 +1,78 @@
-# Syaravin VIN Scanner Library
+# Syarah VIN Scanner
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![API](https://img.shields.io/badge/API-24%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=24)
+[![](https://jitpack.io/v/com.bitbucket.syarah-hub/vinscanner.svg)](https://jitpack.io/#com.bitbucket.syarah-hub/vinscanner)
 
 Android library for real-time VIN (Vehicle Identification Number) detection and validation using machine learning.
 
-## Features
+## ✨ Features
 
 - 📷 **Real-time Camera Detection** - Live VIN detection using CameraX
 - 🤖 **ML-Powered** - TensorFlow Lite object detection + ML Kit OCR
 - ✅ **ISO 3779 Validation** - Checksum verification and format validation
-- 🎨 **Built-in UI** - Beautiful Material 3 interface with camera preview and result display
+- 🎨 **Modern UI** - Beautiful Material 3 bottom sheet interface
 - 🚀 **Easy Integration** - Single API call to launch scanner
 - 📊 **Confidence Scoring** - AI confidence levels for each detection
 - 🚗 **Vehicle Decoding** - Extract manufacturer, model year, and country information
 - 🔧 **Zero Configuration** - Auto-initialization, no Application class changes needed
 - 🎯 **High Accuracy** - Optimized for various lighting conditions and VIN positions
+- 🖼️ **VIN Image Capture** - Returns cropped image of detected VIN
+- 🎨 **Visual Feedback** - Dynamic ROI border colors indicating detection status
+- ⚡ **Thermal Management** - Built-in throttling to prevent device overheating
 
-## Requirements
+## 📋 Requirements
 
 - Android API 24+ (Android 7.0)
 - Camera permission
 - ~28MB storage (ML models)
 - Device with camera hardware
+- Java 21
 
-## Installation
+## 📦 Installation
 
-### Step 1: Add Bitbucket Maven Repository
+### Step 1: Add JitPack Repository
 
-Add the Bitbucket Packages repository to your project. In `settings.gradle.kts`:
+Add JitPack to your project. In `settings.gradle.kts`:
 
 ```kotlin
 dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-
-        // Add Bitbucket Packages repository
-        maven {
-            url = uri("https://api.bitbucket.org/2.0/repositories/{workspace}/{repo_slug}/maven")
-            credentials {
-                username = project.findProperty("bitbucket.user") as String?
-                password = project.findProperty("bitbucket.appPassword") as String?
-            }
-        }
+        maven { url = uri("https://jitpack.io") }
     }
 }
 ```
 
-**Replace `{workspace}` and `{repo_slug}` with your actual Bitbucket workspace and repository name.**
-
-### Step 2: Configure Credentials
-
-Create `gradle.properties` in your project root:
-
-```properties
-# Bitbucket credentials
-bitbucket.user=your_bitbucket_username
-bitbucket.appPassword=your_app_password
-```
-
-**To get Bitbucket App Password:**
-1. Go to https://bitbucket.org/account/settings/app-passwords/
-2. Create app password with `Repositories: Read` permission
-3. Copy the password to `gradle.properties`
-
-**IMPORTANT:** Add `gradle.properties` to `.gitignore` to avoid committing credentials!
-
-### Step 3: Add Dependency
+### Step 2: Add Dependency
 
 In your app's `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation("com.kazimi:syaravin-scanner:1.0.0")
+    implementation("com.bitbucket.syarah-hub:vinscanner:v1.0.0")
 }
 ```
 
-### Step 4: Sync Project
+### Step 3: Sync Project
+
+Click "Sync Now" in Android Studio or run:
 
 ```bash
-./gradlew --refresh-dependencies
+./gradlew build
 ```
 
-## Quick Start
+That's it! No credentials, no complex setup. 🎉
+
+## 🚀 Quick Start
 
 ### Basic Usage
 
 ```kotlin
-import com.kazimi.syaravin.VinScanner
-import com.kazimi.syaravin.VinScanResult
+import com.syarah.vinscanner.VinScanner
+import com.syarah.vinscanner.VinScanResult
+import com.syarah.vinscanner.domain.model.VinNumber
 
 class MainActivity : ComponentActivity() {
 
@@ -128,35 +111,52 @@ class MainActivity : ComponentActivity() {
 }
 ```
 
-### Compose Integration
+### Jetpack Compose Integration
 
 ```kotlin
+import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
+import androidx.activity.compose.rememberLauncherForActivityResult
+import com.syarah.vinscanner.VinScanner
+import com.syarah.vinscanner.VinScanResult
+
 @Composable
-fun VinScannerButton() {
-    val context = LocalContext.current
+fun VinScannerScreen() {
+    var vinResult by remember { mutableStateOf<String?>(null) }
+
     val launcher = rememberLauncherForActivityResult(
         contract = VinScanner.Contract()
     ) { result ->
         when (result) {
             is VinScanResult.Success -> {
-                // Handle success
+                vinResult = "VIN: ${result.vinNumber.value}"
             }
             is VinScanResult.Cancelled -> {
-                // Handle cancellation
+                vinResult = "Scan cancelled"
             }
             is VinScanResult.Error -> {
-                // Handle error
+                vinResult = "Error: ${result.message}"
             }
         }
     }
 
-    Button(onClick = { launcher.launch(Unit) }) {
-        Text("Scan VIN")
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Button(onClick = { launcher.launch(Unit) }) {
+            Text("Start VIN Scan")
+        }
+
+        vinResult?.let {
+            Text(it, modifier = Modifier.padding(top = 16.dp))
+        }
     }
 }
 ```
 
-## API Reference
+## 📖 API Reference
 
 ### VinScanner
 
@@ -182,7 +182,7 @@ object VinScanner {
 Sealed class representing the result of a VIN scan operation.
 
 ```kotlin
-sealed class VinScanResult {
+sealed class VinScanResult : Parcelable {
     /**
      * VIN was successfully detected and validated.
      * @property vinNumber The detected VIN with all metadata
@@ -215,9 +215,9 @@ data class VinNumber(
 ) : Parcelable
 ```
 
-## Advanced Usage
+## 🎯 Advanced Usage
 
-### Handling Different Result Types
+### Handling Different Confidence Levels
 
 ```kotlin
 vinScannerLauncher = registerForActivityResult(VinScanner.Contract()) { result ->
@@ -227,14 +227,14 @@ vinScannerLauncher = registerForActivityResult(VinScanner.Contract()) { result -
 
             // Check validation status
             if (vin.isValid) {
-                // VIN passed all validation checks
+                // VIN passed all validation checks including ISO 3779 checksum
                 saveVinToDatabase(vin.value)
             } else {
                 // VIN format is incorrect
                 showValidationError(vin.value)
             }
 
-            // Check confidence level
+            // Confidence-based handling
             when {
                 vin.confidence >= 0.9f -> {
                     // High confidence - automatically proceed
@@ -245,14 +245,15 @@ vinScannerLauncher = registerForActivityResult(VinScanner.Contract()) { result -
                     showConfirmationDialog(vin.value)
                 }
                 else -> {
-                    // Low confidence - request manual entry
+                    // Low confidence - request manual verification
                     showManualEntryDialog(vin.value)
                 }
             }
 
-            // Display cropped image
+            // Save or display cropped image
             vin.croppedImage?.let { bitmap ->
-                imageView.setImageBitmap(bitmap)
+                // Save to file, display in ImageView, etc.
+                saveVinImage(bitmap, vin.value)
             }
         }
 
@@ -267,17 +268,55 @@ vinScannerLauncher = registerForActivityResult(VinScanner.Contract()) { result -
 }
 ```
 
-## Troubleshooting
+### Using VIN Decoder
 
-### Repository Not Found (401/404)
+```kotlin
+import com.syarah.vinscanner.util.VinDecoder
+import org.koin.android.ext.android.inject
 
-**Problem:** Gradle can't find the Bitbucket repository.
+class VinDetailsActivity : AppCompatActivity() {
+    private val vinDecoder: VinDecoder by inject()
 
-**Solution:**
-1. Verify `gradle.properties` has correct credentials
-2. Check Bitbucket App Password has `Repositories: Read` permission
-3. Verify workspace and repo_slug in repository URL
-4. Test authentication: `curl -u username:app_password https://api.bitbucket.org/2.0/repositories/{workspace}/{repo_slug}`
+    fun decodeVin(vin: String) {
+        val vinInfo = vinDecoder.decode(vin)
+
+        vinInfo?.let {
+            println("Manufacturer: ${it.manufacturer}")
+            println("Country: ${it.country}")
+            println("Model Year: ${it.modelYear}")
+        } ?: run {
+            println("VIN could not be decoded")
+        }
+    }
+}
+```
+
+## ⚙️ Configuration
+
+The library is designed to work out of the box with sensible defaults. However, you can customize behavior:
+
+### ROI Configuration
+
+The Region of Interest can be adjusted in your fork by modifying `RoiConfig.kt`:
+
+```kotlin
+// Default ROI covers 40-60% vertical area, 5% horizontal padding
+val roi = BoundingBox(
+    left = 0.05f,
+    top = 0.4f,
+    right = 0.95f,
+    bottom = 0.6f
+)
+```
+
+### Thermal Management
+
+Built-in thermal throttling prevents device overheating:
+- Max processing rate: 3 FPS
+- Max average processing time: 200ms
+- Automatic frame skipping under high load
+
+## 🔧 Troubleshooting
 
 ### Camera Permission Denied
 
@@ -285,7 +324,8 @@ vinScannerLauncher = registerForActivityResult(VinScanner.Contract()) { result -
 
 **Solution:**
 - Library handles runtime permission request automatically
-- Ensure `android.permission.CAMERA` is in your app's `AndroidManifest.xml` (optional, library declares it)
+- Ensure your app's `targetSdk` is set correctly
+- Camera permission is automatically merged from library manifest
 
 ### Low Detection Accuracy
 
@@ -293,57 +333,87 @@ vinScannerLauncher = registerForActivityResult(VinScanner.Contract()) { result -
 
 **Solution:**
 - Ensure good lighting conditions
-- Hold device steady and align VIN within the camera frame
+- Hold device steady and align VIN within the ROI guide
 - Clean camera lens
 - VIN should be clearly visible and not obscured
 - Works best with embossed/stamped VINs on metal plates
+- Try adjusting distance from VIN (15-30cm optimal)
 
-### Build Error - Duplicate Classes
+### Build Errors
 
-**Problem:** Build fails with "Duplicate class" errors.
+**Problem:** Build fails with dependency conflicts.
 
 **Solution:**
-- Library already includes CameraX, TensorFlow Lite, ML Kit dependencies
-- Don't add them separately in your app
-- Use dependency resolution strategy if needed:
+- Library uses Java 21 - ensure your project uses Java 21+
+- Check `jitpack.yml` configuration
+- Clean and rebuild: `./gradlew clean build`
 
-```kotlin
-configurations.all {
-    resolutionStrategy {
-        force("androidx.camera:camera-core:1.3.0")
-        force("com.google.ai.edge.litert:litert:1.4.0")
-    }
-}
+## 📊 Performance
+
+- **Detection Time:** ~100-300ms per frame
+- **Memory Usage:** ~40-50MB (ML models loaded)
+- **Battery Impact:** Moderate (camera + ML processing)
+- **Camera Resolution:** Optimized at 540×960 (portrait)
+- **Frame Processing:** Up to 3 FPS (thermal throttling)
+- **Model Size:** ~26MB (float16 TFLite model)
+
+## 🏗️ Architecture
+
+The library follows Clean Architecture principles:
+
+```
+┌─────────────────────────────────────┐
+│  Presentation Layer                 │
+│  - Compose UI                       │
+│  - ViewModels                       │
+│  - Material 3 Components            │
+└──────────────┬──────────────────────┘
+               │
+┌──────────────▼──────────────────────┐
+│  Domain Layer                       │
+│  - Use Cases                        │
+│  - Domain Models                    │
+│  - Repository Interfaces            │
+└──────────────┬──────────────────────┘
+               │
+┌──────────────▼──────────────────────┐
+│  Data Layer                         │
+│  - ML Detection (TFLite + GPU)      │
+│  - OCR (ML Kit)                     │
+│  - Camera (CameraX)                 │
+│  - Validation (ISO 3779)            │
+└─────────────────────────────────────┘
 ```
 
-### Large APK Size
+**Technologies:**
+- **UI:** Jetpack Compose + Material 3
+- **Camera:** CameraX with portrait optimization
+- **ML Detection:** TensorFlow Lite (Google AI Edge LiteRT) with GPU acceleration
+- **OCR:** ML Kit Text Recognition v2
+- **DI:** Koin
+- **Coroutines:** Kotlin Coroutines + Flow
+- **Threading:** Dispatchers.Default for ML, dedicated executor for camera
 
-**Problem:** App size increased by ~28MB after adding library.
+## 🔒 Privacy & Permissions
 
-**Explanation:** Library includes TensorFlow Lite models (~26MB) for ML detection.
+The library requires:
 
-**Solutions:**
-- Use Android App Bundle (AAB) for Play Store distribution
-- Enable App Bundle compression
-- Models are essential for offline VIN detection
-
-## Publishing the Library
-
-### Local Testing
-
-```bash
-# Publish to local Maven repository
-./gradlew :syaravin-library:publishToMavenLocal
-
-# Location: ~/.m2/repository/com/kazimi/syaravin-scanner/1.0.0/
+```xml
+<uses-permission android:name="android.permission.CAMERA" />
+<uses-feature android:name="android.hardware.camera" />
 ```
 
-### Publish to Bitbucket Packages
+**Privacy Notes:**
+- ✅ All processing happens **on-device** (no internet required)
+- ✅ No data transmitted to external servers
+- ✅ Camera frames processed in memory and immediately discarded
+- ✅ Only the final VIN result is returned to your app
+- ✅ Cropped VIN images stored temporarily in memory
+- ✅ No analytics or tracking
+- ✅ GDPR compliant (no personal data collected)
 
-```bash
-# Ensure gradle.properties has credentials
-./gradlew :syaravin-library:publish
-```
+## 🚀 Publishing Your Own Version
+
 
 ### Build Sample App
 
@@ -351,57 +421,17 @@ configurations.all {
 # Build and install sample app
 ./gradlew :sample-app:assembleDebug
 ./gradlew :sample-app:installDebug
+
+# Or combined
+./gradlew :sample-app:installDebug
 ```
 
-## Architecture
-
-The library follows Clean Architecture principles:
-
-```
-Presentation Layer (UI) - Compose + Material 3
-    ↓
-Domain Layer (Business Logic) - Use Cases
-    ↓
-Data Layer (ML Models, Camera, Validation)
-```
-
-**Technologies:**
-- **UI:** Jetpack Compose + Material 3
-- **Camera:** CameraX
-- **ML Detection:** TensorFlow Lite (Google AI Edge LiteRT) with GPU acceleration
-- **OCR:** ML Kit Text Recognition
-- **DI:** Koin
-- **Coroutines:** Kotlin Coroutines
-
-## Privacy & Permissions
-
-The library requires:
-
-```xml
-<uses-permission android:name="android.permission.CAMERA" />
-```
-
-**Privacy Notes:**
-- All processing happens on-device (no internet required)
-- No data transmitted to external servers
-- Camera frames processed in memory and immediately discarded
-- Only the final VIN result is returned to your app
-- Cropped VIN images stored temporarily in memory
-
-## Performance
-
-- **Detection Time:** ~100-300ms per frame
-- **Memory Usage:** ~40-50MB (ML models loaded)
-- **Battery Impact:** Moderate (camera + ML processing)
-- **Thermal Management:** Built-in throttling to prevent overheating
-- **Camera Resolution:** Optimized at 540×960 (portrait)
-
-## License
+## 📝 License
 
 ```
 MIT License
 
-Copyright (c) 2025 Kazimi
+Copyright (c) 2025 Syarah
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -422,17 +452,25 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## Support
+## 🆘 Support
 
-For issues and questions, please contact the development team or create an issue in the Bitbucket repository.
+- **Repository:** https://bitbucket.org/syarah-hub/vinscanner
+- **Issues:** Report issues in the Bitbucket repository
+- **JitPack:** https://jitpack.io/#com.bitbucket.syarah-hub/vinscanner
+- **Developer Email:** Ahmad.kazimi@syarah.com
 
-## Credits
+## 👏 Credits
 
-Developed by Kazimi Team
+Developed by Ahmad Kazimi
 
 **Libraries Used:**
-- [TensorFlow Lite](https://www.tensorflow.org/lite)
-- [ML Kit](https://developers.google.com/ml-kit)
-- [CameraX](https://developer.android.com/training/camerax)
-- [Jetpack Compose](https://developer.android.com/jetpack/compose)
-- [Koin](https://insert-koin.io/)
+- [TensorFlow Lite](https://www.tensorflow.org/lite) - ML model inference
+- [ML Kit Text Recognition](https://developers.google.com/ml-kit/vision/text-recognition/v2) - OCR
+- [CameraX](https://developer.android.com/training/camerax) - Camera API
+- [Jetpack Compose](https://developer.android.com/jetpack/compose) - Modern UI toolkit
+- [Koin](https://insert-koin.io/) - Dependency injection
+- [Material 3](https://m3.material.io/) - Design system
+
+---
+
+**Made with ❤️ by Kazimi**
