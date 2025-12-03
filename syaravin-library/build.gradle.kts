@@ -119,7 +119,7 @@ afterEvaluate {
 
                 groupId = "com.syarah"
                 artifactId = "vinscanner"
-                version = "1.0.1"
+                version = "1.0.2"
 
                 pom {
                     name.set("Syarah VIN Scanner")

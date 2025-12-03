@@ -19,6 +19,6 @@ dependencyResolutionManagement {
 	}
 }
 
-rootProject.name = "Syaravin"
+rootProject.name = "vinscanner"
 include(":syaravin-library")
 include(":sample-app")

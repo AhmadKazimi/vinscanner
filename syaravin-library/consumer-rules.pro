@@ -2,14 +2,14 @@
 # These rules are automatically applied to apps that consume this library
 
 # Keep public API classes
--keep public class com.kazimi.syaravin.VinScanner { *; }
--keep public class com.kazimi.syaravin.VinScannerContract { *; }
--keep public class com.kazimi.syaravin.VinScanResult { *; }
--keep public class com.kazimi.syaravin.VinScanResult$** { *; }
--keep public class com.kazimi.syaravin.domain.model.VinNumber { *; }
+-keep public class com.syarah.vinscanner.VinScanner { *; }
+-keep public class com.syarah.vinscanner.VinScannerContract { *; }
+-keep public class com.syarah.vinscanner.VinScanResult { *; }
+-keep public class com.syarah.vinscanner.VinScanResult$** { *; }
+-keep public class com.syarah.vinscanner.domain.model.VinNumber { *; }
 
 # Keep Parcelable implementation
--keepclassmembers class com.kazimi.syaravin.domain.model.VinNumber {
+-keepclassmembers class com.syarah.vinscanner.domain.model.VinNumber {
     public static final ** CREATOR;
 }
 
@@ -50,15 +50,15 @@
 -dontwarn androidx.compose.**
 
 # Keep model classes and data classes
--keep class com.kazimi.syaravin.data.model.** { *; }
--keepclassmembers class com.kazimi.syaravin.data.model.** {
+-keep class com.syarah.vinscanner.data.model.** { *; }
+-keepclassmembers class com.syarah.vinscanner.data.model.** {
     <fields>;
     <methods>;
 }
 
 # Prevent obfuscation of internal library classes that use reflection
--keep class com.kazimi.syaravin.util.VinDecoder { *; }
--keep class com.kazimi.syaravin.data.datasource.validator.VinValidatorImpl { *; }
+-keep class com.syarah.vinscanner.util.VinDecoder { *; }
+-keep class com.syarah.vinscanner.data.datasource.validator.VinValidatorImpl { *; }
 
 # Asset files
 -keepclassmembers class * {
