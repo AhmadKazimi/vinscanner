@@ -13,7 +13,9 @@
       "Bash(./gradlew:*)",
       "Bash(git remote:*)",
       "Bash(git remote add:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(git tag:*)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []
