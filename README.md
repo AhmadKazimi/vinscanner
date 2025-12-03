@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![API](https://img.shields.io/badge/API-24%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=24)
-[![](https://jitpack.io/v/com.bitbucket.syarah-hub/vinscanner.svg)](https://jitpack.io/#com.bitbucket.syarah-hub/vinscanner)
+[![](https://jitpack.io/v/com.github.AhmadKazimi/vinscanner.svg)](https://jitpack.io/#com.github.AhmadKazimi/vinscanner)
 
 Android library for real-time VIN (Vehicle Identification Number) detection and validation using machine learning.
 
@@ -51,7 +51,7 @@ In your app's `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation("com.bitbucket.syarah-hub:vinscanner:v1.0.0")
+    implementation("com.github.AhmadKazimi:vinscanner:v1.0.0")
 }
 ```
 
@@ -454,9 +454,9 @@ SOFTWARE.
 
 ## 🆘 Support
 
-- **Repository:** https://bitbucket.org/syarah-hub/vinscanner
-- **Issues:** Report issues in the Bitbucket repository
-- **JitPack:** https://jitpack.io/#com.bitbucket.syarah-hub/vinscanner
+- **Repository:** https://github.com/AhmadKazimi/vinscanner
+- **Issues:** Report issues in the GitHub repository
+- **JitPack:** https://jitpack.io/#com.github.AhmadKazimi/vinscanner
 - **Developer Email:** Ahmad.kazimi@syarah.com
 
 ## 👏 Credits
