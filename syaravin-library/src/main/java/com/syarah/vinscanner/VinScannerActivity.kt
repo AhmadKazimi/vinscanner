@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import com.syarah.vinscanner.di.VinScannerDependencies
 import com.syarah.vinscanner.domain.model.VinNumber
 import com.syarah.vinscanner.presentation.scanner.ScannerScreen
 import com.syarah.vinscanner.ui.theme.SyaravinTheme
@@ -21,6 +22,10 @@ import com.syarah.vinscanner.ui.theme.SyaravinTheme
 internal class VinScannerActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Initialize dependency factory with Application context
+        VinScannerDependencies.initialize(applicationContext)
+
         enableEdgeToEdge()
         setContent {
             SyaravinTheme {

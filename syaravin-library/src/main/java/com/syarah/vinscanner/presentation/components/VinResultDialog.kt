@@ -22,9 +22,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.syarah.vinscanner.di.VinScannerDependencies
 import com.syarah.vinscanner.domain.model.VinNumber
 import com.syarah.vinscanner.util.VinDecoder
-import org.koin.compose.koinInject
 
 /**
  * Dialog to display VIN detection results
@@ -55,10 +55,10 @@ internal fun VinResultSheetContent(
     onRetry: () -> Unit,
     onCopy: (String) -> Unit,
     onVinChanged: (String) -> Unit,
-    onConfirm: (VinNumber) -> Unit = {}
+    onConfirm: (VinNumber) -> Unit = {},
+    vinDecoder: VinDecoder = VinScannerDependencies.get().vinDecoder
 ) {
     var vin by remember(vinNumber) { mutableStateOf(vinNumber.value) }
-    val vinDecoder: VinDecoder = koinInject()
 
     val vinInfo by remember(vin) {
         derivedStateOf {
