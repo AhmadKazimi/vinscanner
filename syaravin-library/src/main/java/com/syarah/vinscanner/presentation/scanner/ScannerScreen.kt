@@ -27,6 +27,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -34,6 +35,7 @@ import com.syarah.vinscanner.data.datasource.camera.CameraDataSource
 import com.syarah.vinscanner.data.datasource.ml.TextExtractor
 import com.syarah.vinscanner.data.datasource.ml.VinDetector
 import com.syarah.vinscanner.data.datasource.validator.VinValidator
+import com.syarah.vinscanner.di.VinScannerDependencies
 import com.syarah.vinscanner.domain.model.VinNumber
 import com.syarah.vinscanner.presentation.components.BoundingBoxOverlay
 import com.syarah.vinscanner.presentation.components.CameraPreview
@@ -46,8 +48,6 @@ import com.syarah.vinscanner.util.ImagePreprocessor
 import com.syarah.vinscanner.util.RoiConfig
 import com.syarah.vinscanner.util.showToast
 import kotlinx.coroutines.launch
-import org.koin.androidx.compose.koinViewModel
-import org.koin.compose.koinInject
 import java.util.concurrent.ExecutorService
 
 private const val TAG = "ScannerScreen"
@@ -58,24 +58,42 @@ private const val TAG = "ScannerScreen"
 @OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
 @Composable
 internal fun ScannerScreen(
-	viewModel: ScannerViewModel = koinViewModel(),
 	onVinConfirmed: (VinNumber) -> Unit = {},
 	onCancelled: () -> Unit = {}
 ) {
 	Log.d(TAG, "ScannerScreen composable started.")
+
+	// Create ViewModel with custom factory
+	val viewModel: ScannerViewModel = viewModel(
+		factory = ScannerViewModelFactory()
+	)
+
 	val state by viewModel.state.collectAsStateWithLifecycle()
 	val context = LocalContext.current
 	val scope = rememberCoroutineScope()
 
-	// Inject dependencies
-	val cameraSelector: CameraSelector = koinInject()
-	val preview: Preview = koinInject()
-	val imageAnalysis: ImageAnalysis = koinInject()
-	val executor: ExecutorService = koinInject()
-	val cameraDataSource: CameraDataSource = koinInject()
-	val vinDetector: VinDetector = koinInject()
-	val textExtractor: TextExtractor = koinInject()
-	val vinValidator: VinValidator = koinInject()
+	// Get dependencies via remember to avoid recreating on recomposition
+	val dependencies = remember { VinScannerDependencies.get() }
+
+	// Factory-created instances (per-screen lifecycle)
+	val cameraSelector = remember { dependencies.createCameraSelector() }
+	val preview = remember { dependencies.createPreview() }
+	val imageAnalysis = remember { dependencies.createImageAnalysis() }
+	val executor = remember { dependencies.createExecutor() }
+
+	// Singletons - safe to access directly
+	val cameraDataSource = dependencies.cameraDataSource
+	val vinDetector = dependencies.vinDetector
+	val textExtractor = dependencies.textExtractor
+	val vinValidator = dependencies.vinValidator
+
+	// Clean up executor on dispose
+	DisposableEffect(Unit) {
+		onDispose {
+			Log.d(TAG, "Shutting down camera executor")
+			executor.shutdown()
+		}
+	}
 
 	// Camera permission
 	val cameraPermissionState = rememberPermissionState(

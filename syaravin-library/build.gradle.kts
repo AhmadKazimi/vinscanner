@@ -91,10 +91,6 @@ dependencies {
     implementation(libs.mlkit.text.recognition)
     implementation(libs.kotlinx.coroutines.play.services)
 
-    // Koin for dependency injection
-    implementation(libs.koin.android)
-    implementation(libs.koin.androidx.compose)
-
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.coroutines.core)
@@ -105,7 +101,6 @@ dependencies {
 
     // Testing dependencies
     testImplementation(libs.junit)
-    testImplementation(libs.koin.test)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 }
@@ -119,7 +114,7 @@ afterEvaluate {
 
                 groupId = "com.syarah"
                 artifactId = "vinscanner"
-                version = "1.0.5"
+                version = "1.0.6"
 
                 pom {
                     name.set("Syarah VIN Scanner")

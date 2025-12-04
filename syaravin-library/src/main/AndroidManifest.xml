@@ -21,13 +21,6 @@
             android:screenOrientation="portrait"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:hardwareAccelerated="true" />
-
-        <!-- Auto-initialization via ContentProvider -->
-        <provider
-            android:name=".VinScannerInitializer"
-            android:authorities="${applicationId}.vinscannerinitialization"
-            android:exported="false"
-            android:multiprocess="true" />
     </application>
 
 </manifest>
