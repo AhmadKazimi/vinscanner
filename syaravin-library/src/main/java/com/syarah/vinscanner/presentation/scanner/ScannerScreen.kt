@@ -1,8 +1,6 @@
 package com.syarah.vinscanner.presentation.scanner
 
 import android.Manifest
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
 import android.util.Log
 import android.graphics.Bitmap
@@ -39,7 +37,6 @@ import com.syarah.vinscanner.di.VinScannerDependencies
 import com.syarah.vinscanner.domain.model.VinNumber
 import com.syarah.vinscanner.presentation.components.BoundingBoxOverlay
 import com.syarah.vinscanner.presentation.components.CameraPreview
-import com.syarah.vinscanner.presentation.components.VinResultSheetContent
 import com.syarah.vinscanner.presentation.components.RoiOverlay
 import com.syarah.vinscanner.ui.theme.RoiInvalidBorder
 import com.syarah.vinscanner.ui.theme.RoiNeutralBorder
@@ -175,39 +172,15 @@ internal fun ScannerScreen(
 		}
 	}
 
-	val sheetState = rememberModalBottomSheetState(
-		skipPartiallyExpanded = true
-	)
-
-	if (state.showVinResult && state.detectedVin != null) {
-		ModalBottomSheet(
-			onDismissRequest = { viewModel.onEvent(ScannerEvent.DismissResult) },
-			sheetState = sheetState,
-			containerColor = Color.Transparent,
-			contentColor = MaterialTheme.colorScheme.onSurface,
-			dragHandle = null,
-		) {
-			state.detectedVin?.let {
-				VinResultSheetContent(
-					vinNumber = it,
-					onCopy = { vin ->
-						copyToClipboard(context, vin)
-						context.showToast("VIN copied to clipboard")
-					},
-					onRetry = {
-						viewModel.onEvent(ScannerEvent.DismissResult)
-						viewModel.onEvent(ScannerEvent.StartScanning)
-					},
-					onVinChanged = { newVin ->
-						viewModel.onEvent(ScannerEvent.UpdateVin(newVin))
-					},
-					onConfirm = { vinNumber ->
-						onVinConfirmed(vinNumber)
-					}
-				)
-			}
+	// Auto-confirm VIN immediately without showing bottom sheet
+	LaunchedEffect(state.detectedVin) {
+		state.detectedVin?.let { vinNumber ->
+			// Invoke callback immediately when VIN is detected
+			onVinConfirmed(vinNumber)
 		}
 	}
+
+	// Bottom sheet removed - auto-confirm is now enabled
 
 	Box(
 		modifier = Modifier
@@ -491,8 +464,3 @@ private suspend fun processImage(
 	}
 }
 
-private fun copyToClipboard(context: Context, text: String) {
-	val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-	val clip = ClipData.newPlainText("VIN", text)
-	clipboard.setPrimaryClip(clip)
-}
