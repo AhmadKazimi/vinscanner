@@ -45,19 +45,20 @@ internal class VinValidatorImpl : VinValidator {
         // Strip leading label before applying OCR corrections to avoid turning "VIN" into "V1N"
         val withoutLabel = stripLeadingVinLabel(vin)
         val correctedVin = correctOcrErrors(withoutLabel)
-        val extractedVin = extractVin(correctedVin)
+        val (extractedVin, wasTrimmed) = extractVin(correctedVin)
 
         if (extractedVin == null) {
             val result = VinValidationResult(
                 isValid = false,
-                errorMessage = "No valid 17-character VIN found in the text.",
-                formatValid = false
+                errorMessage = "Invalid characters found in middle of VIN or no valid 17-character VIN found.",
+                formatValid = false,
+                wasTrimmed = wasTrimmed
             )
             Log.d(TAG, "Validation result for '$vin': $result")
             return result
         }
 
-        Log.d(TAG, "Extracted VIN: $extractedVin")
+        Log.d(TAG, "Extracted VIN: $extractedVin (wasTrimmed: $wasTrimmed)")
 
 
         // 1. Check length
@@ -65,7 +66,8 @@ internal class VinValidatorImpl : VinValidator {
             val result = VinValidationResult(
                 isValid = false,
                 errorMessage = "VIN must be 17 characters long, but was ${extractedVin.length}",
-                formatValid = false
+                formatValid = false,
+                wasTrimmed = wasTrimmed
             )
             Log.d(TAG, "Validation result for '$vin': $result")
             return result
@@ -77,7 +79,8 @@ internal class VinValidatorImpl : VinValidator {
             val result = VinValidationResult(
                 isValid = false,
                 errorMessage = "VIN contains invalid characters (I, O, or Q)",
-                formatValid = false
+                formatValid = false,
+                wasTrimmed = wasTrimmed
             )
             Log.d(TAG, "Validation result for '$vin': $result")
             return result
@@ -89,7 +92,8 @@ internal class VinValidatorImpl : VinValidator {
             val result = VinValidationResult(
                 isValid = false,
                 errorMessage = "VIN likely invalid (insufficient digits)",
-                formatValid = false
+                formatValid = false,
+                wasTrimmed = wasTrimmed
             )
             Log.d(TAG, "Validation result for '$vin': $result")
             return result
@@ -101,7 +105,8 @@ internal class VinValidatorImpl : VinValidator {
             val result = VinValidationResult(
                 isValid = true,
                 checksumValid = true,
-                formatValid = true
+                formatValid = true,
+                wasTrimmed = wasTrimmed
             )
             Log.d(TAG, "Validation result for '$vin': $result")
             return result
@@ -114,7 +119,8 @@ internal class VinValidatorImpl : VinValidator {
             isValid = true, // Relaxed validation: Accept even if checksum fails
             errorMessage = "Invalid VIN checksum (accepted)",
             checksumValid = false,
-            formatValid = true
+            formatValid = true,
+            wasTrimmed = wasTrimmed
         )
 
 
@@ -125,7 +131,8 @@ internal class VinValidatorImpl : VinValidator {
     override fun cleanVin(vin: String): String {
         val withoutLabel = stripLeadingVinLabel(vin)
         val correctedVin = correctOcrErrors(withoutLabel)
-        return extractVin(correctedVin) ?: ""
+        val (extractedVin, _) = extractVin(correctedVin)
+        return extractedVin ?: ""
     }
     private fun stripLeadingVinLabel(text: String): String {
         // Remove optional leading label like "VIN:", "vin - ", "VIN no", "VIN#", etc. (case-insensitive)
@@ -138,19 +145,36 @@ internal class VinValidatorImpl : VinValidator {
         return text.map { OCR_CORRECTIONS[it] ?: it }.joinToString("")
     }
 
-    private fun extractVin(text: String): String? {
+    private fun extractVin(text: String): Pair<String?, Boolean> {
         // Normalize input and remove an optional leading "VIN" label with separators (e.g., "VIN:", "Vin - ", etc.)
         val normalized = text.trim().uppercase()
             .replaceFirst(Regex("^VIN\\s*[:#=\u2013\u2014\\-]?\\s*"), "")
 
-        // Remove all non-alphanumeric characters before searching for 17-char sequence
-        val alphanumericText = normalized.replace(Regex("[^A-Z0-9]"), "")
+        // Trim invalid characters from START
+        val trimmedStart = normalized.dropWhile { it !in 'A'..'Z' && it !in '0'..'9' }
 
-        // Find a 17-character VIN (exclude I, O, Q)
+        // Trim invalid characters from END
+        val trimmedBoth = trimmedStart.dropLastWhile { it !in 'A'..'Z' && it !in '0'..'9' }
+
+        // Track if trimming occurred
+        val wasTrimmed = (normalized != trimmedBoth)
+
+        // Check if there are invalid characters IN THE MIDDLE (after trimming start/end)
+        val hasMiddleInvalidChars = trimmedBoth.any {
+            it !in 'A'..'Z' && it !in '0'..'9'
+        }
+
+        if (hasMiddleInvalidChars) {
+            // Invalid! Characters like "ERA:PPSNAE..." have invalid chars in middle
+            Log.w(TAG, "Invalid characters found in middle of VIN: $trimmedBoth")
+            return Pair(null, wasTrimmed)
+        }
+
+        // Now we have a clean alphanumeric string, find 17-char VIN (exclude I, O, Q)
         val vinRegex = Regex("[A-HJ-NPR-Z0-9]{17}")
-        val match = vinRegex.find(alphanumericText)
+        val match = vinRegex.find(trimmedBoth)
 
-        return match?.value
+        return Pair(match?.value, wasTrimmed)
     }
 
 

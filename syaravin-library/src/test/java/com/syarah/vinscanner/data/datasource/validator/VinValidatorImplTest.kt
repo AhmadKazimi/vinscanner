@@ -28,7 +28,8 @@ class VinValidatorImplTest {
         assertFalse("Format should be invalid", result.formatValid)
         assertNotNull("Error message should be present", result.errorMessage)
         assertTrue(
-            "Error message should mention no valid VIN found or length",
+            "Error message should mention no valid VIN found or invalid characters or length",
+            result.errorMessage?.contains("Invalid characters found in middle") == true ||
             result.errorMessage?.contains("No valid 17-character VIN") == true ||
             result.errorMessage?.contains("17 characters") == true
         )
@@ -235,19 +236,21 @@ class VinValidatorImplTest {
     }
 
     @Test
-    fun `validate extracts VIN from text with spaces and hyphens`() {
+    fun `validate rejects VIN with spaces and hyphens in middle (strict mode)`() {
+        // With strict trimming, hyphens in the middle are now rejected
         val result = validator.validate("VIN: 1HG-BH41J-XMN-109186")
 
-        assertTrue("VIN should be extracted and valid", result.isValid)
-        assertTrue("Format should be valid", result.formatValid)
+        assertFalse("VIN with hyphens in middle should be rejected", result.isValid)
+        assertFalse("Format should be invalid", result.formatValid)
     }
 
     @Test
-    fun `validate extracts VIN from text with special characters`() {
+    fun `validate rejects VIN with special characters in middle (strict mode)`() {
+        // With strict trimming, asterisks in the middle are now rejected
         val result = validator.validate("1HG*BH41J*XMN*109186")
 
-        assertTrue("VIN should be extracted and valid", result.isValid)
-        assertTrue("Format should be valid", result.formatValid)
+        assertFalse("VIN with asterisks in middle should be rejected", result.isValid)
+        assertFalse("Format should be invalid", result.formatValid)
     }
 
     @Test
@@ -257,7 +260,8 @@ class VinValidatorImplTest {
         assertFalse("VIN should be invalid", result.isValid)
         assertFalse("Format should be invalid", result.formatValid)
         assertTrue(
-            "Error message should indicate no valid VIN found",
+            "Error message should indicate no valid VIN found or invalid characters",
+            result.errorMessage?.contains("Invalid characters found in middle") == true ||
             result.errorMessage?.contains("No valid 17-character VIN") == true
         )
     }
@@ -272,10 +276,11 @@ class VinValidatorImplTest {
     }
 
     @Test
-    fun `cleanVin removes spaces and hyphens`() {
+    fun `cleanVin returns empty for VIN with spaces and hyphens in middle (strict mode)`() {
+        // With strict trimming, spaces and hyphens in middle cause rejection
         val cleaned = validator.cleanVin("1HG-BH41J XMN-109186")
 
-        assertEquals("Cleaned VIN should have no spaces or hyphens", "1HGBH41JXMN109186", cleaned)
+        assertEquals("Cleaned VIN should be empty for invalid middle chars", "", cleaned)
     }
 
     @Test
@@ -300,11 +305,12 @@ class VinValidatorImplTest {
     }
 
     @Test
-    fun `cleanVin handles text with multiple VINs`() {
-        // Should extract the first valid 17-character VIN
+    fun `cleanVin returns empty for text with space in middle`() {
+        // With strict trimming, space in middle causes rejection
+        // "1HGBH41JXMN109186 1FAFP40432F172825" has a space in the middle
         val cleaned = validator.cleanVin("1HGBH41JXMN109186 1FAFP40432F172825")
 
-        assertEquals("Should extract first VIN", "1HGBH41JXMN109186", cleaned)
+        assertEquals("Should be empty due to space in middle", "", cleaned)
     }
 
     // ==================== Ambiguous Character Permutation Tests ====================
@@ -405,29 +411,30 @@ class VinValidatorImplTest {
     // ==================== Validation Pipeline Integration Tests ====================
 
     @Test
-    fun `validation pipeline processes VIN end-to-end`() {
+    fun `validation pipeline processes VIN end-to-end without middle separators`() {
         // Test the complete pipeline: strip label -> correct OCR -> extract -> validate
-        val input = "VIN NUMBER: 1HGB-H4IJ-XMN-1O9I86"
+        // Note: No hyphens in middle (strict mode)
+        val input = "VIN NUMBER: 1HGBH4IJXMN1O9I86"
         val result = validator.validate(input)
 
         // Should:
         // 1. Strip "VIN NUMBER:" label
         // 2. Correct I->1, O->0
-        // 3. Remove hyphens
-        // 4. Extract 17-char VIN
-        // 5. Validate format and checksum
+        // 3. Extract 17-char VIN
+        // 4. Validate format and checksum
 
         assertTrue("VIN should be valid after pipeline", result.isValid)
         assertTrue("Format should be valid", result.formatValid)
     }
 
     @Test
-    fun `validation pipeline handles messy input`() {
+    fun `validation pipeline rejects messy input with middle separators (strict mode)`() {
+        // With strict trimming, asterisks/hyphens/underscores in middle cause rejection
         val input = "  vin#:  1hG*bH-4iJ*xMn_1o9i86!!!  "
         val result = validator.validate(input)
 
-        assertTrue("VIN should be valid after cleanup", result.isValid)
-        assertTrue("Format should be valid", result.formatValid)
+        assertFalse("VIN with middle separators should be rejected", result.isValid)
+        assertFalse("Format should be invalid", result.formatValid)
     }
 
     @Test
@@ -462,14 +469,14 @@ class VinValidatorImplTest {
     // ==================== Performance and Boundary Tests ====================
 
     @Test
-    fun `validate handles input with surrounding text`() {
-        // VIN embedded in text with spaces and punctuation
-        // The extraction process removes non-alphanumeric before finding VIN
+    fun `validate rejects input with text after VIN (strict mode)`() {
+        // VIN with trailing text containing space in middle is rejected (strict mode)
         val inputWithText = "VIN: 1HGBH41JXMN109186 (found on vehicle)"
         val result = validator.validate(inputWithText)
 
-        assertTrue("VIN should be extracted from input with surrounding text", result.isValid)
-        assertTrue("Format should be valid", result.formatValid)
+        // The space between VIN and trailing text causes rejection in strict mode
+        assertFalse("VIN with text after should be rejected (space in middle)", result.isValid)
+        assertFalse("Format should be invalid", result.formatValid)
     }
 
     @Test
@@ -482,7 +489,8 @@ class VinValidatorImplTest {
         assertFalse("No valid 17-char VIN should be found", result.isValid)
         assertFalse("Format should be invalid", result.formatValid)
         assertTrue(
-            "Error message should indicate no valid VIN found",
+            "Error message should indicate no valid VIN found or invalid characters",
+            result.errorMessage?.contains("Invalid characters found in middle") == true ||
             result.errorMessage?.contains("No valid 17-character VIN") == true
         )
     }
@@ -502,5 +510,111 @@ class VinValidatorImplTest {
             // Should not throw exception, just return empty or processed string
             assertNotNull("cleanVin should handle unusual input", validator.cleanVin(input))
         }
+    }
+
+    // ==================== Smart Trimming Tests ====================
+
+    @Test
+    fun `validate accepts VIN with trailing slash`() {
+        // VIN with trailing slash should be trimmed and accepted
+        val result = validator.validate("1HGBH41JXMN109186/")
+
+        assertTrue("VIN should be valid after trimming trailing slash", result.isValid)
+        assertTrue("Format should be valid", result.formatValid)
+        assertTrue("wasTrimmed flag should be true", result.wasTrimmed)
+    }
+
+    @Test
+    fun `validate accepts VIN with leading slash`() {
+        // VIN with leading slash should be trimmed and accepted
+        val result = validator.validate("/1HGBH41JXMN109186")
+
+        assertTrue("VIN should be valid after trimming leading slash", result.isValid)
+        assertTrue("Format should be valid", result.formatValid)
+        assertTrue("wasTrimmed flag should be true", result.wasTrimmed)
+    }
+
+    @Test
+    fun `validate accepts VIN with leading and trailing special characters`() {
+        // VIN with both leading and trailing special chars should be trimmed
+        val result = validator.validate("*/1HGBH41JXMN109186/*")
+
+        assertTrue("VIN should be valid after trimming", result.isValid)
+        assertTrue("Format should be valid", result.formatValid)
+        assertTrue("wasTrimmed flag should be true", result.wasTrimmed)
+    }
+
+    @Test
+    fun `validate rejects VIN with middle colon`() {
+        // VIN with colon in the middle should be rejected
+        val result = validator.validate("ERA:PPSNAE234439G161")
+
+        assertFalse("VIN with middle colon should be rejected", result.isValid)
+        assertFalse("Format should be invalid", result.formatValid)
+        assertTrue(
+            "Error message should indicate invalid characters in middle",
+            result.errorMessage?.contains("Invalid characters found in middle") == true
+        )
+    }
+
+    @Test
+    fun `validate rejects VIN with middle asterisk`() {
+        // VIN with asterisks in the middle should be rejected (not trimmed from edges)
+        val result = validator.validate("1HG*BH41J*XMN109186")
+
+        assertFalse("VIN with middle asterisks should be rejected", result.isValid)
+        assertFalse("Format should be invalid", result.formatValid)
+    }
+
+    @Test
+    fun `validate rejects VIN with middle space`() {
+        // VIN with space in the middle should be rejected
+        val result = validator.validate("ERAPPSN 234439G161")
+
+        assertFalse("VIN with middle space should be rejected", result.isValid)
+        assertFalse("Format should be invalid", result.formatValid)
+    }
+
+    @Test
+    fun `validate wasTrimmed is false when no trimming occurs`() {
+        // Clean VIN with no special characters should have wasTrimmed=false
+        val result = validator.validate("1HGBH41JXMN109186")
+
+        assertTrue("VIN should be valid", result.isValid)
+        assertFalse("wasTrimmed flag should be false", result.wasTrimmed)
+    }
+
+    @Test
+    fun `validate accepts VIN with trailing special characters and validates correctly`() {
+        // Test the specific case from the user's image: ERAPPSN234439G161/
+        val result = validator.validate("ERAPPSN234439G161/")
+
+        // This VIN will be trimmed and validated
+        // Note: It may fail checksum validation, but should pass format validation
+        assertTrue("Format should be valid after trimming", result.formatValid)
+        assertTrue("wasTrimmed flag should be true", result.wasTrimmed)
+    }
+
+    @Test
+    fun `cleanVin handles trailing slash correctly`() {
+        // cleanVin should also trim leading/trailing characters
+        val cleaned = validator.cleanVin("1HGBH41JXMN109186/")
+
+        assertEquals("Cleaned VIN should have slash removed", "1HGBH41JXMN109186", cleaned)
+    }
+
+    @Test
+    fun `cleanVin handles leading slash correctly`() {
+        val cleaned = validator.cleanVin("/1HGBH41JXMN109186")
+
+        assertEquals("Cleaned VIN should have leading slash removed", "1HGBH41JXMN109186", cleaned)
+    }
+
+    @Test
+    fun `cleanVin returns empty for VIN with middle invalid chars`() {
+        // cleanVin should return empty string for VINs with invalid chars in middle
+        val cleaned = validator.cleanVin("ERA:PPSNAE234439G161")
+
+        assertEquals("Cleaned VIN should be empty for invalid middle chars", "", cleaned)
     }
 }
