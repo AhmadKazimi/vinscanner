@@ -13,6 +13,7 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
 private const val TAG = "TextExtractorImpl"
+private const val ML_KIT_MIN_SIZE = 32 // ML Kit requires minimum 32x32 pixels
 
 /**
  * Text extraction implementation powered by ML Kit's on-device text recogniser.
@@ -34,12 +35,19 @@ internal class TextExtractorImpl(
                 val cropRect = toPixelRect(bitmap, boundingBox)
                 if (cropRect.width() <= 0 || cropRect.height() <= 0) return@withContext null
 
+                // Expand bounding box if it's too small for ML Kit (requires 32x32 minimum)
+                val expandedRect = ensureMinimumSize(cropRect, bitmap.width, bitmap.height)
+
+                if (expandedRect.width() != cropRect.width() || expandedRect.height() != cropRect.height()) {
+                    Log.d(TAG, "Expanded box from ${cropRect.width()}x${cropRect.height()} to ${expandedRect.width()}x${expandedRect.height()}")
+                }
+
                 val cropped = Bitmap.createBitmap(
                     bitmap,
-                    cropRect.left,
-                    cropRect.top,
-                    cropRect.width(),
-                    cropRect.height()
+                    expandedRect.left,
+                    expandedRect.top,
+                    expandedRect.width(),
+                    expandedRect.height()
                 )
 
                 val image = InputImage.fromBitmap(cropped, 0)
@@ -87,6 +95,38 @@ internal class TextExtractorImpl(
             Log.e(TAG, "Error extracting text with bounds from image", e)
             emptyList()
         }
+    }
+
+    /**
+     * Ensures a bounding box meets ML Kit's minimum size requirement (32x32 pixels).
+     * Expands the box equally in all directions while staying within bitmap bounds.
+     */
+    private fun ensureMinimumSize(rect: Rect, bitmapWidth: Int, bitmapHeight: Int): Rect {
+        var width = rect.width()
+        var height = rect.height()
+
+        // Check if expansion is needed
+        if (width >= ML_KIT_MIN_SIZE && height >= ML_KIT_MIN_SIZE) {
+            return rect // Already meets minimum size
+        }
+
+        // Calculate how much to expand
+        val widthExpansion = maxOf(0, ML_KIT_MIN_SIZE - width)
+        val heightExpansion = maxOf(0, ML_KIT_MIN_SIZE - height)
+
+        // Expand equally in both directions (left/right for width, top/bottom for height)
+        val expandLeft = widthExpansion / 2
+        val expandRight = widthExpansion - expandLeft // Handle odd numbers
+        val expandTop = heightExpansion / 2
+        val expandBottom = heightExpansion - expandTop // Handle odd numbers
+
+        // Apply expansion and clamp to bitmap bounds
+        val newLeft = (rect.left - expandLeft).coerceIn(0, bitmapWidth)
+        val newTop = (rect.top - expandTop).coerceIn(0, bitmapHeight)
+        val newRight = (rect.right + expandRight).coerceIn(0, bitmapWidth)
+        val newBottom = (rect.bottom + expandBottom).coerceIn(0, bitmapHeight)
+
+        return Rect(newLeft, newTop, newRight, newBottom)
     }
 
     /**
