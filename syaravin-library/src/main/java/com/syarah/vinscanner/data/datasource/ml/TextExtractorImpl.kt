@@ -50,7 +50,13 @@ internal class TextExtractorImpl(
                     expandedRect.height()
                 )
 
-                val image = InputImage.fromBitmap(cropped, 0)
+                // Detect rotation angle for better OCR on angled text
+                val rotationDegrees = detectRotation(cropped)
+                if (rotationDegrees != 0) {
+                    Log.d(TAG, "Detected text rotation: $rotationDegrees degrees")
+                }
+
+                val image = InputImage.fromBitmap(cropped, rotationDegrees)
                 val result = recogniser.process(image).await()
                 result.text.takeIf { it.isNotBlank() }
             } catch (e: Exception) {
@@ -61,7 +67,12 @@ internal class TextExtractorImpl(
 
     override suspend fun extractAllText(bitmap: Bitmap): List<String> = withContext(Dispatchers.Default) {
         try {
-            val image = InputImage.fromBitmap(bitmap, 0)
+            val rotationDegrees = detectRotation(bitmap)
+            if (rotationDegrees != 0) {
+                Log.d(TAG, "Detected full image rotation: $rotationDegrees degrees")
+            }
+
+            val image = InputImage.fromBitmap(bitmap, rotationDegrees)
             val result = recogniser.process(image).await()
             result.textBlocks.flatMap { block ->
                 block.lines.map { it.text }
@@ -74,7 +85,12 @@ internal class TextExtractorImpl(
 
     override suspend fun extractAllTextWithBounds(bitmap: Bitmap): List<TextWithBounds> = withContext(Dispatchers.Default) {
         try {
-            val image = InputImage.fromBitmap(bitmap, 0)
+            val rotationDegrees = detectRotation(bitmap)
+            if (rotationDegrees != 0) {
+                Log.d(TAG, "Detected full image rotation for bounds: $rotationDegrees degrees")
+            }
+
+            val image = InputImage.fromBitmap(bitmap, rotationDegrees)
             val result = recogniser.process(image).await()
             result.textBlocks.flatMap { block ->
                 block.lines.mapNotNull { line ->
@@ -94,6 +110,34 @@ internal class TextExtractorImpl(
         } catch (e: Exception) {
             Log.e(TAG, "Error extracting text with bounds from image", e)
             emptyList()
+        }
+    }
+
+    /**
+     * Detects the rotation angle of text in the bitmap.
+     * Returns rotation in degrees: 0, 90, 180, or 270.
+     * Uses simple heuristics based on bitmap aspect ratio and orientation.
+     */
+    private fun detectRotation(bitmap: Bitmap): Int {
+        val width = bitmap.width
+        val height = bitmap.height
+        val aspectRatio = width.toFloat() / height.toFloat()
+
+        // VINs are typically horizontal text (wide aspect ratio)
+        // If the bitmap is portrait (tall), it might be rotated
+        return when {
+            // Wide landscape (normal VIN orientation)
+            aspectRatio > 1.5f -> 0
+
+            // Portrait orientation - might be 90 or 270 degrees rotated
+            aspectRatio < 0.67f -> {
+                // Default to 270 degrees (rotate right to make horizontal)
+                // This assumes camera is held vertically with VIN on side
+                270
+            }
+
+            // Nearly square or slight landscape/portrait - no rotation
+            else -> 0
         }
     }
 
