@@ -1,14 +1,18 @@
 package com.kazimi.sample
 
+import android.graphics.Bitmap
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.syarah.vinscanner.VinScanner
@@ -22,20 +26,23 @@ class MainActivity : ComponentActivity() {
     ) { result ->
         when (result) {
             is VinScanResult.Success -> {
-                // Display VIN result
-                val vin = result.vinNumber
-                vinResult = "VIN: ${vin.value}\nConfidence: ${(vin.confidence * 100).toInt()}%\nValid: ${vin.isValid}"
+                // Store VinNumber to access bitmap
+                scannedVin = result.vinNumber
+                resultMessage = null
             }
             is VinScanResult.Cancelled -> {
-                vinResult = "Scan cancelled by user"
+                scannedVin = null
+                resultMessage = "Scan cancelled by user"
             }
             is VinScanResult.Error -> {
-                vinResult = "Error: ${result.message}"
+                scannedVin = null
+                resultMessage = "Error: ${result.message}"
             }
         }
     }
 
-    private var vinResult by mutableStateOf("No scan result yet")
+    private var scannedVin by mutableStateOf<VinNumber?>(null)
+    private var resultMessage by mutableStateOf<String?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,7 +54,8 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     SampleAppScreen(
-                        vinResult = vinResult,
+                        scannedVin = scannedVin,
+                        resultMessage = resultMessage,
                         onScanClick = {
                             vinScannerLauncher.launch(Unit)
                         }
@@ -60,7 +68,8 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun SampleAppScreen(
-    vinResult: String,
+    scannedVin: VinNumber?,
+    resultMessage: String?,
     onScanClick: () -> Unit
 ) {
     Column(
@@ -107,10 +116,50 @@ fun SampleAppScreen(
                     fontWeight = FontWeight.SemiBold
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = vinResult,
-                    style = MaterialTheme.typography.bodyLarge
-                )
+
+                // Show VIN info if available
+                if (scannedVin != null) {
+                    // Show captured image if available
+                    scannedVin.croppedImage?.let { bitmap ->
+                        Image(
+                            bitmap = bitmap.asImageBitmap(),
+                            contentDescription = "Captured VIN Image",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(120.dp),
+                            contentScale = ContentScale.Fit
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
+
+                    // Show VIN details
+                    val vinText = buildString {
+                        if (scannedVin.value.isEmpty()) {
+                            append("Manual Entry Mode\n")
+                            append("(No VIN detected - image captured for manual entry)")
+                        } else {
+                            append("VIN: ${scannedVin.value}\n")
+                            append("Confidence: ${(scannedVin.confidence * 100).toInt()}%\n")
+                            append("Valid: ${scannedVin.isValid}")
+                        }
+                    }
+                    Text(
+                        text = vinText,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                } else if (resultMessage != null) {
+                    // Show error/cancelled message
+                    Text(
+                        text = resultMessage,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                } else {
+                    // No result yet
+                    Text(
+                        text = "No scan result yet",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
             }
         }
     }

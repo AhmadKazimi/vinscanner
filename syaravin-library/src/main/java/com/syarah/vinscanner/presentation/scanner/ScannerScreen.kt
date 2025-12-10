@@ -150,6 +150,9 @@ internal fun ScannerScreen(
 							},
 							onRoiBorderStateChange = { state ->
 								viewModel.onEvent(ScannerEvent.UpdateRoiBorderState(state))
+							},
+							onRoiBitmapCaptured = { roiBitmap ->
+								viewModel.onRoiCroppedBitmapUpdated(roiBitmap)
 							}
 						)
 						kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
@@ -299,8 +302,30 @@ internal fun ScannerScreen(
 		if (state.hasPermission && state.isScanning) {
 			ExtendedFloatingActionButton(
 				onClick = {
-					Log.d(TAG, "Enter manually button clicked, invoking onCancelled callback")
-					onCancelled()
+					Log.d(TAG, "Enter manually button clicked")
+
+					// Get latest ROI-cropped bitmap from state
+					val roiBitmap = state.latestRoiCroppedBitmap
+
+					if (roiBitmap != null) {
+						Log.d(TAG, "Passing empty VIN with ROI bitmap (${roiBitmap.width}x${roiBitmap.height})")
+
+						// Create VinNumber with empty string and ROI bitmap
+						val manualEntryVin = VinNumber(
+							value = "",
+							confidence = 0f,
+							isValid = false,
+							croppedImage = roiBitmap
+						)
+
+						// Invoke callback with bitmap
+						onVinConfirmed(manualEntryVin)
+					} else {
+						Log.w(TAG, "No ROI bitmap available, passing empty VIN without image")
+
+						// Fallback: pass empty VIN without bitmap
+						onVinConfirmed(VinNumber(value = "", confidence = 0f, isValid = false))
+					}
 				},
 				modifier = Modifier
 					.align(Alignment.BottomCenter)
@@ -345,7 +370,8 @@ private suspend fun processImage(
 	vinValidator: VinValidator,
 	onVinDetected: (String, Float, Bitmap?) -> Unit,
 	onBoxesDetected: (List<com.syarah.vinscanner.domain.model.BoundingBox>) -> Unit,
-	onRoiBorderStateChange: (RoiBorderState) -> Unit
+	onRoiBorderStateChange: (RoiBorderState) -> Unit,
+	onRoiBitmapCaptured: (Bitmap) -> Unit
 ) {
 	Log.d(TAG, "Processing image...")
 	try {
@@ -367,7 +393,20 @@ private suspend fun processImage(
 			val processedBitmap: Bitmap = try {
 				if (shouldCrop) {
 					Log.d(TAG, "Cropping to ROI: [$leftPx,$topPx,$rightPx,$bottomPx] -> ${roiWidth}x${roiHeight}")
-					Bitmap.createBitmap(bitmap, leftPx, topPx, roiWidth, roiHeight)
+					val cropped = Bitmap.createBitmap(bitmap, leftPx, topPx, roiWidth, roiHeight)
+
+					// Store a copy for manual entry (create new bitmap to prevent recycling issues)
+					try {
+						val roiCopy = cropped.copy(Bitmap.Config.ARGB_8888, false)
+						kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+							onRoiBitmapCaptured(roiCopy)
+						}
+						Log.d(TAG, "Stored ROI bitmap copy for manual entry: ${roiCopy.width}x${roiCopy.height}")
+					} catch (e: Exception) {
+						Log.e(TAG, "Failed to create ROI bitmap copy", e)
+					}
+
+					cropped
 				} else bitmap
 			} catch (e: Exception) {
 				Log.e(TAG, "Failed to crop to ROI, falling back to full image", e)
