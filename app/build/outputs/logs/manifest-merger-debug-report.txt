@@ -1,0 +1,814 @@
+-- Merging decision tree log ---
+manifest
+ADDED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:2:1-39:12
+INJECTED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:2:1-39:12
+INJECTED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:2:1-39:12
+INJECTED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:2:1-39:12
+MERGED from [com.squareup.leakcanary:leakcanary-android:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/cbdc5e53a47494ee249b0de0464fa696/transformed/leakcanary-android-2.12/AndroidManifest.xml:17:1-22:12
+MERGED from [com.google.accompanist:accompanist-permissions:0.32.0] /Users/kazimi/.gradle/caches/8.13/transforms/c0d4ef4e5c52eb5965ce419a0bfaef76/transformed/accompanist-permissions-0.32.0/AndroidManifest.xml:17:1-23:12
+MERGED from [io.insert-koin:koin-androidx-compose:3.5.3] /Users/kazimi/.gradle/caches/8.13/transforms/12151e1d16cc678694618fb85489c57f/transformed/koin-androidx-compose-3.5.3/AndroidManifest.xml:2:1-9:12
+MERGED from [io.insert-koin:koin-android:3.5.3] /Users/kazimi/.gradle/caches/8.13/transforms/9361413577e1db6ccd064e388eba54d0/transformed/koin-android-3.5.3/AndroidManifest.xml:2:1-11:12
+MERGED from [com.google.mlkit:text-recognition:16.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/3219ed08f0b12b33da157ee7ded97fb3/transformed/text-recognition-16.0.0/AndroidManifest.xml:2:1-7:12
+MERGED from [com.google.android.gms:play-services-mlkit-text-recognition:19.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/89d78b7e5f0e423341fcef3e95f390dc/transformed/play-services-mlkit-text-recognition-19.0.0/AndroidManifest.xml:2:1-8:12
+MERGED from [com.google.mlkit:text-recognition-bundled-common:16.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/3fa8a8d3fb8b05617a2b6a6205e4514d/transformed/text-recognition-bundled-common-16.0.0/AndroidManifest.xml:2:1-7:12
+MERGED from [com.google.android.gms:play-services-mlkit-text-recognition-common:19.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/02207a057fc5e19e703320ad2e55851e/transformed/play-services-mlkit-text-recognition-common-19.0.0/AndroidManifest.xml:2:1-18:12
+MERGED from [com.google.mlkit:vision-common:17.3.0] /Users/kazimi/.gradle/caches/8.13/transforms/57bea1476108c5cadeeec514bfec51c6/transformed/vision-common-17.3.0/AndroidManifest.xml:2:1-18:12
+MERGED from [com.google.mlkit:common:18.8.0] /Users/kazimi/.gradle/caches/8.13/transforms/888729fdde0243c524fd606bed3fc114/transformed/common-18.8.0/AndroidManifest.xml:2:1-26:12
+MERGED from [com.google.android.gms:play-services-base:18.1.0] /Users/kazimi/.gradle/caches/8.13/transforms/8e7d2ff4c7fa71ad20fd56c9bc0f6944/transformed/play-services-base-18.1.0/AndroidManifest.xml:16:1-24:12
+MERGED from [com.google.mlkit:vision-interfaces:16.2.0] /Users/kazimi/.gradle/caches/8.13/transforms/104781174f26edd3d7aed20a0a504cbe/transformed/vision-interfaces-16.2.0/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.camera:camera-video:1.3.1] /Users/kazimi/.gradle/caches/8.13/transforms/25330b972288a5179b4a69c6075644a6/transformed/camera-video-1.3.1/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.camera:camera-view:1.3.1] /Users/kazimi/.gradle/caches/8.13/transforms/2ebaaffff8df2b62ade7153bb30ea061/transformed/camera-view-1.3.1/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.camera:camera-lifecycle:1.3.1] /Users/kazimi/.gradle/caches/8.13/transforms/849b3daa043c8608d2503e633420156e/transformed/camera-lifecycle-1.3.1/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.camera:camera-camera2:1.3.1] /Users/kazimi/.gradle/caches/8.13/transforms/23c422d78e0430c294132d0cdedd1048/transformed/camera-camera2-1.3.1/AndroidManifest.xml:17:1-36:12
+MERGED from [androidx.camera:camera-core:1.3.1] /Users/kazimi/.gradle/caches/8.13/transforms/60674f5d0f9c2bf81e2064d3a337b257/transformed/camera-core-1.3.1/AndroidManifest.xml:17:1-36:12
+MERGED from [androidx.appcompat:appcompat-resources:1.6.1] /Users/kazimi/.gradle/caches/8.13/transforms/cb0198590722fa8f9a709da3f6fee1c8/transformed/appcompat-resources-1.6.1/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.appcompat:appcompat:1.6.1] /Users/kazimi/.gradle/caches/8.13/transforms/9a36c3139750057e1b8e676c96466ede/transformed/appcompat-1.6.1/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.drawerlayout:drawerlayout:1.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/3f8eef47e469c685af1b11a831ca3b00/transformed/drawerlayout-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.compose.material3:material3-android:1.3.0] /Users/kazimi/.gradle/caches/8.13/transforms/01974ae00b861f61a1f780a3c8ba4f59/transformed/material3-release/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.compose.material:material-ripple-android:1.7.0] /Users/kazimi/.gradle/caches/8.13/transforms/9fa00b70ba54b2f71c71a9cc1e95a2da/transformed/material-ripple-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.foundation:foundation-layout-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/7d6376428245feb438470b9b19c876e5/transformed/foundation-layout-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.foundation:foundation-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/fc060ae239018cceb1f37d054f46e033/transformed/foundation-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.animation:animation-core-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/00ee87abd075edceb21a584485eacd5b/transformed/animation-core-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.animation:animation-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/e234c967af32f542412baf1f3ce9eb19/transformed/animation-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.ui:ui-tooling-data-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/9d4a55a0f73e564a75dc941c95ddf8de/transformed/ui-tooling-data-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.ui:ui-geometry-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/bddee4f50153337fb4c256a3a7986cb5/transformed/ui-geometry-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.ui:ui-tooling-preview-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/b29ae7f41058b5f08e8fc3cdfb36bc61/transformed/ui-tooling-preview-release/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.compose.ui:ui-util-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/0d7812856a7ada3b648a3fd7b57770f5/transformed/ui-util-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.ui:ui-unit-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/ce544b604c8cbabc30b13586e58ff029/transformed/ui-unit-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.ui:ui-text-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/536fa778813bba4119239b49e657f9b9/transformed/ui-text-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.ui:ui-graphics-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/669b68964f3f8909e934fd02a3494b54/transformed/ui-graphics-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.ui:ui-test-manifest:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/d1a36a52444e342782064028e716079c/transformed/ui-test-manifest-1.7.8/AndroidManifest.xml:17:1-28:12
+MERGED from [androidx.compose.ui:ui-tooling-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/c1977a044888033febb5dd02abcb7787/transformed/ui-tooling-release/AndroidManifest.xml:17:1-28:12
+MERGED from [androidx.compose.material:material-android:1.7.0] /Users/kazimi/.gradle/caches/8.13/transforms/e00fb3785212352ef501da442de2d18c/transformed/material-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.material:material-icons-core-android:1.7.0] /Users/kazimi/.gradle/caches/8.13/transforms/414438c554ee74c63c83fc24630a25bf/transformed/material-icons-core-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.ui:ui-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/5adc265013303ddc8aee9168de0fb959/transformed/ui-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.vectordrawable:vectordrawable-animated:1.1.0] /Users/kazimi/.gradle/caches/8.13/transforms/b2e9ed8d6f7521313aa6ebdbc641353e/transformed/vectordrawable-animated-1.1.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.vectordrawable:vectordrawable:1.1.0] /Users/kazimi/.gradle/caches/8.13/transforms/b9f33bcec6eedd871c3977ed7379e6ea/transformed/vectordrawable-1.1.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.viewpager:viewpager:1.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/9e5f45feef4423ef4123dc90e6478a87/transformed/viewpager-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.customview:customview:1.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/eddca1e00efac36b67dfe1eccf955f36/transformed/customview-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.loader:loader:1.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/36741f3e2fc444ea378011452a5eb0b8/transformed/loader-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.autofill:autofill:1.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/245aa3d5d74ea57d47ceeb58025c8f7a/transformed/autofill-1.0.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.graphics:graphics-path:1.0.1] /Users/kazimi/.gradle/caches/8.13/transforms/b9141df42cbf1855b86ebd0bb97ee18b/transformed/graphics-path-1.0.1/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.emoji2:emoji2-views-helper:1.3.0] /Users/kazimi/.gradle/caches/8.13/transforms/f93e38a9dc4ccd9d45d666111d51b7a3/transformed/emoji2-views-helper-1.3.0/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.emoji2:emoji2:1.3.0] /Users/kazimi/.gradle/caches/8.13/transforms/91fb7657f16f7854fe5e2e311d0561b1/transformed/emoji2-1.3.0/AndroidManifest.xml:17:1-35:12
+MERGED from [androidx.core:core:1.16.0] /Users/kazimi/.gradle/caches/8.13/transforms/7dff5c565800759a8c3dd3771d6a3107/transformed/core-1.16.0/AndroidManifest.xml:17:1-30:12
+MERGED from [androidx.activity:activity:1.10.1] /Users/kazimi/.gradle/caches/8.13/transforms/3a14f4966bda1772ace1f7a5778e2971/transformed/activity-1.10.1/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-process:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/3f587dc84ed919c6313eccedb15048d4/transformed/lifecycle-process-2.9.2/AndroidManifest.xml:17:1-35:12
+MERGED from [androidx.lifecycle:lifecycle-runtime-compose-android:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/bf6d7af5bcef5626f321409f3ccbb1cc/transformed/lifecycle-runtime-compose-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate-android:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/e80edfd59ed1d74f4e3afdff5ff195d0/transformed/lifecycle-viewmodel-savedstate-release/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/22bff01d6d81531b05979873938abf9a/transformed/lifecycle-viewmodel-2.9.2/AndroidManifest.xml:2:1-5:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-android:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/7049e03576b7dfcfbf49aff48c3bcbfc/transformed/lifecycle-viewmodel-release/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/0b063fa18b4279e81e4a1d2f55aafa71/transformed/lifecycle-livedata-core-2.9.2/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.savedstate:savedstate-ktx:1.3.1] /Users/kazimi/.gradle/caches/8.13/transforms/d35dae4f55e85cfb24d98ae148cdd909/transformed/savedstate-ktx-1.3.1/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.savedstate:savedstate-android:1.3.1] /Users/kazimi/.gradle/caches/8.13/transforms/e008cbdfb2089a1812c2f619af1515ed/transformed/savedstate-release/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-runtime-android:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/b400b8a2bc3a9d719d832019160b113f/transformed/lifecycle-runtime-release/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-livedata-core-ktx:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/bb17a7f0fa65452da86a8bb8197e5f8c/transformed/lifecycle-livedata-core-ktx-2.9.2/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/b9e838e63c7e396cab6d15addf26394f/transformed/lifecycle-viewmodel-ktx-2.9.2/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.lifecycle:lifecycle-livedata:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/b34191431d96bb771f517b5c1245369e/transformed/lifecycle-livedata-2.9.2/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-compose-android:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/bdc67d47a70712d8a9bb97e14bff1adb/transformed/lifecycle-viewmodel-compose-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.lifecycle:lifecycle-runtime-ktx-android:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/87352016be345e0df8d68beb857cab44/transformed/lifecycle-runtime-ktx/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.runtime:runtime-saveable-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/2ef48e9e6f72e3e981f411b60300c74f/transformed/runtime-saveable-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.runtime:runtime-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/0e83503b32414fc853d462e020f4f271/transformed/runtime-release/AndroidManifest.xml:2:1-7:12
+MERGED from [com.google.android.gms:play-services-tasks:18.0.2] /Users/kazimi/.gradle/caches/8.13/transforms/247fd6748a95efbea0b057021bd8c49c/transformed/play-services-tasks-18.0.2/AndroidManifest.xml:2:1-6:12
+MERGED from [com.google.android.gms:play-services-basement:18.1.0] /Users/kazimi/.gradle/caches/8.13/transforms/8833fb142d0456fb4a232017b1769071/transformed/play-services-basement-18.1.0/AndroidManifest.xml:16:1-26:12
+MERGED from [androidx.fragment:fragment:1.6.2] /Users/kazimi/.gradle/caches/8.13/transforms/125272d08a1bc8c1bb5a9b4a7dc65386/transformed/fragment-1.6.2/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.fragment:fragment-ktx:1.6.2] /Users/kazimi/.gradle/caches/8.13/transforms/c2b9c6974c8d6617dc0ef600228f4a25/transformed/fragment-ktx-1.6.2/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.activity:activity-ktx:1.10.1] /Users/kazimi/.gradle/caches/8.13/transforms/bbf720ecaff04afb09a916d3c4d98c5f/transformed/activity-ktx-1.10.1/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.activity:activity-compose:1.10.1] /Users/kazimi/.gradle/caches/8.13/transforms/592322ac2c71733caa47d307c8d498c5/transformed/activity-compose-1.10.1/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.customview:customview-poolingcontainer:1.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/8dcb1a1f502686092c2ed6d56a3f56b7/transformed/customview-poolingcontainer-1.0.0/AndroidManifest.xml:17:1-23:12
+MERGED from [androidx.core:core-ktx:1.16.0] /Users/kazimi/.gradle/caches/8.13/transforms/9aa60ec45a10acbd3d404ef0851c5874/transformed/core-ktx-1.16.0/AndroidManifest.xml:2:1-7:12
+MERGED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:17:1-105:12
+MERGED from [com.squareup.leakcanary:leakcanary-object-watcher-android:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/803907bd02276f6a9fd4c8f3b51a87e7/transformed/leakcanary-object-watcher-android-2.12/AndroidManifest.xml:2:1-15:12
+MERGED from [com.squareup.leakcanary:plumber-android:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/184ea0232ac788f8cb011faecbd41839/transformed/plumber-android-2.12/AndroidManifest.xml:2:1-15:12
+MERGED from [com.squareup.leakcanary:leakcanary-object-watcher-android-androidx:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/d892d54f7202d5c90fa322907e51c4b7/transformed/leakcanary-object-watcher-android-androidx-2.12/AndroidManifest.xml:2:1-7:12
+MERGED from [com.squareup.leakcanary:leakcanary-object-watcher-android-support-fragments:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/e81fbb87e5105c61575bbeeb7f164933/transformed/leakcanary-object-watcher-android-support-fragments-2.12/AndroidManifest.xml:2:1-7:12
+MERGED from [com.squareup.leakcanary:leakcanary-object-watcher-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/3609436b8a7b74c5bdeb1461d4af9a93/transformed/leakcanary-object-watcher-android-core-2.12/AndroidManifest.xml:2:1-7:12
+MERGED from [com.squareup.leakcanary:plumber-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/0ee78e9917a99a70d38f93bf59642b7b/transformed/plumber-android-core-2.12/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.annotation:annotation-experimental:1.4.1] /Users/kazimi/.gradle/caches/8.13/transforms/1d9aeddc4eec8893e855a30233f50af3/transformed/annotation-experimental-1.4.1/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.core:core-viewtree:1.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/49b7da8dea7d9d6bc60173dcda01ebc7/transformed/core-viewtree-1.0.0/AndroidManifest.xml:2:1-7:12
+MERGED from [io.github.aakira:napier-android-debug:1.4.1] /Users/kazimi/.gradle/caches/8.13/transforms/e86060c91dba0968c67b335bd7106e01/transformed/napier-debug/AndroidManifest.xml:2:1-11:12
+MERGED from [com.squareup.leakcanary:leakcanary-android-utils:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/adb40f911e3ec45a9761ed6d789ae95a/transformed/leakcanary-android-utils-2.12/AndroidManifest.xml:2:1-7:12
+MERGED from [com.squareup.curtains:curtains:1.2.4] /Users/kazimi/.gradle/caches/8.13/transforms/58e8bd565e84d01d2cb806bcc333cc7c/transformed/curtains-1.2.4/AndroidManifest.xml:2:1-9:12
+MERGED from [androidx.exifinterface:exifinterface:1.3.2] /Users/kazimi/.gradle/caches/8.13/transforms/e75f860438b21299525270e300180e89/transformed/exifinterface-1.3.2/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.interpolator:interpolator:1.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/4557b71035049e3434caf95cf467a3e9/transformed/interpolator-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:17:1-55:12
+MERGED from [androidx.startup:startup-runtime:1.1.1] /Users/kazimi/.gradle/caches/8.13/transforms/d8a65dd903ef9983875dc2a6172aa3e9/transformed/startup-runtime-1.1.1/AndroidManifest.xml:17:1-33:12
+MERGED from [androidx.tracing:tracing:1.2.0] /Users/kazimi/.gradle/caches/8.13/transforms/1c79d8f41b28c80329b8cc6faa624740/transformed/tracing-1.2.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /Users/kazimi/.gradle/caches/8.13/transforms/7c02507ade2ac1faad3c490b3f2fc7f0/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:17:1-27:12
+MERGED from [com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/kazimi/.gradle/caches/8.13/transforms/738277bb47b333b291710182c462bf4d/transformed/transport-backend-cct-2.3.3/AndroidManifest.xml:15:1-38:12
+MERGED from [com.google.android.datatransport:transport-runtime:2.2.6] /Users/kazimi/.gradle/caches/8.13/transforms/2360b19b6b2cb63cf8da7673e807f42d/transformed/transport-runtime-2.2.6/AndroidManifest.xml:15:1-41:12
+MERGED from [com.google.android.datatransport:transport-api:2.2.1] /Users/kazimi/.gradle/caches/8.13/transforms/d77272da7b49d9303554c2e5b38291e8/transformed/transport-api-2.2.1/AndroidManifest.xml:15:1-22:12
+MERGED from [com.google.firebase:firebase-components:16.1.0] /Users/kazimi/.gradle/caches/8.13/transforms/7faafd873a318e19691c5a6949add964/transformed/firebase-components-16.1.0/AndroidManifest.xml:15:1-23:12
+MERGED from [com.google.firebase:firebase-encoders-json:17.1.0] /Users/kazimi/.gradle/caches/8.13/transforms/3089dfceb92c28a3f5888fdb8b62413a/transformed/firebase-encoders-json-17.1.0/AndroidManifest.xml:15:1-23:12
+MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/ed238fe048e714c20d6f8f4cbe7604b7/transformed/cursoradapter-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.arch.core:core-runtime:2.2.0] /Users/kazimi/.gradle/caches/8.13/transforms/d31d5b71e4e9494778a221dd7c227865/transformed/core-runtime-2.2.0/AndroidManifest.xml:17:1-22:12
+MERGED from [com.google.ai.edge.litert:litert-support:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/cee29d18b5fbe846380d79e49291037d/transformed/litert-support-1.4.0/AndroidManifest.xml:2:1-5:12
+MERGED from [com.google.ai.edge.litert:litert:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/4a417f257ceb01bbc0b88bea313013ad/transformed/litert-1.4.0/AndroidManifest.xml:2:1-11:12
+MERGED from [com.google.ai.edge.litert:litert-gpu:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/581757667c86e3e165d5be6221dbb140/transformed/litert-gpu-1.4.0/AndroidManifest.xml:2:1-11:12
+MERGED from [com.google.ai.edge.litert:litert-support-api:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/935ca4b50a15dc1df2d75f794968768b/transformed/litert-support-api-1.4.0/AndroidManifest.xml:2:1-5:12
+MERGED from [com.google.ai.edge.litert:litert-api:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/a6c014c3f3db5efc500a58ca00edbe33/transformed/litert-api-1.4.0/AndroidManifest.xml:2:1-11:12
+MERGED from [com.google.ai.edge.litert:litert-gpu-api:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/05a41b1c8709800fe74bd5af05372db1/transformed/litert-gpu-api-1.4.0/AndroidManifest.xml:2:1-21:12
+MERGED from [com.google.android.odml:image:1.0.0-beta1] /Users/kazimi/.gradle/caches/8.13/transforms/64b8acc7e46b7de08616deea1b06d76b/transformed/image-1.0.0-beta1/AndroidManifest.xml:2:1-9:12
+	package
+		INJECTED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml
+	android:versionName
+		INJECTED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml
+	xmlns:tools
+		ADDED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:3:5-51
+	android:versionCode
+		INJECTED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml
+	xmlns:android
+		ADDED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:2:11-69
+uses-permission#android.permission.CAMERA
+ADDED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:6:5-65
+	android:name
+		ADDED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:6:22-62
+uses-feature#android.hardware.camera
+ADDED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:9:5-84
+	android:required
+		ADDED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:9:58-81
+	android:name
+		ADDED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:9:19-57
+uses-feature#android.hardware.camera.autofocus
+ADDED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:10:5-95
+	android:required
+		ADDED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:10:68-92
+	android:name
+		ADDED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:10:19-67
+uses-feature#android.hardware.camera.front
+ADDED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:11:5-91
+	android:required
+		ADDED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:11:64-88
+	android:name
+		ADDED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:11:19-63
+application
+ADDED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:13:5-37:19
+INJECTED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:13:5-37:19
+MERGED from [io.insert-koin:koin-android:3.5.3] /Users/kazimi/.gradle/caches/8.13/transforms/9361413577e1db6ccd064e388eba54d0/transformed/koin-android-3.5.3/AndroidManifest.xml:9:5-20
+MERGED from [io.insert-koin:koin-android:3.5.3] /Users/kazimi/.gradle/caches/8.13/transforms/9361413577e1db6ccd064e388eba54d0/transformed/koin-android-3.5.3/AndroidManifest.xml:9:5-20
+MERGED from [com.google.android.gms:play-services-mlkit-text-recognition-common:19.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/02207a057fc5e19e703320ad2e55851e/transformed/play-services-mlkit-text-recognition-common-19.0.0/AndroidManifest.xml:8:5-16:19
+MERGED from [com.google.android.gms:play-services-mlkit-text-recognition-common:19.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/02207a057fc5e19e703320ad2e55851e/transformed/play-services-mlkit-text-recognition-common-19.0.0/AndroidManifest.xml:8:5-16:19
+MERGED from [com.google.mlkit:vision-common:17.3.0] /Users/kazimi/.gradle/caches/8.13/transforms/57bea1476108c5cadeeec514bfec51c6/transformed/vision-common-17.3.0/AndroidManifest.xml:8:5-16:19
+MERGED from [com.google.mlkit:vision-common:17.3.0] /Users/kazimi/.gradle/caches/8.13/transforms/57bea1476108c5cadeeec514bfec51c6/transformed/vision-common-17.3.0/AndroidManifest.xml:8:5-16:19
+MERGED from [com.google.mlkit:common:18.8.0] /Users/kazimi/.gradle/caches/8.13/transforms/888729fdde0243c524fd606bed3fc114/transformed/common-18.8.0/AndroidManifest.xml:8:5-24:19
+MERGED from [com.google.mlkit:common:18.8.0] /Users/kazimi/.gradle/caches/8.13/transforms/888729fdde0243c524fd606bed3fc114/transformed/common-18.8.0/AndroidManifest.xml:8:5-24:19
+MERGED from [com.google.android.gms:play-services-base:18.1.0] /Users/kazimi/.gradle/caches/8.13/transforms/8e7d2ff4c7fa71ad20fd56c9bc0f6944/transformed/play-services-base-18.1.0/AndroidManifest.xml:19:5-23:19
+MERGED from [com.google.android.gms:play-services-base:18.1.0] /Users/kazimi/.gradle/caches/8.13/transforms/8e7d2ff4c7fa71ad20fd56c9bc0f6944/transformed/play-services-base-18.1.0/AndroidManifest.xml:19:5-23:19
+MERGED from [androidx.camera:camera-camera2:1.3.1] /Users/kazimi/.gradle/caches/8.13/transforms/23c422d78e0430c294132d0cdedd1048/transformed/camera-camera2-1.3.1/AndroidManifest.xml:23:5-34:19
+MERGED from [androidx.camera:camera-camera2:1.3.1] /Users/kazimi/.gradle/caches/8.13/transforms/23c422d78e0430c294132d0cdedd1048/transformed/camera-camera2-1.3.1/AndroidManifest.xml:23:5-34:19
+MERGED from [androidx.camera:camera-core:1.3.1] /Users/kazimi/.gradle/caches/8.13/transforms/60674f5d0f9c2bf81e2064d3a337b257/transformed/camera-core-1.3.1/AndroidManifest.xml:23:5-34:19
+MERGED from [androidx.camera:camera-core:1.3.1] /Users/kazimi/.gradle/caches/8.13/transforms/60674f5d0f9c2bf81e2064d3a337b257/transformed/camera-core-1.3.1/AndroidManifest.xml:23:5-34:19
+MERGED from [androidx.compose.ui:ui-test-manifest:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/d1a36a52444e342782064028e716079c/transformed/ui-test-manifest-1.7.8/AndroidManifest.xml:22:5-26:19
+MERGED from [androidx.compose.ui:ui-test-manifest:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/d1a36a52444e342782064028e716079c/transformed/ui-test-manifest-1.7.8/AndroidManifest.xml:22:5-26:19
+MERGED from [androidx.compose.ui:ui-tooling-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/c1977a044888033febb5dd02abcb7787/transformed/ui-tooling-release/AndroidManifest.xml:22:5-26:19
+MERGED from [androidx.compose.ui:ui-tooling-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/c1977a044888033febb5dd02abcb7787/transformed/ui-tooling-release/AndroidManifest.xml:22:5-26:19
+MERGED from [androidx.emoji2:emoji2:1.3.0] /Users/kazimi/.gradle/caches/8.13/transforms/91fb7657f16f7854fe5e2e311d0561b1/transformed/emoji2-1.3.0/AndroidManifest.xml:23:5-33:19
+MERGED from [androidx.emoji2:emoji2:1.3.0] /Users/kazimi/.gradle/caches/8.13/transforms/91fb7657f16f7854fe5e2e311d0561b1/transformed/emoji2-1.3.0/AndroidManifest.xml:23:5-33:19
+MERGED from [androidx.core:core:1.16.0] /Users/kazimi/.gradle/caches/8.13/transforms/7dff5c565800759a8c3dd3771d6a3107/transformed/core-1.16.0/AndroidManifest.xml:28:5-89
+MERGED from [androidx.core:core:1.16.0] /Users/kazimi/.gradle/caches/8.13/transforms/7dff5c565800759a8c3dd3771d6a3107/transformed/core-1.16.0/AndroidManifest.xml:28:5-89
+MERGED from [androidx.lifecycle:lifecycle-process:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/3f587dc84ed919c6313eccedb15048d4/transformed/lifecycle-process-2.9.2/AndroidManifest.xml:23:5-33:19
+MERGED from [androidx.lifecycle:lifecycle-process:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/3f587dc84ed919c6313eccedb15048d4/transformed/lifecycle-process-2.9.2/AndroidManifest.xml:23:5-33:19
+MERGED from [com.google.android.gms:play-services-tasks:18.0.2] /Users/kazimi/.gradle/caches/8.13/transforms/247fd6748a95efbea0b057021bd8c49c/transformed/play-services-tasks-18.0.2/AndroidManifest.xml:5:5-20
+MERGED from [com.google.android.gms:play-services-tasks:18.0.2] /Users/kazimi/.gradle/caches/8.13/transforms/247fd6748a95efbea0b057021bd8c49c/transformed/play-services-tasks-18.0.2/AndroidManifest.xml:5:5-20
+MERGED from [com.google.android.gms:play-services-basement:18.1.0] /Users/kazimi/.gradle/caches/8.13/transforms/8833fb142d0456fb4a232017b1769071/transformed/play-services-basement-18.1.0/AndroidManifest.xml:20:5-24:19
+MERGED from [com.google.android.gms:play-services-basement:18.1.0] /Users/kazimi/.gradle/caches/8.13/transforms/8833fb142d0456fb4a232017b1769071/transformed/play-services-basement-18.1.0/AndroidManifest.xml:20:5-24:19
+MERGED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:31:5-103:19
+MERGED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:31:5-103:19
+MERGED from [com.squareup.leakcanary:leakcanary-object-watcher-android:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/803907bd02276f6a9fd4c8f3b51a87e7/transformed/leakcanary-object-watcher-android-2.12/AndroidManifest.xml:7:5-13:19
+MERGED from [com.squareup.leakcanary:leakcanary-object-watcher-android:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/803907bd02276f6a9fd4c8f3b51a87e7/transformed/leakcanary-object-watcher-android-2.12/AndroidManifest.xml:7:5-13:19
+MERGED from [com.squareup.leakcanary:plumber-android:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/184ea0232ac788f8cb011faecbd41839/transformed/plumber-android-2.12/AndroidManifest.xml:7:5-13:19
+MERGED from [com.squareup.leakcanary:plumber-android:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/184ea0232ac788f8cb011faecbd41839/transformed/plumber-android-2.12/AndroidManifest.xml:7:5-13:19
+MERGED from [androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:23:5-53:19
+MERGED from [androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:23:5-53:19
+MERGED from [androidx.startup:startup-runtime:1.1.1] /Users/kazimi/.gradle/caches/8.13/transforms/d8a65dd903ef9983875dc2a6172aa3e9/transformed/startup-runtime-1.1.1/AndroidManifest.xml:25:5-31:19
+MERGED from [androidx.startup:startup-runtime:1.1.1] /Users/kazimi/.gradle/caches/8.13/transforms/d8a65dd903ef9983875dc2a6172aa3e9/transformed/startup-runtime-1.1.1/AndroidManifest.xml:25:5-31:19
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /Users/kazimi/.gradle/caches/8.13/transforms/7c02507ade2ac1faad3c490b3f2fc7f0/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:24:5-25:19
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /Users/kazimi/.gradle/caches/8.13/transforms/7c02507ade2ac1faad3c490b3f2fc7f0/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:24:5-25:19
+MERGED from [com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/kazimi/.gradle/caches/8.13/transforms/738277bb47b333b291710182c462bf4d/transformed/transport-backend-cct-2.3.3/AndroidManifest.xml:28:5-36:19
+MERGED from [com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/kazimi/.gradle/caches/8.13/transforms/738277bb47b333b291710182c462bf4d/transformed/transport-backend-cct-2.3.3/AndroidManifest.xml:28:5-36:19
+MERGED from [com.google.android.datatransport:transport-runtime:2.2.6] /Users/kazimi/.gradle/caches/8.13/transforms/2360b19b6b2cb63cf8da7673e807f42d/transformed/transport-runtime-2.2.6/AndroidManifest.xml:25:5-39:19
+MERGED from [com.google.android.datatransport:transport-runtime:2.2.6] /Users/kazimi/.gradle/caches/8.13/transforms/2360b19b6b2cb63cf8da7673e807f42d/transformed/transport-runtime-2.2.6/AndroidManifest.xml:25:5-39:19
+MERGED from [com.google.ai.edge.litert:litert:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/4a417f257ceb01bbc0b88bea313013ad/transformed/litert-1.4.0/AndroidManifest.xml:9:5-20
+MERGED from [com.google.ai.edge.litert:litert:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/4a417f257ceb01bbc0b88bea313013ad/transformed/litert-1.4.0/AndroidManifest.xml:9:5-20
+MERGED from [com.google.ai.edge.litert:litert-gpu:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/581757667c86e3e165d5be6221dbb140/transformed/litert-gpu-1.4.0/AndroidManifest.xml:9:5-20
+MERGED from [com.google.ai.edge.litert:litert-gpu:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/581757667c86e3e165d5be6221dbb140/transformed/litert-gpu-1.4.0/AndroidManifest.xml:9:5-20
+MERGED from [com.google.ai.edge.litert:litert-api:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/a6c014c3f3db5efc500a58ca00edbe33/transformed/litert-api-1.4.0/AndroidManifest.xml:9:5-20
+MERGED from [com.google.ai.edge.litert:litert-api:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/a6c014c3f3db5efc500a58ca00edbe33/transformed/litert-api-1.4.0/AndroidManifest.xml:9:5-20
+MERGED from [com.google.ai.edge.litert:litert-gpu-api:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/05a41b1c8709800fe74bd5af05372db1/transformed/litert-gpu-api-1.4.0/AndroidManifest.xml:5:5-19:19
+MERGED from [com.google.ai.edge.litert:litert-gpu-api:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/05a41b1c8709800fe74bd5af05372db1/transformed/litert-gpu-api-1.4.0/AndroidManifest.xml:5:5-19:19
+MERGED from [com.google.android.odml:image:1.0.0-beta1] /Users/kazimi/.gradle/caches/8.13/transforms/64b8acc7e46b7de08616deea1b06d76b/transformed/image-1.0.0-beta1/AndroidManifest.xml:7:5-20
+MERGED from [com.google.android.odml:image:1.0.0-beta1] /Users/kazimi/.gradle/caches/8.13/transforms/64b8acc7e46b7de08616deea1b06d76b/transformed/image-1.0.0-beta1/AndroidManifest.xml:7:5-20
+	android:extractNativeLibs
+		INJECTED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml
+	android:appComponentFactory
+		ADDED from [androidx.core:core:1.16.0] /Users/kazimi/.gradle/caches/8.13/transforms/7dff5c565800759a8c3dd3771d6a3107/transformed/core-1.16.0/AndroidManifest.xml:28:18-86
+	android:supportsRtl
+		ADDED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:21:9-35
+	android:label
+		ADDED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:19:9-41
+	android:hardwareAccelerated
+		ADDED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:23:9-43
+	android:fullBackupContent
+		ADDED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:17:9-54
+	android:roundIcon
+		ADDED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:20:9-54
+	android:icon
+		ADDED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:18:9-43
+	android:allowBackup
+		ADDED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:15:9-35
+	android:theme
+		ADDED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:22:9-46
+	android:dataExtractionRules
+		ADDED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:16:9-65
+	android:name
+		ADDED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:14:9-45
+activity#com.kazimi.syaravin.MainActivity
+ADDED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:24:9-36:20
+	android:screenOrientation
+		ADDED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:29:13-50
+	android:label
+		ADDED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:27:13-45
+	android:exported
+		ADDED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:26:13-36
+	android:configChanges
+		ADDED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:30:13-74
+	android:theme
+		ADDED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:28:13-50
+	android:name
+		ADDED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:25:13-41
+intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
+ADDED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:31:13-35:29
+action#android.intent.action.MAIN
+ADDED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:32:17-69
+	android:name
+		ADDED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:32:25-66
+category#android.intent.category.LAUNCHER
+ADDED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:34:17-77
+	android:name
+		ADDED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:34:27-74
+uses-sdk
+INJECTED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml
+INJECTED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml
+MERGED from [com.squareup.leakcanary:leakcanary-android:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/cbdc5e53a47494ee249b0de0464fa696/transformed/leakcanary-android-2.12/AndroidManifest.xml:20:5-44
+MERGED from [com.squareup.leakcanary:leakcanary-android:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/cbdc5e53a47494ee249b0de0464fa696/transformed/leakcanary-android-2.12/AndroidManifest.xml:20:5-44
+MERGED from [com.google.accompanist:accompanist-permissions:0.32.0] /Users/kazimi/.gradle/caches/8.13/transforms/c0d4ef4e5c52eb5965ce419a0bfaef76/transformed/accompanist-permissions-0.32.0/AndroidManifest.xml:21:5-44
+MERGED from [com.google.accompanist:accompanist-permissions:0.32.0] /Users/kazimi/.gradle/caches/8.13/transforms/c0d4ef4e5c52eb5965ce419a0bfaef76/transformed/accompanist-permissions-0.32.0/AndroidManifest.xml:21:5-44
+MERGED from [io.insert-koin:koin-androidx-compose:3.5.3] /Users/kazimi/.gradle/caches/8.13/transforms/12151e1d16cc678694618fb85489c57f/transformed/koin-androidx-compose-3.5.3/AndroidManifest.xml:5:5-7:41
+MERGED from [io.insert-koin:koin-androidx-compose:3.5.3] /Users/kazimi/.gradle/caches/8.13/transforms/12151e1d16cc678694618fb85489c57f/transformed/koin-androidx-compose-3.5.3/AndroidManifest.xml:5:5-7:41
+MERGED from [io.insert-koin:koin-android:3.5.3] /Users/kazimi/.gradle/caches/8.13/transforms/9361413577e1db6ccd064e388eba54d0/transformed/koin-android-3.5.3/AndroidManifest.xml:5:5-7:41
+MERGED from [io.insert-koin:koin-android:3.5.3] /Users/kazimi/.gradle/caches/8.13/transforms/9361413577e1db6ccd064e388eba54d0/transformed/koin-android-3.5.3/AndroidManifest.xml:5:5-7:41
+MERGED from [com.google.mlkit:text-recognition:16.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/3219ed08f0b12b33da157ee7ded97fb3/transformed/text-recognition-16.0.0/AndroidManifest.xml:5:5-44
+MERGED from [com.google.mlkit:text-recognition:16.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/3219ed08f0b12b33da157ee7ded97fb3/transformed/text-recognition-16.0.0/AndroidManifest.xml:5:5-44
+MERGED from [com.google.android.gms:play-services-mlkit-text-recognition:19.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/89d78b7e5f0e423341fcef3e95f390dc/transformed/play-services-mlkit-text-recognition-19.0.0/AndroidManifest.xml:6:5-44
+MERGED from [com.google.android.gms:play-services-mlkit-text-recognition:19.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/89d78b7e5f0e423341fcef3e95f390dc/transformed/play-services-mlkit-text-recognition-19.0.0/AndroidManifest.xml:6:5-44
+MERGED from [com.google.mlkit:text-recognition-bundled-common:16.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/3fa8a8d3fb8b05617a2b6a6205e4514d/transformed/text-recognition-bundled-common-16.0.0/AndroidManifest.xml:5:5-44
+MERGED from [com.google.mlkit:text-recognition-bundled-common:16.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/3fa8a8d3fb8b05617a2b6a6205e4514d/transformed/text-recognition-bundled-common-16.0.0/AndroidManifest.xml:5:5-44
+MERGED from [com.google.android.gms:play-services-mlkit-text-recognition-common:19.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/02207a057fc5e19e703320ad2e55851e/transformed/play-services-mlkit-text-recognition-common-19.0.0/AndroidManifest.xml:6:5-44
+MERGED from [com.google.android.gms:play-services-mlkit-text-recognition-common:19.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/02207a057fc5e19e703320ad2e55851e/transformed/play-services-mlkit-text-recognition-common-19.0.0/AndroidManifest.xml:6:5-44
+MERGED from [com.google.mlkit:vision-common:17.3.0] /Users/kazimi/.gradle/caches/8.13/transforms/57bea1476108c5cadeeec514bfec51c6/transformed/vision-common-17.3.0/AndroidManifest.xml:6:5-44
+MERGED from [com.google.mlkit:vision-common:17.3.0] /Users/kazimi/.gradle/caches/8.13/transforms/57bea1476108c5cadeeec514bfec51c6/transformed/vision-common-17.3.0/AndroidManifest.xml:6:5-44
+MERGED from [com.google.mlkit:common:18.8.0] /Users/kazimi/.gradle/caches/8.13/transforms/888729fdde0243c524fd606bed3fc114/transformed/common-18.8.0/AndroidManifest.xml:6:5-44
+MERGED from [com.google.mlkit:common:18.8.0] /Users/kazimi/.gradle/caches/8.13/transforms/888729fdde0243c524fd606bed3fc114/transformed/common-18.8.0/AndroidManifest.xml:6:5-44
+MERGED from [com.google.android.gms:play-services-base:18.1.0] /Users/kazimi/.gradle/caches/8.13/transforms/8e7d2ff4c7fa71ad20fd56c9bc0f6944/transformed/play-services-base-18.1.0/AndroidManifest.xml:18:5-43
+MERGED from [com.google.android.gms:play-services-base:18.1.0] /Users/kazimi/.gradle/caches/8.13/transforms/8e7d2ff4c7fa71ad20fd56c9bc0f6944/transformed/play-services-base-18.1.0/AndroidManifest.xml:18:5-43
+MERGED from [com.google.mlkit:vision-interfaces:16.2.0] /Users/kazimi/.gradle/caches/8.13/transforms/104781174f26edd3d7aed20a0a504cbe/transformed/vision-interfaces-16.2.0/AndroidManifest.xml:5:5-44
+MERGED from [com.google.mlkit:vision-interfaces:16.2.0] /Users/kazimi/.gradle/caches/8.13/transforms/104781174f26edd3d7aed20a0a504cbe/transformed/vision-interfaces-16.2.0/AndroidManifest.xml:5:5-44
+MERGED from [androidx.camera:camera-video:1.3.1] /Users/kazimi/.gradle/caches/8.13/transforms/25330b972288a5179b4a69c6075644a6/transformed/camera-video-1.3.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.camera:camera-video:1.3.1] /Users/kazimi/.gradle/caches/8.13/transforms/25330b972288a5179b4a69c6075644a6/transformed/camera-video-1.3.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.camera:camera-view:1.3.1] /Users/kazimi/.gradle/caches/8.13/transforms/2ebaaffff8df2b62ade7153bb30ea061/transformed/camera-view-1.3.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.camera:camera-view:1.3.1] /Users/kazimi/.gradle/caches/8.13/transforms/2ebaaffff8df2b62ade7153bb30ea061/transformed/camera-view-1.3.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.camera:camera-lifecycle:1.3.1] /Users/kazimi/.gradle/caches/8.13/transforms/849b3daa043c8608d2503e633420156e/transformed/camera-lifecycle-1.3.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.camera:camera-lifecycle:1.3.1] /Users/kazimi/.gradle/caches/8.13/transforms/849b3daa043c8608d2503e633420156e/transformed/camera-lifecycle-1.3.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.camera:camera-camera2:1.3.1] /Users/kazimi/.gradle/caches/8.13/transforms/23c422d78e0430c294132d0cdedd1048/transformed/camera-camera2-1.3.1/AndroidManifest.xml:21:5-44
+MERGED from [androidx.camera:camera-camera2:1.3.1] /Users/kazimi/.gradle/caches/8.13/transforms/23c422d78e0430c294132d0cdedd1048/transformed/camera-camera2-1.3.1/AndroidManifest.xml:21:5-44
+MERGED from [androidx.camera:camera-core:1.3.1] /Users/kazimi/.gradle/caches/8.13/transforms/60674f5d0f9c2bf81e2064d3a337b257/transformed/camera-core-1.3.1/AndroidManifest.xml:21:5-44
+MERGED from [androidx.camera:camera-core:1.3.1] /Users/kazimi/.gradle/caches/8.13/transforms/60674f5d0f9c2bf81e2064d3a337b257/transformed/camera-core-1.3.1/AndroidManifest.xml:21:5-44
+MERGED from [androidx.appcompat:appcompat-resources:1.6.1] /Users/kazimi/.gradle/caches/8.13/transforms/cb0198590722fa8f9a709da3f6fee1c8/transformed/appcompat-resources-1.6.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.appcompat:appcompat-resources:1.6.1] /Users/kazimi/.gradle/caches/8.13/transforms/cb0198590722fa8f9a709da3f6fee1c8/transformed/appcompat-resources-1.6.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.appcompat:appcompat:1.6.1] /Users/kazimi/.gradle/caches/8.13/transforms/9a36c3139750057e1b8e676c96466ede/transformed/appcompat-1.6.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.appcompat:appcompat:1.6.1] /Users/kazimi/.gradle/caches/8.13/transforms/9a36c3139750057e1b8e676c96466ede/transformed/appcompat-1.6.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.drawerlayout:drawerlayout:1.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/3f8eef47e469c685af1b11a831ca3b00/transformed/drawerlayout-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.drawerlayout:drawerlayout:1.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/3f8eef47e469c685af1b11a831ca3b00/transformed/drawerlayout-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.compose.material3:material3-android:1.3.0] /Users/kazimi/.gradle/caches/8.13/transforms/01974ae00b861f61a1f780a3c8ba4f59/transformed/material3-release/AndroidManifest.xml:20:5-44
+MERGED from [androidx.compose.material3:material3-android:1.3.0] /Users/kazimi/.gradle/caches/8.13/transforms/01974ae00b861f61a1f780a3c8ba4f59/transformed/material3-release/AndroidManifest.xml:20:5-44
+MERGED from [androidx.compose.material:material-ripple-android:1.7.0] /Users/kazimi/.gradle/caches/8.13/transforms/9fa00b70ba54b2f71c71a9cc1e95a2da/transformed/material-ripple-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.material:material-ripple-android:1.7.0] /Users/kazimi/.gradle/caches/8.13/transforms/9fa00b70ba54b2f71c71a9cc1e95a2da/transformed/material-ripple-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.foundation:foundation-layout-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/7d6376428245feb438470b9b19c876e5/transformed/foundation-layout-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.foundation:foundation-layout-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/7d6376428245feb438470b9b19c876e5/transformed/foundation-layout-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.foundation:foundation-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/fc060ae239018cceb1f37d054f46e033/transformed/foundation-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.foundation:foundation-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/fc060ae239018cceb1f37d054f46e033/transformed/foundation-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.animation:animation-core-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/00ee87abd075edceb21a584485eacd5b/transformed/animation-core-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.animation:animation-core-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/00ee87abd075edceb21a584485eacd5b/transformed/animation-core-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.animation:animation-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/e234c967af32f542412baf1f3ce9eb19/transformed/animation-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.animation:animation-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/e234c967af32f542412baf1f3ce9eb19/transformed/animation-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-tooling-data-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/9d4a55a0f73e564a75dc941c95ddf8de/transformed/ui-tooling-data-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-tooling-data-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/9d4a55a0f73e564a75dc941c95ddf8de/transformed/ui-tooling-data-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-geometry-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/bddee4f50153337fb4c256a3a7986cb5/transformed/ui-geometry-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-geometry-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/bddee4f50153337fb4c256a3a7986cb5/transformed/ui-geometry-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-tooling-preview-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/b29ae7f41058b5f08e8fc3cdfb36bc61/transformed/ui-tooling-preview-release/AndroidManifest.xml:20:5-44
+MERGED from [androidx.compose.ui:ui-tooling-preview-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/b29ae7f41058b5f08e8fc3cdfb36bc61/transformed/ui-tooling-preview-release/AndroidManifest.xml:20:5-44
+MERGED from [androidx.compose.ui:ui-util-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/0d7812856a7ada3b648a3fd7b57770f5/transformed/ui-util-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-util-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/0d7812856a7ada3b648a3fd7b57770f5/transformed/ui-util-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-unit-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/ce544b604c8cbabc30b13586e58ff029/transformed/ui-unit-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-unit-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/ce544b604c8cbabc30b13586e58ff029/transformed/ui-unit-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-text-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/536fa778813bba4119239b49e657f9b9/transformed/ui-text-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-text-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/536fa778813bba4119239b49e657f9b9/transformed/ui-text-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-graphics-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/669b68964f3f8909e934fd02a3494b54/transformed/ui-graphics-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-graphics-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/669b68964f3f8909e934fd02a3494b54/transformed/ui-graphics-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-test-manifest:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/d1a36a52444e342782064028e716079c/transformed/ui-test-manifest-1.7.8/AndroidManifest.xml:20:5-44
+MERGED from [androidx.compose.ui:ui-test-manifest:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/d1a36a52444e342782064028e716079c/transformed/ui-test-manifest-1.7.8/AndroidManifest.xml:20:5-44
+MERGED from [androidx.compose.ui:ui-tooling-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/c1977a044888033febb5dd02abcb7787/transformed/ui-tooling-release/AndroidManifest.xml:20:5-44
+MERGED from [androidx.compose.ui:ui-tooling-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/c1977a044888033febb5dd02abcb7787/transformed/ui-tooling-release/AndroidManifest.xml:20:5-44
+MERGED from [androidx.compose.material:material-android:1.7.0] /Users/kazimi/.gradle/caches/8.13/transforms/e00fb3785212352ef501da442de2d18c/transformed/material-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.material:material-android:1.7.0] /Users/kazimi/.gradle/caches/8.13/transforms/e00fb3785212352ef501da442de2d18c/transformed/material-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.material:material-icons-core-android:1.7.0] /Users/kazimi/.gradle/caches/8.13/transforms/414438c554ee74c63c83fc24630a25bf/transformed/material-icons-core-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.material:material-icons-core-android:1.7.0] /Users/kazimi/.gradle/caches/8.13/transforms/414438c554ee74c63c83fc24630a25bf/transformed/material-icons-core-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/5adc265013303ddc8aee9168de0fb959/transformed/ui-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/5adc265013303ddc8aee9168de0fb959/transformed/ui-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.vectordrawable:vectordrawable-animated:1.1.0] /Users/kazimi/.gradle/caches/8.13/transforms/b2e9ed8d6f7521313aa6ebdbc641353e/transformed/vectordrawable-animated-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.vectordrawable:vectordrawable-animated:1.1.0] /Users/kazimi/.gradle/caches/8.13/transforms/b2e9ed8d6f7521313aa6ebdbc641353e/transformed/vectordrawable-animated-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.vectordrawable:vectordrawable:1.1.0] /Users/kazimi/.gradle/caches/8.13/transforms/b9f33bcec6eedd871c3977ed7379e6ea/transformed/vectordrawable-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.vectordrawable:vectordrawable:1.1.0] /Users/kazimi/.gradle/caches/8.13/transforms/b9f33bcec6eedd871c3977ed7379e6ea/transformed/vectordrawable-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.viewpager:viewpager:1.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/9e5f45feef4423ef4123dc90e6478a87/transformed/viewpager-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.viewpager:viewpager:1.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/9e5f45feef4423ef4123dc90e6478a87/transformed/viewpager-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.customview:customview:1.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/eddca1e00efac36b67dfe1eccf955f36/transformed/customview-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.customview:customview:1.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/eddca1e00efac36b67dfe1eccf955f36/transformed/customview-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.loader:loader:1.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/36741f3e2fc444ea378011452a5eb0b8/transformed/loader-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.loader:loader:1.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/36741f3e2fc444ea378011452a5eb0b8/transformed/loader-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.autofill:autofill:1.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/245aa3d5d74ea57d47ceeb58025c8f7a/transformed/autofill-1.0.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.autofill:autofill:1.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/245aa3d5d74ea57d47ceeb58025c8f7a/transformed/autofill-1.0.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.graphics:graphics-path:1.0.1] /Users/kazimi/.gradle/caches/8.13/transforms/b9141df42cbf1855b86ebd0bb97ee18b/transformed/graphics-path-1.0.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.graphics:graphics-path:1.0.1] /Users/kazimi/.gradle/caches/8.13/transforms/b9141df42cbf1855b86ebd0bb97ee18b/transformed/graphics-path-1.0.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.emoji2:emoji2-views-helper:1.3.0] /Users/kazimi/.gradle/caches/8.13/transforms/f93e38a9dc4ccd9d45d666111d51b7a3/transformed/emoji2-views-helper-1.3.0/AndroidManifest.xml:5:5-44
+MERGED from [androidx.emoji2:emoji2-views-helper:1.3.0] /Users/kazimi/.gradle/caches/8.13/transforms/f93e38a9dc4ccd9d45d666111d51b7a3/transformed/emoji2-views-helper-1.3.0/AndroidManifest.xml:5:5-44
+MERGED from [androidx.emoji2:emoji2:1.3.0] /Users/kazimi/.gradle/caches/8.13/transforms/91fb7657f16f7854fe5e2e311d0561b1/transformed/emoji2-1.3.0/AndroidManifest.xml:21:5-44
+MERGED from [androidx.emoji2:emoji2:1.3.0] /Users/kazimi/.gradle/caches/8.13/transforms/91fb7657f16f7854fe5e2e311d0561b1/transformed/emoji2-1.3.0/AndroidManifest.xml:21:5-44
+MERGED from [androidx.core:core:1.16.0] /Users/kazimi/.gradle/caches/8.13/transforms/7dff5c565800759a8c3dd3771d6a3107/transformed/core-1.16.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.core:core:1.16.0] /Users/kazimi/.gradle/caches/8.13/transforms/7dff5c565800759a8c3dd3771d6a3107/transformed/core-1.16.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.activity:activity:1.10.1] /Users/kazimi/.gradle/caches/8.13/transforms/3a14f4966bda1772ace1f7a5778e2971/transformed/activity-1.10.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.activity:activity:1.10.1] /Users/kazimi/.gradle/caches/8.13/transforms/3a14f4966bda1772ace1f7a5778e2971/transformed/activity-1.10.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-process:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/3f587dc84ed919c6313eccedb15048d4/transformed/lifecycle-process-2.9.2/AndroidManifest.xml:21:5-44
+MERGED from [androidx.lifecycle:lifecycle-process:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/3f587dc84ed919c6313eccedb15048d4/transformed/lifecycle-process-2.9.2/AndroidManifest.xml:21:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime-compose-android:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/bf6d7af5bcef5626f321409f3ccbb1cc/transformed/lifecycle-runtime-compose-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime-compose-android:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/bf6d7af5bcef5626f321409f3ccbb1cc/transformed/lifecycle-runtime-compose-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate-android:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/e80edfd59ed1d74f4e3afdff5ff195d0/transformed/lifecycle-viewmodel-savedstate-release/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate-android:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/e80edfd59ed1d74f4e3afdff5ff195d0/transformed/lifecycle-viewmodel-savedstate-release/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/22bff01d6d81531b05979873938abf9a/transformed/lifecycle-viewmodel-2.9.2/AndroidManifest.xml:4:5-43
+MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/22bff01d6d81531b05979873938abf9a/transformed/lifecycle-viewmodel-2.9.2/AndroidManifest.xml:4:5-43
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-android:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/7049e03576b7dfcfbf49aff48c3bcbfc/transformed/lifecycle-viewmodel-release/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-android:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/7049e03576b7dfcfbf49aff48c3bcbfc/transformed/lifecycle-viewmodel-release/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/0b063fa18b4279e81e4a1d2f55aafa71/transformed/lifecycle-livedata-core-2.9.2/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/0b063fa18b4279e81e4a1d2f55aafa71/transformed/lifecycle-livedata-core-2.9.2/AndroidManifest.xml:20:5-44
+MERGED from [androidx.savedstate:savedstate-ktx:1.3.1] /Users/kazimi/.gradle/caches/8.13/transforms/d35dae4f55e85cfb24d98ae148cdd909/transformed/savedstate-ktx-1.3.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.savedstate:savedstate-ktx:1.3.1] /Users/kazimi/.gradle/caches/8.13/transforms/d35dae4f55e85cfb24d98ae148cdd909/transformed/savedstate-ktx-1.3.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.savedstate:savedstate-android:1.3.1] /Users/kazimi/.gradle/caches/8.13/transforms/e008cbdfb2089a1812c2f619af1515ed/transformed/savedstate-release/AndroidManifest.xml:20:5-44
+MERGED from [androidx.savedstate:savedstate-android:1.3.1] /Users/kazimi/.gradle/caches/8.13/transforms/e008cbdfb2089a1812c2f619af1515ed/transformed/savedstate-release/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime-android:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/b400b8a2bc3a9d719d832019160b113f/transformed/lifecycle-runtime-release/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime-android:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/b400b8a2bc3a9d719d832019160b113f/transformed/lifecycle-runtime-release/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-core-ktx:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/bb17a7f0fa65452da86a8bb8197e5f8c/transformed/lifecycle-livedata-core-ktx-2.9.2/AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-core-ktx:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/bb17a7f0fa65452da86a8bb8197e5f8c/transformed/lifecycle-livedata-core-ktx-2.9.2/AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/b9e838e63c7e396cab6d15addf26394f/transformed/lifecycle-viewmodel-ktx-2.9.2/AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/b9e838e63c7e396cab6d15addf26394f/transformed/lifecycle-viewmodel-ktx-2.9.2/AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/b34191431d96bb771f517b5c1245369e/transformed/lifecycle-livedata-2.9.2/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/b34191431d96bb771f517b5c1245369e/transformed/lifecycle-livedata-2.9.2/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-compose-android:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/bdc67d47a70712d8a9bb97e14bff1adb/transformed/lifecycle-viewmodel-compose-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-compose-android:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/bdc67d47a70712d8a9bb97e14bff1adb/transformed/lifecycle-viewmodel-compose-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime-ktx-android:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/87352016be345e0df8d68beb857cab44/transformed/lifecycle-runtime-ktx/AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime-ktx-android:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/87352016be345e0df8d68beb857cab44/transformed/lifecycle-runtime-ktx/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.runtime:runtime-saveable-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/2ef48e9e6f72e3e981f411b60300c74f/transformed/runtime-saveable-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.runtime:runtime-saveable-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/2ef48e9e6f72e3e981f411b60300c74f/transformed/runtime-saveable-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.runtime:runtime-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/0e83503b32414fc853d462e020f4f271/transformed/runtime-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.runtime:runtime-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/0e83503b32414fc853d462e020f4f271/transformed/runtime-release/AndroidManifest.xml:5:5-44
+MERGED from [com.google.android.gms:play-services-tasks:18.0.2] /Users/kazimi/.gradle/caches/8.13/transforms/247fd6748a95efbea0b057021bd8c49c/transformed/play-services-tasks-18.0.2/AndroidManifest.xml:4:5-43
+MERGED from [com.google.android.gms:play-services-tasks:18.0.2] /Users/kazimi/.gradle/caches/8.13/transforms/247fd6748a95efbea0b057021bd8c49c/transformed/play-services-tasks-18.0.2/AndroidManifest.xml:4:5-43
+MERGED from [com.google.android.gms:play-services-basement:18.1.0] /Users/kazimi/.gradle/caches/8.13/transforms/8833fb142d0456fb4a232017b1769071/transformed/play-services-basement-18.1.0/AndroidManifest.xml:18:5-43
+MERGED from [com.google.android.gms:play-services-basement:18.1.0] /Users/kazimi/.gradle/caches/8.13/transforms/8833fb142d0456fb4a232017b1769071/transformed/play-services-basement-18.1.0/AndroidManifest.xml:18:5-43
+MERGED from [androidx.fragment:fragment:1.6.2] /Users/kazimi/.gradle/caches/8.13/transforms/125272d08a1bc8c1bb5a9b4a7dc65386/transformed/fragment-1.6.2/AndroidManifest.xml:20:5-44
+MERGED from [androidx.fragment:fragment:1.6.2] /Users/kazimi/.gradle/caches/8.13/transforms/125272d08a1bc8c1bb5a9b4a7dc65386/transformed/fragment-1.6.2/AndroidManifest.xml:20:5-44
+MERGED from [androidx.fragment:fragment-ktx:1.6.2] /Users/kazimi/.gradle/caches/8.13/transforms/c2b9c6974c8d6617dc0ef600228f4a25/transformed/fragment-ktx-1.6.2/AndroidManifest.xml:20:5-44
+MERGED from [androidx.fragment:fragment-ktx:1.6.2] /Users/kazimi/.gradle/caches/8.13/transforms/c2b9c6974c8d6617dc0ef600228f4a25/transformed/fragment-ktx-1.6.2/AndroidManifest.xml:20:5-44
+MERGED from [androidx.activity:activity-ktx:1.10.1] /Users/kazimi/.gradle/caches/8.13/transforms/bbf720ecaff04afb09a916d3c4d98c5f/transformed/activity-ktx-1.10.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.activity:activity-ktx:1.10.1] /Users/kazimi/.gradle/caches/8.13/transforms/bbf720ecaff04afb09a916d3c4d98c5f/transformed/activity-ktx-1.10.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.activity:activity-compose:1.10.1] /Users/kazimi/.gradle/caches/8.13/transforms/592322ac2c71733caa47d307c8d498c5/transformed/activity-compose-1.10.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.activity:activity-compose:1.10.1] /Users/kazimi/.gradle/caches/8.13/transforms/592322ac2c71733caa47d307c8d498c5/transformed/activity-compose-1.10.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.customview:customview-poolingcontainer:1.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/8dcb1a1f502686092c2ed6d56a3f56b7/transformed/customview-poolingcontainer-1.0.0/AndroidManifest.xml:20:5-21:38
+MERGED from [androidx.customview:customview-poolingcontainer:1.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/8dcb1a1f502686092c2ed6d56a3f56b7/transformed/customview-poolingcontainer-1.0.0/AndroidManifest.xml:20:5-21:38
+MERGED from [androidx.core:core-ktx:1.16.0] /Users/kazimi/.gradle/caches/8.13/transforms/9aa60ec45a10acbd3d404ef0851c5874/transformed/core-ktx-1.16.0/AndroidManifest.xml:5:5-44
+MERGED from [androidx.core:core-ktx:1.16.0] /Users/kazimi/.gradle/caches/8.13/transforms/9aa60ec45a10acbd3d404ef0851c5874/transformed/core-ktx-1.16.0/AndroidManifest.xml:5:5-44
+MERGED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:20:5-22:41
+MERGED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:20:5-22:41
+MERGED from [com.squareup.leakcanary:leakcanary-object-watcher-android:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/803907bd02276f6a9fd4c8f3b51a87e7/transformed/leakcanary-object-watcher-android-2.12/AndroidManifest.xml:5:5-44
+MERGED from [com.squareup.leakcanary:leakcanary-object-watcher-android:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/803907bd02276f6a9fd4c8f3b51a87e7/transformed/leakcanary-object-watcher-android-2.12/AndroidManifest.xml:5:5-44
+MERGED from [com.squareup.leakcanary:plumber-android:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/184ea0232ac788f8cb011faecbd41839/transformed/plumber-android-2.12/AndroidManifest.xml:5:5-44
+MERGED from [com.squareup.leakcanary:plumber-android:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/184ea0232ac788f8cb011faecbd41839/transformed/plumber-android-2.12/AndroidManifest.xml:5:5-44
+MERGED from [com.squareup.leakcanary:leakcanary-object-watcher-android-androidx:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/d892d54f7202d5c90fa322907e51c4b7/transformed/leakcanary-object-watcher-android-androidx-2.12/AndroidManifest.xml:5:5-44
+MERGED from [com.squareup.leakcanary:leakcanary-object-watcher-android-androidx:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/d892d54f7202d5c90fa322907e51c4b7/transformed/leakcanary-object-watcher-android-androidx-2.12/AndroidManifest.xml:5:5-44
+MERGED from [com.squareup.leakcanary:leakcanary-object-watcher-android-support-fragments:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/e81fbb87e5105c61575bbeeb7f164933/transformed/leakcanary-object-watcher-android-support-fragments-2.12/AndroidManifest.xml:5:5-44
+MERGED from [com.squareup.leakcanary:leakcanary-object-watcher-android-support-fragments:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/e81fbb87e5105c61575bbeeb7f164933/transformed/leakcanary-object-watcher-android-support-fragments-2.12/AndroidManifest.xml:5:5-44
+MERGED from [com.squareup.leakcanary:leakcanary-object-watcher-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/3609436b8a7b74c5bdeb1461d4af9a93/transformed/leakcanary-object-watcher-android-core-2.12/AndroidManifest.xml:5:5-44
+MERGED from [com.squareup.leakcanary:leakcanary-object-watcher-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/3609436b8a7b74c5bdeb1461d4af9a93/transformed/leakcanary-object-watcher-android-core-2.12/AndroidManifest.xml:5:5-44
+MERGED from [com.squareup.leakcanary:plumber-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/0ee78e9917a99a70d38f93bf59642b7b/transformed/plumber-android-core-2.12/AndroidManifest.xml:5:5-44
+MERGED from [com.squareup.leakcanary:plumber-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/0ee78e9917a99a70d38f93bf59642b7b/transformed/plumber-android-core-2.12/AndroidManifest.xml:5:5-44
+MERGED from [androidx.annotation:annotation-experimental:1.4.1] /Users/kazimi/.gradle/caches/8.13/transforms/1d9aeddc4eec8893e855a30233f50af3/transformed/annotation-experimental-1.4.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.annotation:annotation-experimental:1.4.1] /Users/kazimi/.gradle/caches/8.13/transforms/1d9aeddc4eec8893e855a30233f50af3/transformed/annotation-experimental-1.4.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.core:core-viewtree:1.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/49b7da8dea7d9d6bc60173dcda01ebc7/transformed/core-viewtree-1.0.0/AndroidManifest.xml:5:5-44
+MERGED from [androidx.core:core-viewtree:1.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/49b7da8dea7d9d6bc60173dcda01ebc7/transformed/core-viewtree-1.0.0/AndroidManifest.xml:5:5-44
+MERGED from [io.github.aakira:napier-android-debug:1.4.1] /Users/kazimi/.gradle/caches/8.13/transforms/e86060c91dba0968c67b335bd7106e01/transformed/napier-debug/AndroidManifest.xml:7:5-9:41
+MERGED from [io.github.aakira:napier-android-debug:1.4.1] /Users/kazimi/.gradle/caches/8.13/transforms/e86060c91dba0968c67b335bd7106e01/transformed/napier-debug/AndroidManifest.xml:7:5-9:41
+MERGED from [com.squareup.leakcanary:leakcanary-android-utils:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/adb40f911e3ec45a9761ed6d789ae95a/transformed/leakcanary-android-utils-2.12/AndroidManifest.xml:5:5-44
+MERGED from [com.squareup.leakcanary:leakcanary-android-utils:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/adb40f911e3ec45a9761ed6d789ae95a/transformed/leakcanary-android-utils-2.12/AndroidManifest.xml:5:5-44
+MERGED from [com.squareup.curtains:curtains:1.2.4] /Users/kazimi/.gradle/caches/8.13/transforms/58e8bd565e84d01d2cb806bcc333cc7c/transformed/curtains-1.2.4/AndroidManifest.xml:5:5-7:41
+MERGED from [com.squareup.curtains:curtains:1.2.4] /Users/kazimi/.gradle/caches/8.13/transforms/58e8bd565e84d01d2cb806bcc333cc7c/transformed/curtains-1.2.4/AndroidManifest.xml:5:5-7:41
+MERGED from [androidx.exifinterface:exifinterface:1.3.2] /Users/kazimi/.gradle/caches/8.13/transforms/e75f860438b21299525270e300180e89/transformed/exifinterface-1.3.2/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.exifinterface:exifinterface:1.3.2] /Users/kazimi/.gradle/caches/8.13/transforms/e75f860438b21299525270e300180e89/transformed/exifinterface-1.3.2/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.interpolator:interpolator:1.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/4557b71035049e3434caf95cf467a3e9/transformed/interpolator-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.interpolator:interpolator:1.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/4557b71035049e3434caf95cf467a3e9/transformed/interpolator-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:21:5-44
+MERGED from [androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:21:5-44
+MERGED from [androidx.startup:startup-runtime:1.1.1] /Users/kazimi/.gradle/caches/8.13/transforms/d8a65dd903ef9983875dc2a6172aa3e9/transformed/startup-runtime-1.1.1/AndroidManifest.xml:21:5-23:41
+MERGED from [androidx.startup:startup-runtime:1.1.1] /Users/kazimi/.gradle/caches/8.13/transforms/d8a65dd903ef9983875dc2a6172aa3e9/transformed/startup-runtime-1.1.1/AndroidManifest.xml:21:5-23:41
+MERGED from [androidx.tracing:tracing:1.2.0] /Users/kazimi/.gradle/caches/8.13/transforms/1c79d8f41b28c80329b8cc6faa624740/transformed/tracing-1.2.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.tracing:tracing:1.2.0] /Users/kazimi/.gradle/caches/8.13/transforms/1c79d8f41b28c80329b8cc6faa624740/transformed/tracing-1.2.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /Users/kazimi/.gradle/caches/8.13/transforms/7c02507ade2ac1faad3c490b3f2fc7f0/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /Users/kazimi/.gradle/caches/8.13/transforms/7c02507ade2ac1faad3c490b3f2fc7f0/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:20:5-22:41
+MERGED from [com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/kazimi/.gradle/caches/8.13/transforms/738277bb47b333b291710182c462bf4d/transformed/transport-backend-cct-2.3.3/AndroidManifest.xml:19:5-21:41
+MERGED from [com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/kazimi/.gradle/caches/8.13/transforms/738277bb47b333b291710182c462bf4d/transformed/transport-backend-cct-2.3.3/AndroidManifest.xml:19:5-21:41
+MERGED from [com.google.android.datatransport:transport-runtime:2.2.6] /Users/kazimi/.gradle/caches/8.13/transforms/2360b19b6b2cb63cf8da7673e807f42d/transformed/transport-runtime-2.2.6/AndroidManifest.xml:18:5-20:41
+MERGED from [com.google.android.datatransport:transport-runtime:2.2.6] /Users/kazimi/.gradle/caches/8.13/transforms/2360b19b6b2cb63cf8da7673e807f42d/transformed/transport-runtime-2.2.6/AndroidManifest.xml:18:5-20:41
+MERGED from [com.google.android.datatransport:transport-api:2.2.1] /Users/kazimi/.gradle/caches/8.13/transforms/d77272da7b49d9303554c2e5b38291e8/transformed/transport-api-2.2.1/AndroidManifest.xml:18:5-20:41
+MERGED from [com.google.android.datatransport:transport-api:2.2.1] /Users/kazimi/.gradle/caches/8.13/transforms/d77272da7b49d9303554c2e5b38291e8/transformed/transport-api-2.2.1/AndroidManifest.xml:18:5-20:41
+MERGED from [com.google.firebase:firebase-components:16.1.0] /Users/kazimi/.gradle/caches/8.13/transforms/7faafd873a318e19691c5a6949add964/transformed/firebase-components-16.1.0/AndroidManifest.xml:19:5-21:41
+MERGED from [com.google.firebase:firebase-components:16.1.0] /Users/kazimi/.gradle/caches/8.13/transforms/7faafd873a318e19691c5a6949add964/transformed/firebase-components-16.1.0/AndroidManifest.xml:19:5-21:41
+MERGED from [com.google.firebase:firebase-encoders-json:17.1.0] /Users/kazimi/.gradle/caches/8.13/transforms/3089dfceb92c28a3f5888fdb8b62413a/transformed/firebase-encoders-json-17.1.0/AndroidManifest.xml:19:5-21:41
+MERGED from [com.google.firebase:firebase-encoders-json:17.1.0] /Users/kazimi/.gradle/caches/8.13/transforms/3089dfceb92c28a3f5888fdb8b62413a/transformed/firebase-encoders-json-17.1.0/AndroidManifest.xml:19:5-21:41
+MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/ed238fe048e714c20d6f8f4cbe7604b7/transformed/cursoradapter-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/ed238fe048e714c20d6f8f4cbe7604b7/transformed/cursoradapter-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.arch.core:core-runtime:2.2.0] /Users/kazimi/.gradle/caches/8.13/transforms/d31d5b71e4e9494778a221dd7c227865/transformed/core-runtime-2.2.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.arch.core:core-runtime:2.2.0] /Users/kazimi/.gradle/caches/8.13/transforms/d31d5b71e4e9494778a221dd7c227865/transformed/core-runtime-2.2.0/AndroidManifest.xml:20:5-44
+MERGED from [com.google.ai.edge.litert:litert-support:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/cee29d18b5fbe846380d79e49291037d/transformed/litert-support-1.4.0/AndroidManifest.xml:4:3-71
+MERGED from [com.google.ai.edge.litert:litert-support:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/cee29d18b5fbe846380d79e49291037d/transformed/litert-support-1.4.0/AndroidManifest.xml:4:3-71
+MERGED from [com.google.ai.edge.litert:litert:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/4a417f257ceb01bbc0b88bea313013ad/transformed/litert-1.4.0/AndroidManifest.xml:6:5-7:38
+MERGED from [com.google.ai.edge.litert:litert:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/4a417f257ceb01bbc0b88bea313013ad/transformed/litert-1.4.0/AndroidManifest.xml:6:5-7:38
+MERGED from [com.google.ai.edge.litert:litert-gpu:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/581757667c86e3e165d5be6221dbb140/transformed/litert-gpu-1.4.0/AndroidManifest.xml:6:5-7:38
+MERGED from [com.google.ai.edge.litert:litert-gpu:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/581757667c86e3e165d5be6221dbb140/transformed/litert-gpu-1.4.0/AndroidManifest.xml:6:5-7:38
+MERGED from [com.google.ai.edge.litert:litert-support-api:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/935ca4b50a15dc1df2d75f794968768b/transformed/litert-support-api-1.4.0/AndroidManifest.xml:4:3-71
+MERGED from [com.google.ai.edge.litert:litert-support-api:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/935ca4b50a15dc1df2d75f794968768b/transformed/litert-support-api-1.4.0/AndroidManifest.xml:4:3-71
+MERGED from [com.google.ai.edge.litert:litert-api:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/a6c014c3f3db5efc500a58ca00edbe33/transformed/litert-api-1.4.0/AndroidManifest.xml:6:5-7:38
+MERGED from [com.google.ai.edge.litert:litert-api:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/a6c014c3f3db5efc500a58ca00edbe33/transformed/litert-api-1.4.0/AndroidManifest.xml:6:5-7:38
+MERGED from [com.google.android.odml:image:1.0.0-beta1] /Users/kazimi/.gradle/caches/8.13/transforms/64b8acc7e46b7de08616deea1b06d76b/transformed/image-1.0.0-beta1/AndroidManifest.xml:5:5-44
+MERGED from [com.google.android.odml:image:1.0.0-beta1] /Users/kazimi/.gradle/caches/8.13/transforms/64b8acc7e46b7de08616deea1b06d76b/transformed/image-1.0.0-beta1/AndroidManifest.xml:5:5-44
+	android:targetSdkVersion
+		INJECTED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml
+service#com.google.mlkit.common.internal.MlKitComponentDiscoveryService
+ADDED from [com.google.android.gms:play-services-mlkit-text-recognition-common:19.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/02207a057fc5e19e703320ad2e55851e/transformed/play-services-mlkit-text-recognition-common-19.0.0/AndroidManifest.xml:9:9-15:19
+MERGED from [com.google.mlkit:vision-common:17.3.0] /Users/kazimi/.gradle/caches/8.13/transforms/57bea1476108c5cadeeec514bfec51c6/transformed/vision-common-17.3.0/AndroidManifest.xml:9:9-15:19
+MERGED from [com.google.mlkit:vision-common:17.3.0] /Users/kazimi/.gradle/caches/8.13/transforms/57bea1476108c5cadeeec514bfec51c6/transformed/vision-common-17.3.0/AndroidManifest.xml:9:9-15:19
+MERGED from [com.google.mlkit:common:18.8.0] /Users/kazimi/.gradle/caches/8.13/transforms/888729fdde0243c524fd606bed3fc114/transformed/common-18.8.0/AndroidManifest.xml:15:9-23:19
+MERGED from [com.google.mlkit:common:18.8.0] /Users/kazimi/.gradle/caches/8.13/transforms/888729fdde0243c524fd606bed3fc114/transformed/common-18.8.0/AndroidManifest.xml:15:9-23:19
+	android:exported
+		ADDED from [com.google.android.gms:play-services-mlkit-text-recognition-common:19.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/02207a057fc5e19e703320ad2e55851e/transformed/play-services-mlkit-text-recognition-common-19.0.0/AndroidManifest.xml:11:13-37
+	tools:targetApi
+		ADDED from [com.google.mlkit:common:18.8.0] /Users/kazimi/.gradle/caches/8.13/transforms/888729fdde0243c524fd606bed3fc114/transformed/common-18.8.0/AndroidManifest.xml:19:13-32
+	android:directBootAware
+		ADDED from [com.google.mlkit:common:18.8.0] /Users/kazimi/.gradle/caches/8.13/transforms/888729fdde0243c524fd606bed3fc114/transformed/common-18.8.0/AndroidManifest.xml:17:13-43
+	android:name
+		ADDED from [com.google.android.gms:play-services-mlkit-text-recognition-common:19.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/02207a057fc5e19e703320ad2e55851e/transformed/play-services-mlkit-text-recognition-common-19.0.0/AndroidManifest.xml:10:13-91
+meta-data#com.google.firebase.components:com.google.mlkit.vision.text.internal.TextRegistrar
+ADDED from [com.google.android.gms:play-services-mlkit-text-recognition-common:19.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/02207a057fc5e19e703320ad2e55851e/transformed/play-services-mlkit-text-recognition-common-19.0.0/AndroidManifest.xml:12:13-14:85
+	android:value
+		ADDED from [com.google.android.gms:play-services-mlkit-text-recognition-common:19.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/02207a057fc5e19e703320ad2e55851e/transformed/play-services-mlkit-text-recognition-common-19.0.0/AndroidManifest.xml:14:17-82
+	android:name
+		ADDED from [com.google.android.gms:play-services-mlkit-text-recognition-common:19.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/02207a057fc5e19e703320ad2e55851e/transformed/play-services-mlkit-text-recognition-common-19.0.0/AndroidManifest.xml:13:17-114
+meta-data#com.google.firebase.components:com.google.mlkit.vision.common.internal.VisionCommonRegistrar
+ADDED from [com.google.mlkit:vision-common:17.3.0] /Users/kazimi/.gradle/caches/8.13/transforms/57bea1476108c5cadeeec514bfec51c6/transformed/vision-common-17.3.0/AndroidManifest.xml:12:13-14:85
+	android:value
+		ADDED from [com.google.mlkit:vision-common:17.3.0] /Users/kazimi/.gradle/caches/8.13/transforms/57bea1476108c5cadeeec514bfec51c6/transformed/vision-common-17.3.0/AndroidManifest.xml:14:17-82
+	android:name
+		ADDED from [com.google.mlkit:vision-common:17.3.0] /Users/kazimi/.gradle/caches/8.13/transforms/57bea1476108c5cadeeec514bfec51c6/transformed/vision-common-17.3.0/AndroidManifest.xml:13:17-124
+provider#com.google.mlkit.common.internal.MlKitInitProvider
+ADDED from [com.google.mlkit:common:18.8.0] /Users/kazimi/.gradle/caches/8.13/transforms/888729fdde0243c524fd606bed3fc114/transformed/common-18.8.0/AndroidManifest.xml:9:9-13:38
+	android:authorities
+		ADDED from [com.google.mlkit:common:18.8.0] /Users/kazimi/.gradle/caches/8.13/transforms/888729fdde0243c524fd606bed3fc114/transformed/common-18.8.0/AndroidManifest.xml:11:13-69
+	android:exported
+		ADDED from [com.google.mlkit:common:18.8.0] /Users/kazimi/.gradle/caches/8.13/transforms/888729fdde0243c524fd606bed3fc114/transformed/common-18.8.0/AndroidManifest.xml:12:13-37
+	android:initOrder
+		ADDED from [com.google.mlkit:common:18.8.0] /Users/kazimi/.gradle/caches/8.13/transforms/888729fdde0243c524fd606bed3fc114/transformed/common-18.8.0/AndroidManifest.xml:13:13-35
+	android:name
+		ADDED from [com.google.mlkit:common:18.8.0] /Users/kazimi/.gradle/caches/8.13/transforms/888729fdde0243c524fd606bed3fc114/transformed/common-18.8.0/AndroidManifest.xml:10:13-78
+meta-data#com.google.firebase.components:com.google.mlkit.common.internal.CommonComponentRegistrar
+ADDED from [com.google.mlkit:common:18.8.0] /Users/kazimi/.gradle/caches/8.13/transforms/888729fdde0243c524fd606bed3fc114/transformed/common-18.8.0/AndroidManifest.xml:20:13-22:85
+	android:value
+		ADDED from [com.google.mlkit:common:18.8.0] /Users/kazimi/.gradle/caches/8.13/transforms/888729fdde0243c524fd606bed3fc114/transformed/common-18.8.0/AndroidManifest.xml:22:17-82
+	android:name
+		ADDED from [com.google.mlkit:common:18.8.0] /Users/kazimi/.gradle/caches/8.13/transforms/888729fdde0243c524fd606bed3fc114/transformed/common-18.8.0/AndroidManifest.xml:21:17-120
+activity#com.google.android.gms.common.api.GoogleApiActivity
+ADDED from [com.google.android.gms:play-services-base:18.1.0] /Users/kazimi/.gradle/caches/8.13/transforms/8e7d2ff4c7fa71ad20fd56c9bc0f6944/transformed/play-services-base-18.1.0/AndroidManifest.xml:20:9-22:45
+	android:exported
+		ADDED from [com.google.android.gms:play-services-base:18.1.0] /Users/kazimi/.gradle/caches/8.13/transforms/8e7d2ff4c7fa71ad20fd56c9bc0f6944/transformed/play-services-base-18.1.0/AndroidManifest.xml:22:19-43
+	android:theme
+		ADDED from [com.google.android.gms:play-services-base:18.1.0] /Users/kazimi/.gradle/caches/8.13/transforms/8e7d2ff4c7fa71ad20fd56c9bc0f6944/transformed/play-services-base-18.1.0/AndroidManifest.xml:21:19-78
+	android:name
+		ADDED from [com.google.android.gms:play-services-base:18.1.0] /Users/kazimi/.gradle/caches/8.13/transforms/8e7d2ff4c7fa71ad20fd56c9bc0f6944/transformed/play-services-base-18.1.0/AndroidManifest.xml:20:19-85
+service#androidx.camera.core.impl.MetadataHolderService
+ADDED from [androidx.camera:camera-camera2:1.3.1] /Users/kazimi/.gradle/caches/8.13/transforms/23c422d78e0430c294132d0cdedd1048/transformed/camera-camera2-1.3.1/AndroidManifest.xml:24:9-33:19
+MERGED from [androidx.camera:camera-core:1.3.1] /Users/kazimi/.gradle/caches/8.13/transforms/60674f5d0f9c2bf81e2064d3a337b257/transformed/camera-core-1.3.1/AndroidManifest.xml:29:9-33:78
+MERGED from [androidx.camera:camera-core:1.3.1] /Users/kazimi/.gradle/caches/8.13/transforms/60674f5d0f9c2bf81e2064d3a337b257/transformed/camera-core-1.3.1/AndroidManifest.xml:29:9-33:78
+	tools:node
+		ADDED from [androidx.camera:camera-camera2:1.3.1] /Users/kazimi/.gradle/caches/8.13/transforms/23c422d78e0430c294132d0cdedd1048/transformed/camera-camera2-1.3.1/AndroidManifest.xml:29:13-31
+	android:enabled
+		ADDED from [androidx.camera:camera-camera2:1.3.1] /Users/kazimi/.gradle/caches/8.13/transforms/23c422d78e0430c294132d0cdedd1048/transformed/camera-camera2-1.3.1/AndroidManifest.xml:26:13-36
+	android:exported
+		ADDED from [androidx.camera:camera-camera2:1.3.1] /Users/kazimi/.gradle/caches/8.13/transforms/23c422d78e0430c294132d0cdedd1048/transformed/camera-camera2-1.3.1/AndroidManifest.xml:27:13-37
+	tools:ignore
+		ADDED from [androidx.camera:camera-camera2:1.3.1] /Users/kazimi/.gradle/caches/8.13/transforms/23c422d78e0430c294132d0cdedd1048/transformed/camera-camera2-1.3.1/AndroidManifest.xml:28:13-75
+	android:name
+		ADDED from [androidx.camera:camera-camera2:1.3.1] /Users/kazimi/.gradle/caches/8.13/transforms/23c422d78e0430c294132d0cdedd1048/transformed/camera-camera2-1.3.1/AndroidManifest.xml:25:13-75
+meta-data#androidx.camera.core.impl.MetadataHolderService.DEFAULT_CONFIG_PROVIDER
+ADDED from [androidx.camera:camera-camera2:1.3.1] /Users/kazimi/.gradle/caches/8.13/transforms/23c422d78e0430c294132d0cdedd1048/transformed/camera-camera2-1.3.1/AndroidManifest.xml:30:13-32:89
+	android:value
+		ADDED from [androidx.camera:camera-camera2:1.3.1] /Users/kazimi/.gradle/caches/8.13/transforms/23c422d78e0430c294132d0cdedd1048/transformed/camera-camera2-1.3.1/AndroidManifest.xml:32:17-86
+	android:name
+		ADDED from [androidx.camera:camera-camera2:1.3.1] /Users/kazimi/.gradle/caches/8.13/transforms/23c422d78e0430c294132d0cdedd1048/transformed/camera-camera2-1.3.1/AndroidManifest.xml:31:17-103
+activity#androidx.activity.ComponentActivity
+ADDED from [androidx.compose.ui:ui-test-manifest:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/d1a36a52444e342782064028e716079c/transformed/ui-test-manifest-1.7.8/AndroidManifest.xml:23:9-25:39
+	android:exported
+		ADDED from [androidx.compose.ui:ui-test-manifest:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/d1a36a52444e342782064028e716079c/transformed/ui-test-manifest-1.7.8/AndroidManifest.xml:25:13-36
+	android:name
+		ADDED from [androidx.compose.ui:ui-test-manifest:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/d1a36a52444e342782064028e716079c/transformed/ui-test-manifest-1.7.8/AndroidManifest.xml:24:13-63
+activity#androidx.compose.ui.tooling.PreviewActivity
+ADDED from [androidx.compose.ui:ui-tooling-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/c1977a044888033febb5dd02abcb7787/transformed/ui-tooling-release/AndroidManifest.xml:23:9-25:39
+	android:exported
+		ADDED from [androidx.compose.ui:ui-tooling-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/c1977a044888033febb5dd02abcb7787/transformed/ui-tooling-release/AndroidManifest.xml:25:13-36
+	android:name
+		ADDED from [androidx.compose.ui:ui-tooling-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/c1977a044888033febb5dd02abcb7787/transformed/ui-tooling-release/AndroidManifest.xml:24:13-71
+provider#androidx.startup.InitializationProvider
+ADDED from [androidx.emoji2:emoji2:1.3.0] /Users/kazimi/.gradle/caches/8.13/transforms/91fb7657f16f7854fe5e2e311d0561b1/transformed/emoji2-1.3.0/AndroidManifest.xml:24:9-32:20
+MERGED from [androidx.lifecycle:lifecycle-process:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/3f587dc84ed919c6313eccedb15048d4/transformed/lifecycle-process-2.9.2/AndroidManifest.xml:24:9-32:20
+MERGED from [androidx.lifecycle:lifecycle-process:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/3f587dc84ed919c6313eccedb15048d4/transformed/lifecycle-process-2.9.2/AndroidManifest.xml:24:9-32:20
+MERGED from [androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:24:9-32:20
+MERGED from [androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:24:9-32:20
+MERGED from [androidx.startup:startup-runtime:1.1.1] /Users/kazimi/.gradle/caches/8.13/transforms/d8a65dd903ef9983875dc2a6172aa3e9/transformed/startup-runtime-1.1.1/AndroidManifest.xml:26:9-30:34
+MERGED from [androidx.startup:startup-runtime:1.1.1] /Users/kazimi/.gradle/caches/8.13/transforms/d8a65dd903ef9983875dc2a6172aa3e9/transformed/startup-runtime-1.1.1/AndroidManifest.xml:26:9-30:34
+	tools:node
+		ADDED from [androidx.emoji2:emoji2:1.3.0] /Users/kazimi/.gradle/caches/8.13/transforms/91fb7657f16f7854fe5e2e311d0561b1/transformed/emoji2-1.3.0/AndroidManifest.xml:28:13-31
+	android:authorities
+		ADDED from [androidx.emoji2:emoji2:1.3.0] /Users/kazimi/.gradle/caches/8.13/transforms/91fb7657f16f7854fe5e2e311d0561b1/transformed/emoji2-1.3.0/AndroidManifest.xml:26:13-68
+	android:exported
+		ADDED from [androidx.emoji2:emoji2:1.3.0] /Users/kazimi/.gradle/caches/8.13/transforms/91fb7657f16f7854fe5e2e311d0561b1/transformed/emoji2-1.3.0/AndroidManifest.xml:27:13-37
+	android:name
+		ADDED from [androidx.emoji2:emoji2:1.3.0] /Users/kazimi/.gradle/caches/8.13/transforms/91fb7657f16f7854fe5e2e311d0561b1/transformed/emoji2-1.3.0/AndroidManifest.xml:25:13-67
+meta-data#androidx.emoji2.text.EmojiCompatInitializer
+ADDED from [androidx.emoji2:emoji2:1.3.0] /Users/kazimi/.gradle/caches/8.13/transforms/91fb7657f16f7854fe5e2e311d0561b1/transformed/emoji2-1.3.0/AndroidManifest.xml:29:13-31:52
+	android:value
+		ADDED from [androidx.emoji2:emoji2:1.3.0] /Users/kazimi/.gradle/caches/8.13/transforms/91fb7657f16f7854fe5e2e311d0561b1/transformed/emoji2-1.3.0/AndroidManifest.xml:31:17-49
+	android:name
+		ADDED from [androidx.emoji2:emoji2:1.3.0] /Users/kazimi/.gradle/caches/8.13/transforms/91fb7657f16f7854fe5e2e311d0561b1/transformed/emoji2-1.3.0/AndroidManifest.xml:30:17-75
+permission#${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+ADDED from [androidx.core:core:1.16.0] /Users/kazimi/.gradle/caches/8.13/transforms/7dff5c565800759a8c3dd3771d6a3107/transformed/core-1.16.0/AndroidManifest.xml:22:5-24:47
+	android:protectionLevel
+		ADDED from [androidx.core:core:1.16.0] /Users/kazimi/.gradle/caches/8.13/transforms/7dff5c565800759a8c3dd3771d6a3107/transformed/core-1.16.0/AndroidManifest.xml:24:9-44
+	android:name
+		ADDED from [androidx.core:core:1.16.0] /Users/kazimi/.gradle/caches/8.13/transforms/7dff5c565800759a8c3dd3771d6a3107/transformed/core-1.16.0/AndroidManifest.xml:23:9-81
+permission#com.kazimi.syaravin.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+ADDED from [androidx.core:core:1.16.0] /Users/kazimi/.gradle/caches/8.13/transforms/7dff5c565800759a8c3dd3771d6a3107/transformed/core-1.16.0/AndroidManifest.xml:22:5-24:47
+	android:protectionLevel
+		ADDED from [androidx.core:core:1.16.0] /Users/kazimi/.gradle/caches/8.13/transforms/7dff5c565800759a8c3dd3771d6a3107/transformed/core-1.16.0/AndroidManifest.xml:24:9-44
+	android:name
+		ADDED from [androidx.core:core:1.16.0] /Users/kazimi/.gradle/caches/8.13/transforms/7dff5c565800759a8c3dd3771d6a3107/transformed/core-1.16.0/AndroidManifest.xml:23:9-81
+uses-permission#${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+ADDED from [androidx.core:core:1.16.0] /Users/kazimi/.gradle/caches/8.13/transforms/7dff5c565800759a8c3dd3771d6a3107/transformed/core-1.16.0/AndroidManifest.xml:26:5-97
+	android:name
+		ADDED from [androidx.core:core:1.16.0] /Users/kazimi/.gradle/caches/8.13/transforms/7dff5c565800759a8c3dd3771d6a3107/transformed/core-1.16.0/AndroidManifest.xml:26:22-94
+uses-permission#com.kazimi.syaravin.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+ADDED from [androidx.core:core:1.16.0] /Users/kazimi/.gradle/caches/8.13/transforms/7dff5c565800759a8c3dd3771d6a3107/transformed/core-1.16.0/AndroidManifest.xml:26:5-97
+	android:name
+		ADDED from [androidx.core:core:1.16.0] /Users/kazimi/.gradle/caches/8.13/transforms/7dff5c565800759a8c3dd3771d6a3107/transformed/core-1.16.0/AndroidManifest.xml:26:22-94
+meta-data#androidx.lifecycle.ProcessLifecycleInitializer
+ADDED from [androidx.lifecycle:lifecycle-process:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/3f587dc84ed919c6313eccedb15048d4/transformed/lifecycle-process-2.9.2/AndroidManifest.xml:29:13-31:52
+	android:value
+		ADDED from [androidx.lifecycle:lifecycle-process:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/3f587dc84ed919c6313eccedb15048d4/transformed/lifecycle-process-2.9.2/AndroidManifest.xml:31:17-49
+	android:name
+		ADDED from [androidx.lifecycle:lifecycle-process:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/3f587dc84ed919c6313eccedb15048d4/transformed/lifecycle-process-2.9.2/AndroidManifest.xml:30:17-78
+meta-data#com.google.android.gms.version
+ADDED from [com.google.android.gms:play-services-basement:18.1.0] /Users/kazimi/.gradle/caches/8.13/transforms/8833fb142d0456fb4a232017b1769071/transformed/play-services-basement-18.1.0/AndroidManifest.xml:21:9-23:69
+	android:value
+		ADDED from [com.google.android.gms:play-services-basement:18.1.0] /Users/kazimi/.gradle/caches/8.13/transforms/8833fb142d0456fb4a232017b1769071/transformed/play-services-basement-18.1.0/AndroidManifest.xml:23:13-66
+	android:name
+		ADDED from [com.google.android.gms:play-services-basement:18.1.0] /Users/kazimi/.gradle/caches/8.13/transforms/8833fb142d0456fb4a232017b1769071/transformed/play-services-basement-18.1.0/AndroidManifest.xml:22:13-58
+uses-permission#android.permission.READ_EXTERNAL_STORAGE
+ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:25:5-80
+	android:name
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:25:22-77
+uses-permission#android.permission.WRITE_EXTERNAL_STORAGE
+ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:26:5-81
+	android:name
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:26:22-78
+uses-permission#android.permission.POST_NOTIFICATIONS
+ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:29:5-77
+	android:name
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:29:22-74
+provider#leakcanary.internal.LeakCanaryFileProvider
+ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:32:9-40:20
+	android:grantUriPermissions
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:36:13-47
+	android:authorities
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:34:13-88
+	android:exported
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:35:13-37
+	android:name
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:33:13-70
+meta-data#android.support.FILE_PROVIDER_PATHS
+ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:37:13-39:66
+	android:resource
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:39:17-63
+	android:name
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:38:17-67
+activity#leakcanary.internal.activity.LeakActivity
+ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:42:9-73:20
+	android:label
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:46:13-71
+	android:exported
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:44:13-36
+	android:icon
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:45:13-52
+	android:theme
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:48:13-63
+	android:taskAffinity
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:47:13-76
+	android:name
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:43:13-69
+intent-filter#action:name:android.intent.action.VIEW+category:name:android.intent.category.BROWSABLE+category:name:android.intent.category.DEFAULT+data:host:*+data:mimeType:*/*+data:pathPattern:.*\\..*\\..*\\..*\\..*\\..*\\..*\\.hprof+data:pathPattern:.*\\..*\\..*\\..*\\..*\\..*\\.hprof+data:pathPattern:.*\\..*\\..*\\..*\\..*\\.hprof+data:pathPattern:.*\\..*\\..*\\..*\\.hprof+data:pathPattern:.*\\..*\\..*\\.hprof+data:pathPattern:.*\\..*\\.hprof+data:pathPattern:.*\\.hprof+data:scheme:content+data:scheme:file
+ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:49:13-72:29
+	android:label
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:49:28-81
+action#android.intent.action.VIEW
+ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:50:17-69
+	android:name
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:50:25-66
+category#android.intent.category.DEFAULT
+ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:52:17-76
+	android:name
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:52:27-73
+category#android.intent.category.BROWSABLE
+ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:53:17-78
+	android:name
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:53:27-75
+data
+ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:55:17-47
+	android:scheme
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:55:23-44
+activity-alias#leakcanary.internal.activity.LeakLauncherActivity
+ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:75:9-92:26
+	android:enabled
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:78:13-66
+	android:label
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:81:13-71
+	android:exported
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:79:13-36
+	android:targetActivity
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:82:13-79
+	android:icon
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:80:13-52
+	android:banner
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:77:13-59
+	android:theme
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:84:13-63
+	android:taskAffinity
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:83:13-76
+	android:name
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:76:13-77
+intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER+category:name:android.intent.category.LEANBACK_LAUNCHER
+ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:85:13-91:29
+category#android.intent.category.LEANBACK_LAUNCHER
+ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:90:17-86
+	android:name
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:90:27-83
+activity#leakcanary.internal.RequestPermissionActivity
+ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:94:9-100:68
+	android:label
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:98:13-82
+	android:excludeFromRecents
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:96:13-46
+	android:icon
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:97:13-52
+	android:theme
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:100:13-65
+	android:taskAffinity
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:99:13-76
+	android:name
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:95:13-73
+receiver#leakcanary.internal.NotificationReceiver
+ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:102:9-77
+	android:name
+		ADDED from [com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:102:19-74
+provider#leakcanary.internal.MainProcessAppWatcherInstaller
+ADDED from [com.squareup.leakcanary:leakcanary-object-watcher-android:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/803907bd02276f6a9fd4c8f3b51a87e7/transformed/leakcanary-object-watcher-android-2.12/AndroidManifest.xml:8:9-12:40
+	android:enabled
+		ADDED from [com.squareup.leakcanary:leakcanary-object-watcher-android:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/803907bd02276f6a9fd4c8f3b51a87e7/transformed/leakcanary-object-watcher-android-2.12/AndroidManifest.xml:11:13-69
+	android:authorities
+		ADDED from [com.squareup.leakcanary:leakcanary-object-watcher-android:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/803907bd02276f6a9fd4c8f3b51a87e7/transformed/leakcanary-object-watcher-android-2.12/AndroidManifest.xml:10:13-72
+	android:exported
+		ADDED from [com.squareup.leakcanary:leakcanary-object-watcher-android:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/803907bd02276f6a9fd4c8f3b51a87e7/transformed/leakcanary-object-watcher-android-2.12/AndroidManifest.xml:12:13-37
+	android:name
+		ADDED from [com.squareup.leakcanary:leakcanary-object-watcher-android:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/803907bd02276f6a9fd4c8f3b51a87e7/transformed/leakcanary-object-watcher-android-2.12/AndroidManifest.xml:9:13-78
+provider#leakcanary.internal.PlumberInstaller
+ADDED from [com.squareup.leakcanary:plumber-android:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/184ea0232ac788f8cb011faecbd41839/transformed/plumber-android-2.12/AndroidManifest.xml:8:9-12:40
+	android:enabled
+		ADDED from [com.squareup.leakcanary:plumber-android:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/184ea0232ac788f8cb011faecbd41839/transformed/plumber-android-2.12/AndroidManifest.xml:11:13-69
+	android:authorities
+		ADDED from [com.squareup.leakcanary:plumber-android:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/184ea0232ac788f8cb011faecbd41839/transformed/plumber-android-2.12/AndroidManifest.xml:10:13-69
+	android:exported
+		ADDED from [com.squareup.leakcanary:plumber-android:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/184ea0232ac788f8cb011faecbd41839/transformed/plumber-android-2.12/AndroidManifest.xml:12:13-37
+	android:name
+		ADDED from [com.squareup.leakcanary:plumber-android:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/184ea0232ac788f8cb011faecbd41839/transformed/plumber-android-2.12/AndroidManifest.xml:9:13-64
+meta-data#androidx.profileinstaller.ProfileInstallerInitializer
+ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:29:13-31:52
+	android:value
+		ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:31:17-49
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:30:17-85
+receiver#androidx.profileinstaller.ProfileInstallReceiver
+ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:34:9-52:20
+	android:enabled
+		ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:37:13-35
+	android:exported
+		ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:38:13-36
+	android:permission
+		ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:39:13-57
+	android:directBootAware
+		ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:36:13-44
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:35:13-76
+intent-filter#action:name:androidx.profileinstaller.action.INSTALL_PROFILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:40:13-42:29
+action#androidx.profileinstaller.action.INSTALL_PROFILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:41:17-91
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:41:25-88
+intent-filter#action:name:androidx.profileinstaller.action.SKIP_FILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:43:13-45:29
+action#androidx.profileinstaller.action.SKIP_FILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:44:17-85
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:44:25-82
+intent-filter#action:name:androidx.profileinstaller.action.SAVE_PROFILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:46:13-48:29
+action#androidx.profileinstaller.action.SAVE_PROFILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:47:17-88
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:47:25-85
+intent-filter#action:name:androidx.profileinstaller.action.BENCHMARK_OPERATION
+ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:49:13-51:29
+action#androidx.profileinstaller.action.BENCHMARK_OPERATION
+ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:50:17-95
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:50:25-92
+uses-permission#android.permission.ACCESS_NETWORK_STATE
+ADDED from [com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/kazimi/.gradle/caches/8.13/transforms/738277bb47b333b291710182c462bf4d/transformed/transport-backend-cct-2.3.3/AndroidManifest.xml:25:5-79
+MERGED from [com.google.android.datatransport:transport-runtime:2.2.6] /Users/kazimi/.gradle/caches/8.13/transforms/2360b19b6b2cb63cf8da7673e807f42d/transformed/transport-runtime-2.2.6/AndroidManifest.xml:22:5-79
+MERGED from [com.google.android.datatransport:transport-runtime:2.2.6] /Users/kazimi/.gradle/caches/8.13/transforms/2360b19b6b2cb63cf8da7673e807f42d/transformed/transport-runtime-2.2.6/AndroidManifest.xml:22:5-79
+	android:name
+		ADDED from [com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/kazimi/.gradle/caches/8.13/transforms/738277bb47b333b291710182c462bf4d/transformed/transport-backend-cct-2.3.3/AndroidManifest.xml:25:22-76
+uses-permission#android.permission.INTERNET
+ADDED from [com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/kazimi/.gradle/caches/8.13/transforms/738277bb47b333b291710182c462bf4d/transformed/transport-backend-cct-2.3.3/AndroidManifest.xml:26:5-67
+	android:name
+		ADDED from [com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/kazimi/.gradle/caches/8.13/transforms/738277bb47b333b291710182c462bf4d/transformed/transport-backend-cct-2.3.3/AndroidManifest.xml:26:22-64
+service#com.google.android.datatransport.runtime.backends.TransportBackendDiscovery
+ADDED from [com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/kazimi/.gradle/caches/8.13/transforms/738277bb47b333b291710182c462bf4d/transformed/transport-backend-cct-2.3.3/AndroidManifest.xml:29:9-35:19
+MERGED from [com.google.android.datatransport:transport-runtime:2.2.6] /Users/kazimi/.gradle/caches/8.13/transforms/2360b19b6b2cb63cf8da7673e807f42d/transformed/transport-runtime-2.2.6/AndroidManifest.xml:36:9-38:40
+MERGED from [com.google.android.datatransport:transport-runtime:2.2.6] /Users/kazimi/.gradle/caches/8.13/transforms/2360b19b6b2cb63cf8da7673e807f42d/transformed/transport-runtime-2.2.6/AndroidManifest.xml:36:9-38:40
+	android:exported
+		ADDED from [com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/kazimi/.gradle/caches/8.13/transforms/738277bb47b333b291710182c462bf4d/transformed/transport-backend-cct-2.3.3/AndroidManifest.xml:31:13-37
+	android:name
+		ADDED from [com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/kazimi/.gradle/caches/8.13/transforms/738277bb47b333b291710182c462bf4d/transformed/transport-backend-cct-2.3.3/AndroidManifest.xml:30:13-103
+meta-data#backend:com.google.android.datatransport.cct.CctBackendFactory
+ADDED from [com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/kazimi/.gradle/caches/8.13/transforms/738277bb47b333b291710182c462bf4d/transformed/transport-backend-cct-2.3.3/AndroidManifest.xml:32:13-34:39
+	android:value
+		ADDED from [com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/kazimi/.gradle/caches/8.13/transforms/738277bb47b333b291710182c462bf4d/transformed/transport-backend-cct-2.3.3/AndroidManifest.xml:34:17-36
+	android:name
+		ADDED from [com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/kazimi/.gradle/caches/8.13/transforms/738277bb47b333b291710182c462bf4d/transformed/transport-backend-cct-2.3.3/AndroidManifest.xml:33:17-94
+service#com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService
+ADDED from [com.google.android.datatransport:transport-runtime:2.2.6] /Users/kazimi/.gradle/caches/8.13/transforms/2360b19b6b2cb63cf8da7673e807f42d/transformed/transport-runtime-2.2.6/AndroidManifest.xml:26:9-30:19
+	android:exported
+		ADDED from [com.google.android.datatransport:transport-runtime:2.2.6] /Users/kazimi/.gradle/caches/8.13/transforms/2360b19b6b2cb63cf8da7673e807f42d/transformed/transport-runtime-2.2.6/AndroidManifest.xml:28:13-37
+	android:permission
+		ADDED from [com.google.android.datatransport:transport-runtime:2.2.6] /Users/kazimi/.gradle/caches/8.13/transforms/2360b19b6b2cb63cf8da7673e807f42d/transformed/transport-runtime-2.2.6/AndroidManifest.xml:29:13-69
+	android:name
+		ADDED from [com.google.android.datatransport:transport-runtime:2.2.6] /Users/kazimi/.gradle/caches/8.13/transforms/2360b19b6b2cb63cf8da7673e807f42d/transformed/transport-runtime-2.2.6/AndroidManifest.xml:27:13-117
+receiver#com.google.android.datatransport.runtime.scheduling.jobscheduling.AlarmManagerSchedulerBroadcastReceiver
+ADDED from [com.google.android.datatransport:transport-runtime:2.2.6] /Users/kazimi/.gradle/caches/8.13/transforms/2360b19b6b2cb63cf8da7673e807f42d/transformed/transport-runtime-2.2.6/AndroidManifest.xml:32:9-34:40
+	android:exported
+		ADDED from [com.google.android.datatransport:transport-runtime:2.2.6] /Users/kazimi/.gradle/caches/8.13/transforms/2360b19b6b2cb63cf8da7673e807f42d/transformed/transport-runtime-2.2.6/AndroidManifest.xml:34:13-37
+	android:name
+		ADDED from [com.google.android.datatransport:transport-runtime:2.2.6] /Users/kazimi/.gradle/caches/8.13/transforms/2360b19b6b2cb63cf8da7673e807f42d/transformed/transport-runtime-2.2.6/AndroidManifest.xml:33:13-132
+uses-native-library
+ADDED from [com.google.ai.edge.litert:litert-gpu-api:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/05a41b1c8709800fe74bd5af05372db1/transformed/litert-gpu-api-1.4.0/AndroidManifest.xml:8:9-10:40
+	android:required
+		ADDED from [com.google.ai.edge.litert:litert-gpu-api:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/05a41b1c8709800fe74bd5af05372db1/transformed/litert-gpu-api-1.4.0/AndroidManifest.xml:10:13-37
+	android:name
+		ADDED from [com.google.ai.edge.litert:litert-gpu-api:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/05a41b1c8709800fe74bd5af05372db1/transformed/litert-gpu-api-1.4.0/AndroidManifest.xml:9:13-40
+uses-permission#android.permission.READ_PHONE_STATE
+IMPLIED from /Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:2:1-39:12 reason: org.tensorflow.lite.gpu.api has a targetSdkVersion < 4

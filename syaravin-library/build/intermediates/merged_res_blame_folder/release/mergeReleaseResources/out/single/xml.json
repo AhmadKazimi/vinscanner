@@ -1,0 +1,10 @@
+[
+    {
+        "merged": "com.syarah.vinscanner.syaravin-library-release-50:/xml/data_extraction_rules.xml",
+        "source": "com.syarah.vinscanner.syaravin-library-main-51:/xml/data_extraction_rules.xml"
+    },
+    {
+        "merged": "com.syarah.vinscanner.syaravin-library-release-50:/xml/backup_rules.xml",
+        "source": "com.syarah.vinscanner.syaravin-library-main-51:/xml/backup_rules.xml"
+    }
+]

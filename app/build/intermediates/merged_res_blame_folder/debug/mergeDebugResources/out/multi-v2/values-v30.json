@@ -1,0 +1,19 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.kazimi.syaravin.app-mergeDebugResources-64:/values-v30/values-v30.xml",
+            "map": [
+                {
+                    "source": "/Users/kazimi/.gradle/caches/8.13/transforms/01974ae00b861f61a1f780a3c8ba4f59/transformed/material3-release/res/values-v30/values-v30.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "72",
+                        "endOffsets": "123"
+                    }
+                }
+            ]
+        }
+    ]
+}

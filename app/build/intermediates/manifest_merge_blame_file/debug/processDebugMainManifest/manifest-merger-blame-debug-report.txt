@@ -1,0 +1,475 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.kazimi.syaravin"
+4    android:versionCode="1"
+5    android:versionName="1.0" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="24"
+9        android:targetSdkVersion="36" />
+10
+11    <!-- Camera Permission -->
+12    <uses-permission android:name="android.permission.CAMERA" />
+12-->/Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:6:5-65
+12-->/Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:6:22-62
+13
+14    <!-- Camera Features -->
+15    <uses-feature
+15-->/Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:9:5-84
+16        android:name="android.hardware.camera"
+16-->/Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:9:19-57
+17        android:required="true" />
+17-->/Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:9:58-81
+18    <uses-feature
+18-->/Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:10:5-95
+19        android:name="android.hardware.camera.autofocus"
+19-->/Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:10:19-67
+20        android:required="false" />
+20-->/Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:10:68-92
+21    <uses-feature
+21-->/Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:11:5-91
+22        android:name="android.hardware.camera.front"
+22-->/Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:11:19-63
+23        android:required="false" />
+23-->/Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:11:64-88
+24
+25    <permission
+25-->[androidx.core:core:1.16.0] /Users/kazimi/.gradle/caches/8.13/transforms/7dff5c565800759a8c3dd3771d6a3107/transformed/core-1.16.0/AndroidManifest.xml:22:5-24:47
+26        android:name="com.kazimi.syaravin.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+26-->[androidx.core:core:1.16.0] /Users/kazimi/.gradle/caches/8.13/transforms/7dff5c565800759a8c3dd3771d6a3107/transformed/core-1.16.0/AndroidManifest.xml:23:9-81
+27        android:protectionLevel="signature" />
+27-->[androidx.core:core:1.16.0] /Users/kazimi/.gradle/caches/8.13/transforms/7dff5c565800759a8c3dd3771d6a3107/transformed/core-1.16.0/AndroidManifest.xml:24:9-44
+28
+29    <uses-permission android:name="com.kazimi.syaravin.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" /> <!-- To store the heap dumps and leak analysis results. -->
+29-->[androidx.core:core:1.16.0] /Users/kazimi/.gradle/caches/8.13/transforms/7dff5c565800759a8c3dd3771d6a3107/transformed/core-1.16.0/AndroidManifest.xml:26:5-97
+29-->[androidx.core:core:1.16.0] /Users/kazimi/.gradle/caches/8.13/transforms/7dff5c565800759a8c3dd3771d6a3107/transformed/core-1.16.0/AndroidManifest.xml:26:22-94
+30    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+30-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:25:5-80
+30-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:25:22-77
+31    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" /> <!-- To allow posting notifications on Android 13 -->
+31-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:26:5-81
+31-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:26:22-78
+32    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" /> <!-- Although the *SdkVersion is captured in gradle build files, this is required for non gradle builds -->
+32-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:29:5-77
+32-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:29:22-74
+33    <!-- <uses-sdk android:minSdkVersion="14"/> -->
+34    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+34-->[com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/kazimi/.gradle/caches/8.13/transforms/738277bb47b333b291710182c462bf4d/transformed/transport-backend-cct-2.3.3/AndroidManifest.xml:25:5-79
+34-->[com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/kazimi/.gradle/caches/8.13/transforms/738277bb47b333b291710182c462bf4d/transformed/transport-backend-cct-2.3.3/AndroidManifest.xml:25:22-76
+35    <uses-permission android:name="android.permission.INTERNET" />
+35-->[com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/kazimi/.gradle/caches/8.13/transforms/738277bb47b333b291710182c462bf4d/transformed/transport-backend-cct-2.3.3/AndroidManifest.xml:26:5-67
+35-->[com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/kazimi/.gradle/caches/8.13/transforms/738277bb47b333b291710182c462bf4d/transformed/transport-backend-cct-2.3.3/AndroidManifest.xml:26:22-64
+36    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+37
+38    <application
+38-->/Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:13:5-37:19
+39        android:name="com.kazimi.syaravin.SyarahvinApplication"
+39-->/Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:14:9-45
+40        android:allowBackup="true"
+40-->/Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:15:9-35
+41        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+41-->[androidx.core:core:1.16.0] /Users/kazimi/.gradle/caches/8.13/transforms/7dff5c565800759a8c3dd3771d6a3107/transformed/core-1.16.0/AndroidManifest.xml:28:18-86
+42        android:dataExtractionRules="@xml/data_extraction_rules"
+42-->/Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:16:9-65
+43        android:debuggable="true"
+44        android:extractNativeLibs="false"
+45        android:fullBackupContent="@xml/backup_rules"
+45-->/Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:17:9-54
+46        android:hardwareAccelerated="true"
+46-->/Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:23:9-43
+47        android:icon="@mipmap/ic_launcher"
+47-->/Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:18:9-43
+48        android:label="@string/app_name"
+48-->/Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:19:9-41
+49        android:roundIcon="@mipmap/ic_launcher_round"
+49-->/Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:20:9-54
+50        android:supportsRtl="true"
+50-->/Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:21:9-35
+51        android:testOnly="true"
+52        android:theme="@style/Theme.Syaravin" >
+52-->/Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:22:9-46
+53        <activity
+53-->/Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:24:9-36:20
+54            android:name="com.kazimi.syaravin.MainActivity"
+54-->/Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:25:13-41
+55            android:configChanges="orientation|keyboardHidden|screenSize"
+55-->/Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:30:13-74
+56            android:exported="true"
+56-->/Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:26:13-36
+57            android:label="@string/app_name"
+57-->/Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:27:13-45
+58            android:screenOrientation="landscape"
+58-->/Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:29:13-50
+59            android:theme="@style/Theme.Syaravin" >
+59-->/Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:28:13-50
+60            <intent-filter>
+60-->/Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:31:13-35:29
+61                <action android:name="android.intent.action.MAIN" />
+61-->/Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:32:17-69
+61-->/Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:32:25-66
+62
+63                <category android:name="android.intent.category.LAUNCHER" />
+63-->/Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:34:17-77
+63-->/Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:34:27-74
+64            </intent-filter>
+65        </activity>
+66
+67        <service
+67-->[com.google.android.gms:play-services-mlkit-text-recognition-common:19.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/02207a057fc5e19e703320ad2e55851e/transformed/play-services-mlkit-text-recognition-common-19.0.0/AndroidManifest.xml:9:9-15:19
+68            android:name="com.google.mlkit.common.internal.MlKitComponentDiscoveryService"
+68-->[com.google.android.gms:play-services-mlkit-text-recognition-common:19.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/02207a057fc5e19e703320ad2e55851e/transformed/play-services-mlkit-text-recognition-common-19.0.0/AndroidManifest.xml:10:13-91
+69            android:directBootAware="true"
+69-->[com.google.mlkit:common:18.8.0] /Users/kazimi/.gradle/caches/8.13/transforms/888729fdde0243c524fd606bed3fc114/transformed/common-18.8.0/AndroidManifest.xml:17:13-43
+70            android:exported="false" >
+70-->[com.google.android.gms:play-services-mlkit-text-recognition-common:19.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/02207a057fc5e19e703320ad2e55851e/transformed/play-services-mlkit-text-recognition-common-19.0.0/AndroidManifest.xml:11:13-37
+71            <meta-data
+71-->[com.google.android.gms:play-services-mlkit-text-recognition-common:19.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/02207a057fc5e19e703320ad2e55851e/transformed/play-services-mlkit-text-recognition-common-19.0.0/AndroidManifest.xml:12:13-14:85
+72                android:name="com.google.firebase.components:com.google.mlkit.vision.text.internal.TextRegistrar"
+72-->[com.google.android.gms:play-services-mlkit-text-recognition-common:19.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/02207a057fc5e19e703320ad2e55851e/transformed/play-services-mlkit-text-recognition-common-19.0.0/AndroidManifest.xml:13:17-114
+73                android:value="com.google.firebase.components.ComponentRegistrar" />
+73-->[com.google.android.gms:play-services-mlkit-text-recognition-common:19.0.0] /Users/kazimi/.gradle/caches/8.13/transforms/02207a057fc5e19e703320ad2e55851e/transformed/play-services-mlkit-text-recognition-common-19.0.0/AndroidManifest.xml:14:17-82
+74            <meta-data
+74-->[com.google.mlkit:vision-common:17.3.0] /Users/kazimi/.gradle/caches/8.13/transforms/57bea1476108c5cadeeec514bfec51c6/transformed/vision-common-17.3.0/AndroidManifest.xml:12:13-14:85
+75                android:name="com.google.firebase.components:com.google.mlkit.vision.common.internal.VisionCommonRegistrar"
+75-->[com.google.mlkit:vision-common:17.3.0] /Users/kazimi/.gradle/caches/8.13/transforms/57bea1476108c5cadeeec514bfec51c6/transformed/vision-common-17.3.0/AndroidManifest.xml:13:17-124
+76                android:value="com.google.firebase.components.ComponentRegistrar" />
+76-->[com.google.mlkit:vision-common:17.3.0] /Users/kazimi/.gradle/caches/8.13/transforms/57bea1476108c5cadeeec514bfec51c6/transformed/vision-common-17.3.0/AndroidManifest.xml:14:17-82
+77            <meta-data
+77-->[com.google.mlkit:common:18.8.0] /Users/kazimi/.gradle/caches/8.13/transforms/888729fdde0243c524fd606bed3fc114/transformed/common-18.8.0/AndroidManifest.xml:20:13-22:85
+78                android:name="com.google.firebase.components:com.google.mlkit.common.internal.CommonComponentRegistrar"
+78-->[com.google.mlkit:common:18.8.0] /Users/kazimi/.gradle/caches/8.13/transforms/888729fdde0243c524fd606bed3fc114/transformed/common-18.8.0/AndroidManifest.xml:21:17-120
+79                android:value="com.google.firebase.components.ComponentRegistrar" />
+79-->[com.google.mlkit:common:18.8.0] /Users/kazimi/.gradle/caches/8.13/transforms/888729fdde0243c524fd606bed3fc114/transformed/common-18.8.0/AndroidManifest.xml:22:17-82
+80        </service>
+81
+82        <provider
+82-->[com.google.mlkit:common:18.8.0] /Users/kazimi/.gradle/caches/8.13/transforms/888729fdde0243c524fd606bed3fc114/transformed/common-18.8.0/AndroidManifest.xml:9:9-13:38
+83            android:name="com.google.mlkit.common.internal.MlKitInitProvider"
+83-->[com.google.mlkit:common:18.8.0] /Users/kazimi/.gradle/caches/8.13/transforms/888729fdde0243c524fd606bed3fc114/transformed/common-18.8.0/AndroidManifest.xml:10:13-78
+84            android:authorities="com.kazimi.syaravin.mlkitinitprovider"
+84-->[com.google.mlkit:common:18.8.0] /Users/kazimi/.gradle/caches/8.13/transforms/888729fdde0243c524fd606bed3fc114/transformed/common-18.8.0/AndroidManifest.xml:11:13-69
+85            android:exported="false"
+85-->[com.google.mlkit:common:18.8.0] /Users/kazimi/.gradle/caches/8.13/transforms/888729fdde0243c524fd606bed3fc114/transformed/common-18.8.0/AndroidManifest.xml:12:13-37
+86            android:initOrder="99" />
+86-->[com.google.mlkit:common:18.8.0] /Users/kazimi/.gradle/caches/8.13/transforms/888729fdde0243c524fd606bed3fc114/transformed/common-18.8.0/AndroidManifest.xml:13:13-35
+87
+88        <activity
+88-->[com.google.android.gms:play-services-base:18.1.0] /Users/kazimi/.gradle/caches/8.13/transforms/8e7d2ff4c7fa71ad20fd56c9bc0f6944/transformed/play-services-base-18.1.0/AndroidManifest.xml:20:9-22:45
+89            android:name="com.google.android.gms.common.api.GoogleApiActivity"
+89-->[com.google.android.gms:play-services-base:18.1.0] /Users/kazimi/.gradle/caches/8.13/transforms/8e7d2ff4c7fa71ad20fd56c9bc0f6944/transformed/play-services-base-18.1.0/AndroidManifest.xml:20:19-85
+90            android:exported="false"
+90-->[com.google.android.gms:play-services-base:18.1.0] /Users/kazimi/.gradle/caches/8.13/transforms/8e7d2ff4c7fa71ad20fd56c9bc0f6944/transformed/play-services-base-18.1.0/AndroidManifest.xml:22:19-43
+91            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+91-->[com.google.android.gms:play-services-base:18.1.0] /Users/kazimi/.gradle/caches/8.13/transforms/8e7d2ff4c7fa71ad20fd56c9bc0f6944/transformed/play-services-base-18.1.0/AndroidManifest.xml:21:19-78
+92
+93        <service
+93-->[androidx.camera:camera-camera2:1.3.1] /Users/kazimi/.gradle/caches/8.13/transforms/23c422d78e0430c294132d0cdedd1048/transformed/camera-camera2-1.3.1/AndroidManifest.xml:24:9-33:19
+94            android:name="androidx.camera.core.impl.MetadataHolderService"
+94-->[androidx.camera:camera-camera2:1.3.1] /Users/kazimi/.gradle/caches/8.13/transforms/23c422d78e0430c294132d0cdedd1048/transformed/camera-camera2-1.3.1/AndroidManifest.xml:25:13-75
+95            android:enabled="false"
+95-->[androidx.camera:camera-camera2:1.3.1] /Users/kazimi/.gradle/caches/8.13/transforms/23c422d78e0430c294132d0cdedd1048/transformed/camera-camera2-1.3.1/AndroidManifest.xml:26:13-36
+96            android:exported="false" >
+96-->[androidx.camera:camera-camera2:1.3.1] /Users/kazimi/.gradle/caches/8.13/transforms/23c422d78e0430c294132d0cdedd1048/transformed/camera-camera2-1.3.1/AndroidManifest.xml:27:13-37
+97            <meta-data
+97-->[androidx.camera:camera-camera2:1.3.1] /Users/kazimi/.gradle/caches/8.13/transforms/23c422d78e0430c294132d0cdedd1048/transformed/camera-camera2-1.3.1/AndroidManifest.xml:30:13-32:89
+98                android:name="androidx.camera.core.impl.MetadataHolderService.DEFAULT_CONFIG_PROVIDER"
+98-->[androidx.camera:camera-camera2:1.3.1] /Users/kazimi/.gradle/caches/8.13/transforms/23c422d78e0430c294132d0cdedd1048/transformed/camera-camera2-1.3.1/AndroidManifest.xml:31:17-103
+99                android:value="androidx.camera.camera2.Camera2Config$DefaultProvider" />
+99-->[androidx.camera:camera-camera2:1.3.1] /Users/kazimi/.gradle/caches/8.13/transforms/23c422d78e0430c294132d0cdedd1048/transformed/camera-camera2-1.3.1/AndroidManifest.xml:32:17-86
+100        </service>
+101
+102        <activity
+102-->[androidx.compose.ui:ui-test-manifest:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/d1a36a52444e342782064028e716079c/transformed/ui-test-manifest-1.7.8/AndroidManifest.xml:23:9-25:39
+103            android:name="androidx.activity.ComponentActivity"
+103-->[androidx.compose.ui:ui-test-manifest:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/d1a36a52444e342782064028e716079c/transformed/ui-test-manifest-1.7.8/AndroidManifest.xml:24:13-63
+104            android:exported="true" />
+104-->[androidx.compose.ui:ui-test-manifest:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/d1a36a52444e342782064028e716079c/transformed/ui-test-manifest-1.7.8/AndroidManifest.xml:25:13-36
+105        <activity
+105-->[androidx.compose.ui:ui-tooling-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/c1977a044888033febb5dd02abcb7787/transformed/ui-tooling-release/AndroidManifest.xml:23:9-25:39
+106            android:name="androidx.compose.ui.tooling.PreviewActivity"
+106-->[androidx.compose.ui:ui-tooling-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/c1977a044888033febb5dd02abcb7787/transformed/ui-tooling-release/AndroidManifest.xml:24:13-71
+107            android:exported="true" />
+107-->[androidx.compose.ui:ui-tooling-android:1.7.8] /Users/kazimi/.gradle/caches/8.13/transforms/c1977a044888033febb5dd02abcb7787/transformed/ui-tooling-release/AndroidManifest.xml:25:13-36
+108
+109        <provider
+109-->[androidx.emoji2:emoji2:1.3.0] /Users/kazimi/.gradle/caches/8.13/transforms/91fb7657f16f7854fe5e2e311d0561b1/transformed/emoji2-1.3.0/AndroidManifest.xml:24:9-32:20
+110            android:name="androidx.startup.InitializationProvider"
+110-->[androidx.emoji2:emoji2:1.3.0] /Users/kazimi/.gradle/caches/8.13/transforms/91fb7657f16f7854fe5e2e311d0561b1/transformed/emoji2-1.3.0/AndroidManifest.xml:25:13-67
+111            android:authorities="com.kazimi.syaravin.androidx-startup"
+111-->[androidx.emoji2:emoji2:1.3.0] /Users/kazimi/.gradle/caches/8.13/transforms/91fb7657f16f7854fe5e2e311d0561b1/transformed/emoji2-1.3.0/AndroidManifest.xml:26:13-68
+112            android:exported="false" >
+112-->[androidx.emoji2:emoji2:1.3.0] /Users/kazimi/.gradle/caches/8.13/transforms/91fb7657f16f7854fe5e2e311d0561b1/transformed/emoji2-1.3.0/AndroidManifest.xml:27:13-37
+113            <meta-data
+113-->[androidx.emoji2:emoji2:1.3.0] /Users/kazimi/.gradle/caches/8.13/transforms/91fb7657f16f7854fe5e2e311d0561b1/transformed/emoji2-1.3.0/AndroidManifest.xml:29:13-31:52
+114                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+114-->[androidx.emoji2:emoji2:1.3.0] /Users/kazimi/.gradle/caches/8.13/transforms/91fb7657f16f7854fe5e2e311d0561b1/transformed/emoji2-1.3.0/AndroidManifest.xml:30:17-75
+115                android:value="androidx.startup" />
+115-->[androidx.emoji2:emoji2:1.3.0] /Users/kazimi/.gradle/caches/8.13/transforms/91fb7657f16f7854fe5e2e311d0561b1/transformed/emoji2-1.3.0/AndroidManifest.xml:31:17-49
+116            <meta-data
+116-->[androidx.lifecycle:lifecycle-process:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/3f587dc84ed919c6313eccedb15048d4/transformed/lifecycle-process-2.9.2/AndroidManifest.xml:29:13-31:52
+117                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+117-->[androidx.lifecycle:lifecycle-process:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/3f587dc84ed919c6313eccedb15048d4/transformed/lifecycle-process-2.9.2/AndroidManifest.xml:30:17-78
+118                android:value="androidx.startup" />
+118-->[androidx.lifecycle:lifecycle-process:2.9.2] /Users/kazimi/.gradle/caches/8.13/transforms/3f587dc84ed919c6313eccedb15048d4/transformed/lifecycle-process-2.9.2/AndroidManifest.xml:31:17-49
+119            <meta-data
+119-->[androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:29:13-31:52
+120                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+120-->[androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:30:17-85
+121                android:value="androidx.startup" />
+121-->[androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:31:17-49
+122        </provider>
+123
+124        <meta-data
+124-->[com.google.android.gms:play-services-basement:18.1.0] /Users/kazimi/.gradle/caches/8.13/transforms/8833fb142d0456fb4a232017b1769071/transformed/play-services-basement-18.1.0/AndroidManifest.xml:21:9-23:69
+125            android:name="com.google.android.gms.version"
+125-->[com.google.android.gms:play-services-basement:18.1.0] /Users/kazimi/.gradle/caches/8.13/transforms/8833fb142d0456fb4a232017b1769071/transformed/play-services-basement-18.1.0/AndroidManifest.xml:22:13-58
+126            android:value="@integer/google_play_services_version" />
+126-->[com.google.android.gms:play-services-basement:18.1.0] /Users/kazimi/.gradle/caches/8.13/transforms/8833fb142d0456fb4a232017b1769071/transformed/play-services-basement-18.1.0/AndroidManifest.xml:23:13-66
+127
+128        <provider
+128-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:32:9-40:20
+129            android:name="leakcanary.internal.LeakCanaryFileProvider"
+129-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:33:13-70
+130            android:authorities="com.squareup.leakcanary.fileprovider.com.kazimi.syaravin"
+130-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:34:13-88
+131            android:exported="false"
+131-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:35:13-37
+132            android:grantUriPermissions="true" >
+132-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:36:13-47
+133            <meta-data
+133-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:37:13-39:66
+134                android:name="android.support.FILE_PROVIDER_PATHS"
+134-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:38:17-67
+135                android:resource="@xml/leak_canary_file_paths" />
+135-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:39:17-63
+136        </provider>
+137
+138        <activity
+138-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:42:9-73:20
+139            android:name="leakcanary.internal.activity.LeakActivity"
+139-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:43:13-69
+140            android:exported="true"
+140-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:44:13-36
+141            android:icon="@mipmap/leak_canary_icon"
+141-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:45:13-52
+142            android:label="@string/leak_canary_display_activity_label"
+142-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:46:13-71
+143            android:taskAffinity="com.squareup.leakcanary.com.kazimi.syaravin"
+143-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:47:13-76
+144            android:theme="@style/leak_canary_LeakCanary.Base" >
+144-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:48:13-63
+145            <intent-filter android:label="@string/leak_canary_import_hprof_file" >
+145-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:49:13-72:29
+145-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:49:28-81
+146                <action android:name="android.intent.action.VIEW" />
+146-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:50:17-69
+146-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:50:25-66
+147
+148                <category android:name="android.intent.category.DEFAULT" />
+148-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:52:17-76
+148-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:52:27-73
+149                <category android:name="android.intent.category.BROWSABLE" />
+149-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:53:17-78
+149-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:53:27-75
+150
+151                <data android:scheme="file" />
+151-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:55:17-47
+151-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:55:23-44
+152                <data android:scheme="content" />
+152-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:55:17-47
+152-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:55:23-44
+153                <data android:mimeType="*/*" />
+153-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:55:17-47
+154                <data android:host="*" />
+154-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:55:17-47
+155                <data android:pathPattern=".*\\.hprof" />
+155-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:55:17-47
+156                <data android:pathPattern=".*\\..*\\.hprof" />
+156-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:55:17-47
+157                <data android:pathPattern=".*\\..*\\..*\\.hprof" />
+157-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:55:17-47
+158                <data android:pathPattern=".*\\..*\\..*\\..*\\.hprof" />
+158-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:55:17-47
+159                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.hprof" />
+159-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:55:17-47
+160                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.hprof" />
+160-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:55:17-47
+161                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.hprof" />
+161-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:55:17-47
+162                <!--
+163            Since hprof isn't a standard MIME type, we have to declare such patterns.
+164            Most file providers will generate URIs including their own package name,
+165            which contains `.` characters that must be explicitly escaped in pathPattern.
+166            @see https://stackoverflow.com/a/31028507/703646
+167                -->
+168            </intent-filter>
+169        </activity>
+170
+171        <activity-alias
+171-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:75:9-92:26
+172            android:name="leakcanary.internal.activity.LeakLauncherActivity"
+172-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:76:13-77
+173            android:banner="@drawable/leak_canary_tv_icon"
+173-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:77:13-59
+174            android:enabled="@bool/leak_canary_add_launcher_icon"
+174-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:78:13-66
+175            android:exported="true"
+175-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:79:13-36
+176            android:icon="@mipmap/leak_canary_icon"
+176-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:80:13-52
+177            android:label="@string/leak_canary_display_activity_label"
+177-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:81:13-71
+178            android:targetActivity="leakcanary.internal.activity.LeakActivity"
+178-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:82:13-79
+179            android:taskAffinity="com.squareup.leakcanary.com.kazimi.syaravin"
+179-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:83:13-76
+180            android:theme="@style/leak_canary_LeakCanary.Base" >
+180-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:84:13-63
+181            <intent-filter>
+181-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:85:13-91:29
+182                <action android:name="android.intent.action.MAIN" />
+182-->/Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:32:17-69
+182-->/Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:32:25-66
+183
+184                <category android:name="android.intent.category.LAUNCHER" />
+184-->/Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:34:17-77
+184-->/Users/kazimi/StudioProjects/Syaravin/app/src/main/AndroidManifest.xml:34:27-74
+185                <!-- Android TV launcher intent -->
+186                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+186-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:90:17-86
+186-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:90:27-83
+187            </intent-filter>
+188        </activity-alias>
+189
+190        <activity
+190-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:94:9-100:68
+191            android:name="leakcanary.internal.RequestPermissionActivity"
+191-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:95:13-73
+192            android:excludeFromRecents="true"
+192-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:96:13-46
+193            android:icon="@mipmap/leak_canary_icon"
+193-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:97:13-52
+194            android:label="@string/leak_canary_storage_permission_activity_label"
+194-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:98:13-82
+195            android:taskAffinity="com.squareup.leakcanary.com.kazimi.syaravin"
+195-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:99:13-76
+196            android:theme="@style/leak_canary_Theme.Transparent" />
+196-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:100:13-65
+197
+198        <receiver android:name="leakcanary.internal.NotificationReceiver" />
+198-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:102:9-77
+198-->[com.squareup.leakcanary:leakcanary-android-core:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/65d442efb5f53949892b1b2ba583c79f/transformed/leakcanary-android-core-2.12/AndroidManifest.xml:102:19-74
+199
+200        <provider
+200-->[com.squareup.leakcanary:leakcanary-object-watcher-android:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/803907bd02276f6a9fd4c8f3b51a87e7/transformed/leakcanary-object-watcher-android-2.12/AndroidManifest.xml:8:9-12:40
+201            android:name="leakcanary.internal.MainProcessAppWatcherInstaller"
+201-->[com.squareup.leakcanary:leakcanary-object-watcher-android:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/803907bd02276f6a9fd4c8f3b51a87e7/transformed/leakcanary-object-watcher-android-2.12/AndroidManifest.xml:9:13-78
+202            android:authorities="com.kazimi.syaravin.leakcanary-installer"
+202-->[com.squareup.leakcanary:leakcanary-object-watcher-android:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/803907bd02276f6a9fd4c8f3b51a87e7/transformed/leakcanary-object-watcher-android-2.12/AndroidManifest.xml:10:13-72
+203            android:enabled="@bool/leak_canary_watcher_auto_install"
+203-->[com.squareup.leakcanary:leakcanary-object-watcher-android:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/803907bd02276f6a9fd4c8f3b51a87e7/transformed/leakcanary-object-watcher-android-2.12/AndroidManifest.xml:11:13-69
+204            android:exported="false" />
+204-->[com.squareup.leakcanary:leakcanary-object-watcher-android:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/803907bd02276f6a9fd4c8f3b51a87e7/transformed/leakcanary-object-watcher-android-2.12/AndroidManifest.xml:12:13-37
+205        <provider
+205-->[com.squareup.leakcanary:plumber-android:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/184ea0232ac788f8cb011faecbd41839/transformed/plumber-android-2.12/AndroidManifest.xml:8:9-12:40
+206            android:name="leakcanary.internal.PlumberInstaller"
+206-->[com.squareup.leakcanary:plumber-android:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/184ea0232ac788f8cb011faecbd41839/transformed/plumber-android-2.12/AndroidManifest.xml:9:13-64
+207            android:authorities="com.kazimi.syaravin.plumber-installer"
+207-->[com.squareup.leakcanary:plumber-android:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/184ea0232ac788f8cb011faecbd41839/transformed/plumber-android-2.12/AndroidManifest.xml:10:13-69
+208            android:enabled="@bool/leak_canary_plumber_auto_install"
+208-->[com.squareup.leakcanary:plumber-android:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/184ea0232ac788f8cb011faecbd41839/transformed/plumber-android-2.12/AndroidManifest.xml:11:13-69
+209            android:exported="false" />
+209-->[com.squareup.leakcanary:plumber-android:2.12] /Users/kazimi/.gradle/caches/8.13/transforms/184ea0232ac788f8cb011faecbd41839/transformed/plumber-android-2.12/AndroidManifest.xml:12:13-37
+210
+211        <receiver
+211-->[androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:34:9-52:20
+212            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+212-->[androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:35:13-76
+213            android:directBootAware="false"
+213-->[androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:36:13-44
+214            android:enabled="true"
+214-->[androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:37:13-35
+215            android:exported="true"
+215-->[androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:38:13-36
+216            android:permission="android.permission.DUMP" >
+216-->[androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:39:13-57
+217            <intent-filter>
+217-->[androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:40:13-42:29
+218                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+218-->[androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:41:17-91
+218-->[androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:41:25-88
+219            </intent-filter>
+220            <intent-filter>
+220-->[androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:43:13-45:29
+221                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+221-->[androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:44:17-85
+221-->[androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:44:25-82
+222            </intent-filter>
+223            <intent-filter>
+223-->[androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:46:13-48:29
+224                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+224-->[androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:47:17-88
+224-->[androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:47:25-85
+225            </intent-filter>
+226            <intent-filter>
+226-->[androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:49:13-51:29
+227                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+227-->[androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:50:17-95
+227-->[androidx.profileinstaller:profileinstaller:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/f779c9b22ab84cdad1705d63e39bb89a/transformed/profileinstaller-1.4.0/AndroidManifest.xml:50:25-92
+228            </intent-filter>
+229        </receiver>
+230
+231        <service
+231-->[com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/kazimi/.gradle/caches/8.13/transforms/738277bb47b333b291710182c462bf4d/transformed/transport-backend-cct-2.3.3/AndroidManifest.xml:29:9-35:19
+232            android:name="com.google.android.datatransport.runtime.backends.TransportBackendDiscovery"
+232-->[com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/kazimi/.gradle/caches/8.13/transforms/738277bb47b333b291710182c462bf4d/transformed/transport-backend-cct-2.3.3/AndroidManifest.xml:30:13-103
+233            android:exported="false" >
+233-->[com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/kazimi/.gradle/caches/8.13/transforms/738277bb47b333b291710182c462bf4d/transformed/transport-backend-cct-2.3.3/AndroidManifest.xml:31:13-37
+234            <meta-data
+234-->[com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/kazimi/.gradle/caches/8.13/transforms/738277bb47b333b291710182c462bf4d/transformed/transport-backend-cct-2.3.3/AndroidManifest.xml:32:13-34:39
+235                android:name="backend:com.google.android.datatransport.cct.CctBackendFactory"
+235-->[com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/kazimi/.gradle/caches/8.13/transforms/738277bb47b333b291710182c462bf4d/transformed/transport-backend-cct-2.3.3/AndroidManifest.xml:33:17-94
+236                android:value="cct" />
+236-->[com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/kazimi/.gradle/caches/8.13/transforms/738277bb47b333b291710182c462bf4d/transformed/transport-backend-cct-2.3.3/AndroidManifest.xml:34:17-36
+237        </service>
+238        <service
+238-->[com.google.android.datatransport:transport-runtime:2.2.6] /Users/kazimi/.gradle/caches/8.13/transforms/2360b19b6b2cb63cf8da7673e807f42d/transformed/transport-runtime-2.2.6/AndroidManifest.xml:26:9-30:19
+239            android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService"
+239-->[com.google.android.datatransport:transport-runtime:2.2.6] /Users/kazimi/.gradle/caches/8.13/transforms/2360b19b6b2cb63cf8da7673e807f42d/transformed/transport-runtime-2.2.6/AndroidManifest.xml:27:13-117
+240            android:exported="false"
+240-->[com.google.android.datatransport:transport-runtime:2.2.6] /Users/kazimi/.gradle/caches/8.13/transforms/2360b19b6b2cb63cf8da7673e807f42d/transformed/transport-runtime-2.2.6/AndroidManifest.xml:28:13-37
+241            android:permission="android.permission.BIND_JOB_SERVICE" >
+241-->[com.google.android.datatransport:transport-runtime:2.2.6] /Users/kazimi/.gradle/caches/8.13/transforms/2360b19b6b2cb63cf8da7673e807f42d/transformed/transport-runtime-2.2.6/AndroidManifest.xml:29:13-69
+242        </service>
+243
+244        <receiver
+244-->[com.google.android.datatransport:transport-runtime:2.2.6] /Users/kazimi/.gradle/caches/8.13/transforms/2360b19b6b2cb63cf8da7673e807f42d/transformed/transport-runtime-2.2.6/AndroidManifest.xml:32:9-34:40
+245            android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.AlarmManagerSchedulerBroadcastReceiver"
+245-->[com.google.android.datatransport:transport-runtime:2.2.6] /Users/kazimi/.gradle/caches/8.13/transforms/2360b19b6b2cb63cf8da7673e807f42d/transformed/transport-runtime-2.2.6/AndroidManifest.xml:33:13-132
+246            android:exported="false" />
+246-->[com.google.android.datatransport:transport-runtime:2.2.6] /Users/kazimi/.gradle/caches/8.13/transforms/2360b19b6b2cb63cf8da7673e807f42d/transformed/transport-runtime-2.2.6/AndroidManifest.xml:34:13-37
+247        <!--
+248 Applications that target Android S+ require explicit declaration of
+249             any referenced vendor-provided libraries.
+250        -->
+251        <uses-native-library
+251-->[com.google.ai.edge.litert:litert-gpu-api:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/05a41b1c8709800fe74bd5af05372db1/transformed/litert-gpu-api-1.4.0/AndroidManifest.xml:8:9-10:40
+252            android:name="libOpenCL.so"
+252-->[com.google.ai.edge.litert:litert-gpu-api:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/05a41b1c8709800fe74bd5af05372db1/transformed/litert-gpu-api-1.4.0/AndroidManifest.xml:9:13-40
+253            android:required="false" />
+253-->[com.google.ai.edge.litert:litert-gpu-api:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/05a41b1c8709800fe74bd5af05372db1/transformed/litert-gpu-api-1.4.0/AndroidManifest.xml:10:13-37
+254        <uses-native-library
+254-->[com.google.ai.edge.litert:litert-gpu-api:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/05a41b1c8709800fe74bd5af05372db1/transformed/litert-gpu-api-1.4.0/AndroidManifest.xml:8:9-10:40
+255            android:name="libOpenCL-car.so"
+255-->[com.google.ai.edge.litert:litert-gpu-api:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/05a41b1c8709800fe74bd5af05372db1/transformed/litert-gpu-api-1.4.0/AndroidManifest.xml:9:13-40
+256            android:required="false" />
+256-->[com.google.ai.edge.litert:litert-gpu-api:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/05a41b1c8709800fe74bd5af05372db1/transformed/litert-gpu-api-1.4.0/AndroidManifest.xml:10:13-37
+257        <uses-native-library
+257-->[com.google.ai.edge.litert:litert-gpu-api:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/05a41b1c8709800fe74bd5af05372db1/transformed/litert-gpu-api-1.4.0/AndroidManifest.xml:8:9-10:40
+258            android:name="libOpenCL-pixel.so"
+258-->[com.google.ai.edge.litert:litert-gpu-api:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/05a41b1c8709800fe74bd5af05372db1/transformed/litert-gpu-api-1.4.0/AndroidManifest.xml:9:13-40
+259            android:required="false" />
+259-->[com.google.ai.edge.litert:litert-gpu-api:1.4.0] /Users/kazimi/.gradle/caches/8.13/transforms/05a41b1c8709800fe74bd5af05372db1/transformed/litert-gpu-api-1.4.0/AndroidManifest.xml:10:13-37
+260    </application>
+261
+262</manifest>

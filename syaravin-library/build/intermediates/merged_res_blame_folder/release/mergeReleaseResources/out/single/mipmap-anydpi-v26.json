@@ -1,0 +1,10 @@
+[
+    {
+        "merged": "com.syarah.vinscanner.syaravin-library-release-50:/mipmap-anydpi-v26/ic_launcher.xml",
+        "source": "com.syarah.vinscanner.syaravin-library-main-51:/mipmap-anydpi-v26/ic_launcher.xml"
+    },
+    {
+        "merged": "com.syarah.vinscanner.syaravin-library-release-50:/mipmap-anydpi-v26/ic_launcher_round.xml",
+        "source": "com.syarah.vinscanner.syaravin-library-main-51:/mipmap-anydpi-v26/ic_launcher_round.xml"
+    }
+]

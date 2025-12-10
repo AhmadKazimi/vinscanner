@@ -1,0 +1,20 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.kazimi.sample.sample-app-mergeDebugResources-48:/values-watch-v20/values-watch-v20.xml",
+            "map": [
+                {
+                    "source": "/Users/kazimi/.gradle/caches/8.13/transforms/5205fa48d3afe16b51c60fb55cafdb06/transformed/appcompat-1.1.0/res/values-watch-v20/values-watch-v20.xml",
+                    "from": {
+                        "startLines": "2,5,8",
+                        "startColumns": "4,4,4",
+                        "startOffsets": "55,214,385",
+                        "endLines": "4,7,10",
+                        "endColumns": "12,12,12",
+                        "endOffsets": "209,380,553"
+                    }
+                }
+            ]
+        }
+    ]
+}

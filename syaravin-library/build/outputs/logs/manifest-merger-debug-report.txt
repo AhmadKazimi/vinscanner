@@ -1,0 +1,48 @@
+-- Merging decision tree log ---
+manifest
+ADDED from /Users/kazimi/StudioProjects/Syaravin/syaravin-library/src/main/AndroidManifest.xml:2:1-26:12
+INJECTED from /Users/kazimi/StudioProjects/Syaravin/syaravin-library/src/main/AndroidManifest.xml:2:1-26:12
+	package
+		INJECTED from /Users/kazimi/StudioProjects/Syaravin/syaravin-library/src/main/AndroidManifest.xml
+	xmlns:android
+		ADDED from /Users/kazimi/StudioProjects/Syaravin/syaravin-library/src/main/AndroidManifest.xml:2:11-69
+uses-permission#android.permission.CAMERA
+ADDED from /Users/kazimi/StudioProjects/Syaravin/syaravin-library/src/main/AndroidManifest.xml:5:5-65
+	android:name
+		ADDED from /Users/kazimi/StudioProjects/Syaravin/syaravin-library/src/main/AndroidManifest.xml:5:22-62
+uses-feature#android.hardware.camera
+ADDED from /Users/kazimi/StudioProjects/Syaravin/syaravin-library/src/main/AndroidManifest.xml:8:5-10:35
+	android:required
+		ADDED from /Users/kazimi/StudioProjects/Syaravin/syaravin-library/src/main/AndroidManifest.xml:10:9-32
+	android:name
+		ADDED from /Users/kazimi/StudioProjects/Syaravin/syaravin-library/src/main/AndroidManifest.xml:9:9-47
+uses-feature#android.hardware.camera.autofocus
+ADDED from /Users/kazimi/StudioProjects/Syaravin/syaravin-library/src/main/AndroidManifest.xml:11:5-13:36
+	android:required
+		ADDED from /Users/kazimi/StudioProjects/Syaravin/syaravin-library/src/main/AndroidManifest.xml:13:9-33
+	android:name
+		ADDED from /Users/kazimi/StudioProjects/Syaravin/syaravin-library/src/main/AndroidManifest.xml:12:9-57
+application
+ADDED from /Users/kazimi/StudioProjects/Syaravin/syaravin-library/src/main/AndroidManifest.xml:15:5-24:19
+activity#com.syarah.vinscanner.VinScannerActivity
+ADDED from /Users/kazimi/StudioProjects/Syaravin/syaravin-library/src/main/AndroidManifest.xml:17:9-23:50
+	android:screenOrientation
+		ADDED from /Users/kazimi/StudioProjects/Syaravin/syaravin-library/src/main/AndroidManifest.xml:21:13-49
+	android:hardwareAccelerated
+		ADDED from /Users/kazimi/StudioProjects/Syaravin/syaravin-library/src/main/AndroidManifest.xml:23:13-47
+	android:exported
+		ADDED from /Users/kazimi/StudioProjects/Syaravin/syaravin-library/src/main/AndroidManifest.xml:19:13-37
+	android:configChanges
+		ADDED from /Users/kazimi/StudioProjects/Syaravin/syaravin-library/src/main/AndroidManifest.xml:22:13-74
+	android:theme
+		ADDED from /Users/kazimi/StudioProjects/Syaravin/syaravin-library/src/main/AndroidManifest.xml:20:13-50
+	android:name
+		ADDED from /Users/kazimi/StudioProjects/Syaravin/syaravin-library/src/main/AndroidManifest.xml:18:13-47
+uses-sdk
+INJECTED from /Users/kazimi/StudioProjects/Syaravin/syaravin-library/src/main/AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from /Users/kazimi/StudioProjects/Syaravin/syaravin-library/src/main/AndroidManifest.xml
+INJECTED from /Users/kazimi/StudioProjects/Syaravin/syaravin-library/src/main/AndroidManifest.xml
+	android:targetSdkVersion
+		INJECTED from /Users/kazimi/StudioProjects/Syaravin/syaravin-library/src/main/AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from /Users/kazimi/StudioProjects/Syaravin/syaravin-library/src/main/AndroidManifest.xml

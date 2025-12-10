@@ -1,0 +1,10 @@
+[
+    {
+        "merged": "com.syarah.vinscanner.syaravin-library-release-50:/layout-watch-v20/abc_alert_dialog_title_material.xml",
+        "source": "com.syarah.vinscanner.syaravin-library-appcompat-1.1.0-14:/layout-watch-v20/abc_alert_dialog_title_material.xml"
+    },
+    {
+        "merged": "com.syarah.vinscanner.syaravin-library-release-50:/layout-watch-v20/abc_alert_dialog_button_bar_material.xml",
+        "source": "com.syarah.vinscanner.syaravin-library-appcompat-1.1.0-14:/layout-watch-v20/abc_alert_dialog_button_bar_material.xml"
+    }
+]

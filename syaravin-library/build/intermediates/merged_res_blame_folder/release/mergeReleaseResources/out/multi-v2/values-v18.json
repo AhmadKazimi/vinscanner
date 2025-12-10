@@ -1,0 +1,34 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.syarah.vinscanner.syaravin-library-release-50:/values-v18/values-v18.xml",
+            "map": [
+                {
+                    "source": "/Users/kazimi/.gradle/caches/8.13/transforms/5205fa48d3afe16b51c60fb55cafdb06/transformed/appcompat-1.1.0/res/values-v18/values-v18.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "48",
+                        "endOffsets": "99"
+                    }
+                }
+            ]
+        },
+        {
+            "outputFile": "com.syarah.vinscanner.syaravin-library-mergeReleaseResources-48:/values-v18/values-v18.xml",
+            "map": [
+                {
+                    "source": "/Users/kazimi/.gradle/caches/8.13/transforms/5205fa48d3afe16b51c60fb55cafdb06/transformed/appcompat-1.1.0/res/values-v18/values-v18.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "48",
+                        "endOffsets": "99"
+                    }
+                }
+            ]
+        }
+    ]
+}

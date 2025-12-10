@@ -1,0 +1,46 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.syarah.vinscanner" >
+4
+5    <uses-sdk android:minSdkVersion="24" />
+6
+7    <!-- Camera Permission -->
+8    <uses-permission android:name="android.permission.CAMERA" />
+8-->/Users/kazimi/StudioProjects/Syaravin/syaravin-library/src/main/AndroidManifest.xml:5:5-65
+8-->/Users/kazimi/StudioProjects/Syaravin/syaravin-library/src/main/AndroidManifest.xml:5:22-62
+9
+10    <!-- Camera Features -->
+11    <uses-feature
+11-->/Users/kazimi/StudioProjects/Syaravin/syaravin-library/src/main/AndroidManifest.xml:8:5-10:35
+12        android:name="android.hardware.camera"
+12-->/Users/kazimi/StudioProjects/Syaravin/syaravin-library/src/main/AndroidManifest.xml:9:9-47
+13        android:required="true" />
+13-->/Users/kazimi/StudioProjects/Syaravin/syaravin-library/src/main/AndroidManifest.xml:10:9-32
+14    <uses-feature
+14-->/Users/kazimi/StudioProjects/Syaravin/syaravin-library/src/main/AndroidManifest.xml:11:5-13:36
+15        android:name="android.hardware.camera.autofocus"
+15-->/Users/kazimi/StudioProjects/Syaravin/syaravin-library/src/main/AndroidManifest.xml:12:9-57
+16        android:required="false" />
+16-->/Users/kazimi/StudioProjects/Syaravin/syaravin-library/src/main/AndroidManifest.xml:13:9-33
+17
+18    <application>
+18-->/Users/kazimi/StudioProjects/Syaravin/syaravin-library/src/main/AndroidManifest.xml:15:5-24:19
+19
+20        <!-- Internal scanner activity -->
+21        <activity
+21-->/Users/kazimi/StudioProjects/Syaravin/syaravin-library/src/main/AndroidManifest.xml:17:9-23:50
+22            android:name="com.syarah.vinscanner.VinScannerActivity"
+22-->/Users/kazimi/StudioProjects/Syaravin/syaravin-library/src/main/AndroidManifest.xml:18:13-47
+23            android:configChanges="orientation|keyboardHidden|screenSize"
+23-->/Users/kazimi/StudioProjects/Syaravin/syaravin-library/src/main/AndroidManifest.xml:22:13-74
+24            android:exported="false"
+24-->/Users/kazimi/StudioProjects/Syaravin/syaravin-library/src/main/AndroidManifest.xml:19:13-37
+25            android:hardwareAccelerated="true"
+25-->/Users/kazimi/StudioProjects/Syaravin/syaravin-library/src/main/AndroidManifest.xml:23:13-47
+26            android:screenOrientation="portrait"
+26-->/Users/kazimi/StudioProjects/Syaravin/syaravin-library/src/main/AndroidManifest.xml:21:13-49
+27            android:theme="@style/Theme.Syaravin" />
+27-->/Users/kazimi/StudioProjects/Syaravin/syaravin-library/src/main/AndroidManifest.xml:20:13-50
+28    </application>
+29
+30</manifest>
