@@ -24,10 +24,28 @@ internal class VinValidatorImpl : VinValidator {
         private val WEIGHTS = intArrayOf(8, 7, 6, 5, 4, 3, 2, 10, 0, 9, 8, 7, 6, 5, 4, 3, 2)
 
         // Corrections for characters that are invalid in a VIN
-        private val OCR_CORRECTIONS = mapOf(
-            'I' to '1', 'i' to '1',
-            'O' to '0', 'o' to '0',
-            'Q' to '0', 'q' to '0'
+        // Maps invalid/confusable characters to valid VIN-allowed characters
+        private val OCR_CORRECTIONS = mapOf<Char, Char>(
+            // Invalid VIN characters → similar valid ones
+            'I' to '1', 'i' to '1',  // I looks like 1
+            'O' to '0', 'o' to '0',  // O looks like 0
+            'Q' to '0', 'q' to '0',  // Q looks like 0
+
+            // Lowercase letters → uppercase equivalents
+            'a' to 'A', 'b' to 'B', 'c' to 'C', 'd' to 'D', 'e' to 'E',
+            'f' to 'F', 'g' to 'G', 'h' to 'H', 'j' to 'J', 'k' to 'K',
+            'l' to '1', // lowercase L looks like 1
+            'm' to 'M', 'n' to 'N', 'p' to 'P', 'r' to 'R',
+            's' to 'S', 't' to 'T', 'u' to 'U', 'v' to 'V', 'w' to 'W',
+            'x' to 'X', 'y' to 'Y', 'z' to 'Z',
+
+            // Common OCR confusions
+            '|' to '1',  // pipe to 1
+            '!' to '1',  // exclamation to 1
+            'Ø' to '0',  // slashed O to 0
+            '°' to '0'   // degree symbol to 0
+
+            // Note: Special characters like dashes, spaces, dots are filtered by extractVin()
         )
         
         // Ambiguous characters that can be misread by OCR
