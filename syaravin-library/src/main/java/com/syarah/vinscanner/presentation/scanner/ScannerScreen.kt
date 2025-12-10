@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -292,6 +293,28 @@ internal fun ScannerScreen(
 					}
 				}
 			)
+		}
+
+		// Enter manually button at bottom
+		if (state.hasPermission && state.isScanning) {
+			ExtendedFloatingActionButton(
+				onClick = {
+					Log.d(TAG, "Enter manually button clicked, invoking onCancelled callback")
+					onCancelled()
+				},
+				modifier = Modifier
+					.align(Alignment.BottomCenter)
+					.padding(bottom = 32.dp),
+				containerColor = Color.Black.copy(alpha = 0.7f),
+				contentColor = Color.White
+			) {
+				Icon(
+					imageVector = Icons.Filled.Close,
+					contentDescription = "Enter manually"
+				)
+				Spacer(modifier = Modifier.width(8.dp))
+				Text("Enter manually")
+			}
 		}
 
 		// Error snackbar
