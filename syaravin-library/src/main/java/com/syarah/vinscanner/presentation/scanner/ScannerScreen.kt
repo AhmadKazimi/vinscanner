@@ -12,7 +12,10 @@ import androidx.camera.core.Preview
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Info
@@ -298,48 +301,42 @@ internal fun ScannerScreen(
 			)
 		}
 
-		// Enter manually button at bottom
+		// Enter manually button at bottom (camera shutter style)
 		if (state.hasPermission && state.isScanning) {
-			ExtendedFloatingActionButton(
-				onClick = {
-					Log.d(TAG, "Enter manually button clicked")
-
-					// Get latest ROI-cropped bitmap from state
-					val roiBitmap = state.latestRoiCroppedBitmap
-
-					if (roiBitmap != null) {
-						Log.d(TAG, "Passing empty VIN with ROI bitmap (${roiBitmap.width}x${roiBitmap.height})")
-
-						// Create VinNumber with empty string and ROI bitmap
-						val manualEntryVin = VinNumber(
-							value = "",
-							confidence = 0f,
-							isValid = false,
-							croppedImage = roiBitmap
-						)
-
-						// Invoke callback with bitmap
-						onVinConfirmed(manualEntryVin)
-					} else {
-						Log.w(TAG, "No ROI bitmap available, passing empty VIN without image")
-
-						// Fallback: pass empty VIN without bitmap
-						onVinConfirmed(VinNumber(value = "", confidence = 0f, isValid = false))
-					}
-				},
+			Box(
 				modifier = Modifier
 					.align(Alignment.BottomCenter)
-					.padding(bottom = 32.dp),
-				containerColor = Color.Black.copy(alpha = 0.7f),
-				contentColor = Color.White
-			) {
-				Icon(
-					imageVector = Icons.Filled.Close,
-					contentDescription = "Enter manually"
-				)
-				Spacer(modifier = Modifier.width(8.dp))
-				Text("Enter manually")
-			}
+					.padding(bottom = 32.dp)
+					.size(64.dp)
+					.clip(CircleShape)
+					.background(Color.White)
+					.clickable {
+						Log.d(TAG, "Enter manually button clicked")
+
+						// Get latest ROI-cropped bitmap from state
+						val roiBitmap = state.latestRoiCroppedBitmap
+
+						if (roiBitmap != null) {
+							Log.d(TAG, "Passing empty VIN with ROI bitmap (${roiBitmap.width}x${roiBitmap.height})")
+
+							// Create VinNumber with empty string and ROI bitmap
+							val manualEntryVin = VinNumber(
+								value = "",
+								confidence = 0f,
+								isValid = false,
+								croppedImage = roiBitmap
+							)
+
+							// Invoke callback with bitmap
+							onVinConfirmed(manualEntryVin)
+						} else {
+							Log.w(TAG, "No ROI bitmap available, passing empty VIN without image")
+
+							// Fallback: pass empty VIN without bitmap
+							onVinConfirmed(VinNumber(value = "", confidence = 0f, isValid = false))
+						}
+					}
+			)
 		}
 
 		// Error snackbar
