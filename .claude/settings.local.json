@@ -21,7 +21,8 @@
       "Bash(git commit -m \"$(cat <<''EOF''\nFix critical ProGuard bug preventing library imports (v1.0.2)\n\nCRITICAL BUG FIX:\n- Fixed consumer-rules.pro with correct package names\n- Changed com.kazimi.syaravin → com.syarah.vinscanner\n- R8 was stripping all public APIs due to incorrect ProGuard rules\n\nChanges:\n- Update consumer-rules.pro with correct package references\n- Bump version to 1.0.2 in build.gradle.kts and VinScanner.kt  \n- Update README.md to reference v1.0.2\n- Rename project to \"vinscanner\" in settings.gradle.kts\n- Add jitpack.yml for Java 21 support\n\nThis fixes the \"Unresolved reference\" errors when consumers\ntry to import VinScanner, VinScanResult, and VinNumber classes.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
       "Bash(git commit:*)",
       "Bash(grep:*)",
-      "WebSearch"
+      "WebSearch",
+      "mcp__MCP_DOCKER__sequentialthinking"
     ],
     "deny": [],
     "ask": []

@@ -49,7 +49,7 @@ internal fun BoundingBoxOverlay(
             )
 
             // Draw confidence score if high enough
-            if (box.confidence > 0.5f) {
+            if (box.confidence > 0.25f) {
                 drawIntoCanvas { canvas ->
                     val paint = android.graphics.Paint().apply {
                         this.color = color.toArgb()

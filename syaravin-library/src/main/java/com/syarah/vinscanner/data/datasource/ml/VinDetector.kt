@@ -13,7 +13,7 @@ internal interface VinDetector {
      * @param confidenceThreshold Minimum confidence threshold for detections
      * @return Detection result with bounding boxes
      */
-    suspend fun detect(bitmap: Bitmap, confidenceThreshold: Float = 0.5f): DetectionResult
+    suspend fun detect(bitmap: Bitmap, confidenceThreshold: Float = 0.25f): DetectionResult
     
     /**
      * Preprocesses bitmap for model input
