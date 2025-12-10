@@ -54,7 +54,23 @@ internal class ScannerViewModel(
     }
 
     private fun stopScanning() {
-        _state.update { it.copy(isScanning = false, isLoading = false) }
+        // Recycle bitmap when stopping scanner
+        _state.value.latestRoiCroppedBitmap?.let { bitmap ->
+            try {
+                bitmap.recycle()
+                Log.d("ScannerViewModel", "Recycled ROI bitmap on stop")
+            } catch (e: Throwable) {
+                Log.w("ScannerViewModel", "Failed to recycle bitmap on stop", e)
+            }
+        }
+
+        _state.update {
+            it.copy(
+                isScanning = false,
+                isLoading = false,
+                latestRoiCroppedBitmap = null  // Clear reference
+            )
+        }
         Log.d("", "Stopped VIN scanning")
     }
 
@@ -72,11 +88,22 @@ internal class ScannerViewModel(
     }
 
     private fun dismissResult() {
+        // Recycle bitmap when dismissing results
+        _state.value.latestRoiCroppedBitmap?.let { bitmap ->
+            try {
+                bitmap.recycle()
+                Log.d("ScannerViewModel", "Recycled ROI bitmap on dismiss")
+            } catch (e: Throwable) {
+                Log.w("ScannerViewModel", "Failed to recycle bitmap on dismiss", e)
+            }
+        }
+
         _state.update {
             it.copy(
                 showVinResult = false,
                 detectedVin = null,
-                roiBorderState = RoiBorderState.NO_DETECTION
+                roiBorderState = RoiBorderState.NO_DETECTION,
+                latestRoiCroppedBitmap = null  // Clear reference
             )
         }
     }
@@ -144,8 +171,43 @@ internal class ScannerViewModel(
         _state.update { it.copy(detectionBoxes = boxes) }
     }
 
+    /**
+     * Updates the latest ROI-cropped bitmap for manual entry
+     * Recycles the old bitmap to prevent memory leaks
+     */
+    fun onRoiCroppedBitmapUpdated(newBitmap: Bitmap?) {
+        // Recycle old bitmap if it exists and is different from the new one
+        _state.value.latestRoiCroppedBitmap?.let { oldBitmap ->
+            if (oldBitmap !== newBitmap) {
+                try {
+                    oldBitmap.recycle()
+                    Log.d("ScannerViewModel", "Recycled old ROI bitmap")
+                } catch (e: Throwable) {
+                    Log.w("ScannerViewModel", "Failed to recycle old bitmap", e)
+                }
+            }
+        }
+
+        _state.update { it.copy(latestRoiCroppedBitmap = newBitmap) }
+    }
+
     private fun updateRoiBorderState(state: RoiBorderState) {
         _state.update { it.copy(roiBorderState = state) }
+    }
+
+    /**
+     * Clean up bitmap when ViewModel is destroyed
+     */
+    override fun onCleared() {
+        super.onCleared()
+        _state.value.latestRoiCroppedBitmap?.let { bitmap ->
+            try {
+                bitmap.recycle()
+                Log.d("ScannerViewModel", "Recycled ROI bitmap on cleared")
+            } catch (e: Throwable) {
+                Log.w("ScannerViewModel", "Failed to recycle bitmap on cleared", e)
+            }
+        }
     }
 }
 

@@ -1,5 +1,6 @@
 package com.syarah.vinscanner.presentation.scanner
 
+import android.graphics.Bitmap
 import com.syarah.vinscanner.domain.model.BoundingBox
 import com.syarah.vinscanner.domain.model.VinNumber
 
@@ -24,7 +25,8 @@ internal data class ScannerState(
     val hasPermission: Boolean = false,
     val showVinResult: Boolean = false,
     val scanHistory: List<VinNumber> = emptyList(),
-    val roiBorderState: RoiBorderState = RoiBorderState.NO_DETECTION  // Start with RED
+    val roiBorderState: RoiBorderState = RoiBorderState.NO_DETECTION,  // Start with RED
+    val latestRoiCroppedBitmap: Bitmap? = null  // ROI-cropped bitmap for manual entry
 ) {
     /**
      * Whether the scanner is actively processing
