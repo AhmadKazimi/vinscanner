@@ -4,13 +4,22 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Rect
 import android.util.Log
+import com.google.android.gms.common.ConnectionResult
+import com.google.android.gms.common.GoogleApiAvailability
+import com.google.android.gms.common.moduleinstall.ModuleInstall
+import com.google.android.gms.common.moduleinstall.ModuleInstallRequest
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
+import com.google.mlkit.vision.text.TextRecognizer
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import com.syarah.vinscanner.domain.model.BoundingBox
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import java.util.concurrent.atomic.AtomicBoolean
 
 private const val TAG = "TextExtractorImpl"
 private const val ML_KIT_MIN_SIZE = 32 // ML Kit requires minimum 32x32 pixels
@@ -28,9 +37,21 @@ internal class TextExtractorImpl(
     private val recogniser by lazy {
         TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
     }
+    private val backgroundScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val warmupRequested = AtomicBoolean(false)
+    @Volatile
+    private var skipOcrForSession = false
+
+    init {
+        if (!isGooglePlayServicesReady() || !isMlKitRuntimePresent()) {
+            skipOcrForSession = true
+            requestMlKitWarmupInBackground()
+        }
+    }
 
     override suspend fun extractText(bitmap: Bitmap, boundingBox: BoundingBox): String? =
         withContext(Dispatchers.Default) {
+            val recognizer = getRecognizerOrNull() ?: return@withContext null
             try {
                 val cropRect = toPixelRect(bitmap, boundingBox)
                 if (cropRect.width() <= 0 || cropRect.height() <= 0) return@withContext null
@@ -57,7 +78,7 @@ internal class TextExtractorImpl(
                 }
 
                 val image = InputImage.fromBitmap(cropped, rotationDegrees)
-                val result = recogniser.process(image).await()
+                val result = recognizer.process(image).await()
                 result.text.takeIf { it.isNotBlank() }
             } catch (e: Exception) {
                 Log.e(TAG, "Error extracting text from region", e)
@@ -66,6 +87,7 @@ internal class TextExtractorImpl(
         }
 
     override suspend fun extractAllText(bitmap: Bitmap): List<String> = withContext(Dispatchers.Default) {
+        val recognizer = getRecognizerOrNull() ?: return@withContext emptyList()
         try {
             val rotationDegrees = detectRotation(bitmap)
             if (rotationDegrees != 0) {
@@ -73,7 +95,7 @@ internal class TextExtractorImpl(
             }
 
             val image = InputImage.fromBitmap(bitmap, rotationDegrees)
-            val result = recogniser.process(image).await()
+            val result = recognizer.process(image).await()
             result.textBlocks.flatMap { block ->
                 block.lines.map { it.text }
             }
@@ -84,6 +106,7 @@ internal class TextExtractorImpl(
     }
 
     override suspend fun extractAllTextWithBounds(bitmap: Bitmap): List<TextWithBounds> = withContext(Dispatchers.Default) {
+        val recognizer = getRecognizerOrNull() ?: return@withContext emptyList()
         try {
             val rotationDegrees = detectRotation(bitmap)
             if (rotationDegrees != 0) {
@@ -91,7 +114,7 @@ internal class TextExtractorImpl(
             }
 
             val image = InputImage.fromBitmap(bitmap, rotationDegrees)
-            val result = recogniser.process(image).await()
+            val result = recognizer.process(image).await()
             result.textBlocks.flatMap { block ->
                 block.lines.mapNotNull { line ->
                     line.boundingBox?.let { rect ->
@@ -110,6 +133,73 @@ internal class TextExtractorImpl(
         } catch (e: Exception) {
             Log.e(TAG, "Error extracting text with bounds from image", e)
             emptyList()
+        }
+    }
+
+    private fun getRecognizerOrNull(): TextRecognizer? {
+        if (skipOcrForSession) return null
+
+        if (!isGooglePlayServicesReady() || !isMlKitRuntimePresent()) {
+            skipOcrForSession = true
+            requestMlKitWarmupInBackground()
+            return null
+        }
+
+        return try {
+            recogniser
+        } catch (t: Throwable) {
+            Log.e(TAG, "ML Kit recognizer unavailable for this session", t)
+            skipOcrForSession = true
+            requestMlKitWarmupInBackground()
+            null
+        }
+    }
+
+    private fun isGooglePlayServicesReady(): Boolean {
+        return try {
+            GoogleApiAvailability.getInstance()
+                .isGooglePlayServicesAvailable(context) == ConnectionResult.SUCCESS
+        } catch (t: Throwable) {
+            Log.w(TAG, "Unable to verify Google Play services availability", t)
+            false
+        }
+    }
+
+    private fun isMlKitRuntimePresent(): Boolean {
+        return try {
+            Class.forName("com.google.mlkit.vision.text.TextRecognition")
+            Class.forName("com.google.mlkit.vision.text.latin.TextRecognizerOptions")
+            true
+        } catch (t: Throwable) {
+            Log.w(TAG, "ML Kit runtime classes are not available", t)
+            false
+        }
+    }
+
+    private fun requestMlKitWarmupInBackground() {
+        if (!warmupRequested.compareAndSet(false, true)) return
+
+        backgroundScope.launch {
+            if (!isMlKitRuntimePresent()) return@launch
+
+            try {
+                val requestBuilder = ModuleInstallRequest.newBuilder()
+                    .addApi(recogniser)
+
+                val request = requestBuilder.build()
+
+                val response = ModuleInstall.getClient(context)
+                    .installModules(request)
+                    .await()
+
+                if (response.areModulesAlreadyInstalled()) {
+                    Log.i(TAG, "ML Kit OCR module already installed")
+                } else {
+                    Log.i(TAG, "ML Kit OCR module install requested in background")
+                }
+            } catch (t: Throwable) {
+                Log.w(TAG, "ML Kit OCR module install request failed", t)
+            }
         }
     }
 

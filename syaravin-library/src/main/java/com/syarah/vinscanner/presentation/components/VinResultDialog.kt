@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.syarah.vinscanner.di.VinScannerDependencies
 import com.syarah.vinscanner.domain.model.VinNumber
+import com.syarah.vinscanner.util.ImagePreprocessor
 import com.syarah.vinscanner.util.VinDecoder
 
 /**
@@ -138,7 +139,13 @@ internal fun VinResultSheetContent(
 
             // VIN Image Card (if available)
             vinNumber.croppedImage?.let { bitmap ->
-                Log.d("VinResultDialog", "Displaying cropped image: ${bitmap.width}x${bitmap.height}")
+                val displayBitmap = remember(bitmap) {
+                    ImagePreprocessor.downscaleForDisplay(bitmap)
+                }
+                Log.d(
+                    "VinResultDialog",
+                    "Displaying cropped image: ${displayBitmap.width}x${displayBitmap.height}"
+                )
 
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -162,7 +169,7 @@ internal fun VinResultSheetContent(
                         )
 
                         Image(
-                            bitmap = bitmap.asImageBitmap(),
+                            bitmap = displayBitmap.asImageBitmap(),
                             contentDescription = "Cropped VIN image",
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -289,4 +296,3 @@ internal fun VinResultSheetContent(
         }
     }
 }
-

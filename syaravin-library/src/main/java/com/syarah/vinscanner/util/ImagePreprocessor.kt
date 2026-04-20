@@ -5,6 +5,9 @@ import android.graphics.Canvas
 import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
 import android.graphics.Paint
+import kotlin.math.min
+import kotlin.math.roundToInt
+import kotlin.math.sqrt
 
 /**
  * Utility for preprocessing images to enhance VIN text visibility
@@ -94,6 +97,46 @@ internal object ImagePreprocessor {
             return enhanceVinImage(cropped)
         } catch (e: Exception) {
             return null
+        }
+    }
+
+    /**
+     * Returns a scaled copy that is safe for Compose/UI rendering.
+     * Keeps aspect ratio and only scales down when limits are exceeded.
+     */
+    fun downscaleForDisplay(
+        bitmap: Bitmap,
+        maxDimension: Int = 1600,
+        maxPixels: Int = 1_500_000
+    ): Bitmap {
+        if (bitmap.width <= 0 || bitmap.height <= 0) return bitmap
+
+        return try {
+            val width = bitmap.width
+            val height = bitmap.height
+            val currentPixels = width.toLong() * height.toLong()
+
+            val dimensionScale = if (width > maxDimension || height > maxDimension) {
+                maxDimension.toFloat() / maxOf(width, height).toFloat()
+            } else {
+                1f
+            }
+
+            val pixelScale = if (currentPixels > maxPixels) {
+                sqrt(maxPixels.toDouble() / currentPixels.toDouble()).toFloat()
+            } else {
+                1f
+            }
+
+            val scale = min(dimensionScale, pixelScale)
+            if (scale >= 1f) return bitmap
+
+            val targetWidth = (width * scale).roundToInt().coerceAtLeast(1)
+            val targetHeight = (height * scale).roundToInt().coerceAtLeast(1)
+
+            Bitmap.createScaledBitmap(bitmap, targetWidth, targetHeight, true)
+        } catch (_: Throwable) {
+            bitmap
         }
     }
 }

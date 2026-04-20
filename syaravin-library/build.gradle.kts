@@ -74,6 +74,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.material.icons.extended)
     implementation(libs.lifecycle.viewmodel.compose)
 
     // CameraX dependencies
@@ -96,7 +97,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core)
 
     // Utilities
-    implementation(libs.gson)
+    implementation(libs.kotlinx.serialization.json)
     implementation(libs.accompanist.permissions)
 
     // Testing dependencies
@@ -114,7 +115,7 @@ afterEvaluate {
 
                 groupId = "com.syarah"
                 artifactId = "vinscanner"
-                version = "1.2.2"
+                version = "1.2.3"
 
                 pom {
                     name.set("Syarah VIN Scanner")

@@ -1,13 +1,11 @@
 package com.syarah.vinscanner.presentation.scanner
 
 import android.Manifest
-import android.content.Context
 import android.util.Log
 import android.graphics.Bitmap
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
-import androidx.camera.core.Logger.e
 import androidx.camera.core.Preview
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
@@ -17,9 +15,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -49,9 +46,14 @@ import com.syarah.vinscanner.ui.theme.RoiNeutralBorder
 import com.syarah.vinscanner.ui.theme.RoiValidBorder
 import com.syarah.vinscanner.util.ImagePreprocessor
 import com.syarah.vinscanner.util.RoiConfig
-import com.syarah.vinscanner.util.showToast
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicLong
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import java.util.concurrent.ExecutorService
 
 private const val TAG = "ScannerScreen"
 
@@ -71,8 +73,7 @@ internal fun ScannerScreen(
     )
 
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
+    LocalContext.current
 
     // Get dependencies via remember to avoid recreating on recomposition
     val dependencies = remember { VinScannerDependencies.get() }
@@ -90,9 +91,11 @@ internal fun ScannerScreen(
     val vinValidator = dependencies.vinValidator
 
     // Clean up executor on dispose
+    val processingScope = remember { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
     DisposableEffect(Unit) {
         onDispose {
             Log.d(TAG, "Shutting down camera executor")
+            processingScope.cancel()
             executor.shutdown()
         }
     }
@@ -121,8 +124,8 @@ internal fun ScannerScreen(
         }
     }
 
-    var processing by remember { mutableStateOf(false) }
-    var lastProcessTime by remember { mutableStateOf(0L) }
+    val isProcessingFrame = remember { AtomicBoolean(false) }
+    val lastProcessTime = remember { AtomicLong(0L) }
 
     // Set up image analysis
     DisposableEffect(state.isScanning) {
@@ -130,38 +133,42 @@ internal fun ScannerScreen(
             Log.d(TAG, "Setting up image analyzer.")
             imageAnalysis.setAnalyzer(executor) { imageProxy ->
                 val currentTime = System.currentTimeMillis()
+                val previousTime = lastProcessTime.get()
 
-
-                if (!processing && currentTime - lastProcessTime >= 500) {
-                    processing = true
-                    lastProcessTime = currentTime
+                if (currentTime - previousTime >= 500L &&
+                    isProcessingFrame.compareAndSet(false, true)
+                ) {
+                    lastProcessTime.set(currentTime)
                     Log.d(TAG, "New image received for processing.")
-                    scope.launch(kotlinx.coroutines.Dispatchers.Default) {
-                        processImage(
-                            imageProxy = imageProxy,
-                            cameraDataSource = cameraDataSource,
-                            vinDetector = vinDetector,
-                            textExtractor = textExtractor,
-                            vinValidator = vinValidator,
-
-                            onVinDetected = { vin, confidence, croppedBitmap ->
-                                viewModel.onVinDetected(vin, confidence, croppedBitmap)
-                            },
-                            onBoxesDetected = { boxes ->
-                                viewModel.onDetectionBoxesUpdated(boxes)
-                            },
-                            onRoiBorderStateChange = { state ->
-                                viewModel.onEvent(ScannerEvent.UpdateRoiBorderState(state))
-                            },
-                            onRoiBitmapCaptured = { roiBitmap ->
-                                viewModel.onRoiCroppedBitmapUpdated(roiBitmap)
-                            })
-                        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
-                            processing = false
+                    processingScope.launch {
+                        try {
+                            processImage(
+                                imageProxy = imageProxy,
+                                cameraDataSource = cameraDataSource,
+                                vinDetector = vinDetector,
+                                textExtractor = textExtractor,
+                                vinValidator = vinValidator,
+                                onVinDetected = { vin, confidence, croppedBitmap ->
+                                    viewModel.onVinDetected(vin, confidence, croppedBitmap)
+                                },
+                                onBoxesDetected = { boxes ->
+                                    viewModel.onDetectionBoxesUpdated(boxes)
+                                },
+                                onRoiBorderStateChange = { state ->
+                                    viewModel.onEvent(ScannerEvent.UpdateRoiBorderState(state))
+                                },
+                                onRoiBitmapCaptured = { roiBitmap ->
+                                    viewModel.onRoiCroppedBitmapUpdated(roiBitmap)
+                                }
+                            )
+                        } catch (cancelled: CancellationException) {
+                            Log.d(TAG, "Image processing cancelled")
+                        } finally {
+                            isProcessingFrame.set(false)
                         }
                     }
                 } else {
-                    if (processing) {
+                    if (isProcessingFrame.get()) {
                         Log.v(TAG, "Skipping image processing, already in progress.")
                     } else {
                         Log.v(TAG, "Skipping image processing, throttled.")
@@ -402,12 +409,16 @@ private suspend fun processImage(
                     // Store a copy for manual entry (create new bitmap to prevent recycling issues)
                     try {
                         val roiCopy = cropped.copy(Bitmap.Config.ARGB_8888, false)
+                        val safeRoiCopy = ImagePreprocessor.downscaleForDisplay(roiCopy)
+                        if (safeRoiCopy !== roiCopy && !roiCopy.isRecycled) {
+                            roiCopy.recycle()
+                        }
                         kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
-                            onRoiBitmapCaptured(roiCopy)
+                            onRoiBitmapCaptured(safeRoiCopy)
                         }
                         Log.d(
                             TAG,
-                            "Stored ROI bitmap copy for manual entry: ${roiCopy.width}x${roiCopy.height}"
+                            "Stored ROI bitmap copy for manual entry: ${safeRoiCopy.width}x${safeRoiCopy.height}"
                         )
                     } catch (e: Exception) {
                         Log.e(TAG, "Failed to create ROI bitmap copy", e)
@@ -466,7 +477,7 @@ private suspend fun processImage(
 
                             // Crop and enhance the bitmap using the AI detection box
                             try {
-                                croppedVinBitmap = ImagePreprocessor.cropAndEnhance(
+                                val enhancedVinBitmap = ImagePreprocessor.cropAndEnhance(
                                     processedBitmap,
                                     box.left,
                                     box.top,
@@ -474,6 +485,13 @@ private suspend fun processImage(
                                     box.bottom,
                                     paddingPercent = 0.15f
                                 )
+                                croppedVinBitmap = enhancedVinBitmap?.let { rawBitmap ->
+                                    val safeBitmap = ImagePreprocessor.downscaleForDisplay(rawBitmap)
+                                    if (safeBitmap !== rawBitmap && !rawBitmap.isRecycled) {
+                                        rawBitmap.recycle()
+                                    }
+                                    safeBitmap
+                                }
                                 Log.d(
                                     TAG,
                                     "Cropped and enhanced VIN from AI detection: ${croppedVinBitmap?.width}x${croppedVinBitmap?.height}"
@@ -527,6 +545,9 @@ private suspend fun processImage(
                 Log.d(TAG, "No valid VIN found in the extracted text.")
             }
 
+        } catch (cancelled: CancellationException) {
+            Log.d(TAG, "Image processing cancelled before completion")
+            throw cancelled
         } catch (e: Exception) {
             Log.e(TAG, "Error processing image", e)
         } finally {
@@ -535,10 +556,12 @@ private suspend fun processImage(
             } catch (_: Throwable) {
             }
         }
+    } catch (cancelled: CancellationException) {
+        Log.d(TAG, "Image conversion cancelled")
+        throw cancelled
     } catch (e: Exception) {
         Log.e(TAG, "Error converting image", e)
     } finally {
         imageProxy.close()
     }
 }
-

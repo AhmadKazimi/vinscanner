@@ -2,25 +2,35 @@
 package com.syarah.vinscanner.util
 
 import android.content.Context
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import com.syarah.vinscanner.data.VinInfo
 import java.io.IOException
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.intOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
 internal class VinDecoder(private val context: Context) {
 
-    private val vinData: Map<String, Any> by lazy {
+    private val jsonParser = Json {
+        ignoreUnknownKeys = true
+    }
+
+    private val vinData: JsonObject by lazy {
         loadVinData()
     }
 
-    private fun loadVinData(): Map<String, Any> {
+    private fun loadVinData(): JsonObject {
         return try {
             val json = context.assets.open("vin_data.json").bufferedReader().use { it.readText() }
-            val type = object : TypeToken<Map<String, Any>>() {}.type
-            Gson().fromJson(json, type)
+            jsonParser.parseToJsonElement(json).jsonObject
         } catch (e: IOException) {
             e.printStackTrace()
-            emptyMap()
+            JsonObject(emptyMap())
+        } catch (e: Exception) {
+            e.printStackTrace()
+            JsonObject(emptyMap())
         }
     }
 
@@ -31,17 +41,31 @@ internal class VinDecoder(private val context: Context) {
         val modelYearChar = vin[9]
         val assemblyPlantChar = vin[10]
 
-        val wmiData = vinData["wmi"] as? Map<String, Map<String, String>>
-        val modelYearData = vinData["model_year"] as? Map<String, Double>
-        val assemblyPlantData = vinData["assembly_plant"] as? Map<String, Map<String, String>>
+        val wmiData = vinData["wmi"]?.jsonObject
+        val modelYearData = vinData["model_year"]?.jsonObject
+        val assemblyPlantData = vinData["assembly_plant"]?.jsonObject
 
-        val manufacturerInfo = wmiData?.get(wmi)
-        val manufacturer = manufacturerInfo?.get("manufacturer") ?: "Unknown"
-        val country = manufacturerInfo?.get("country") ?: "Unknown"
+        val manufacturerInfo = wmiData?.get(wmi)?.jsonObject
+        val manufacturer = manufacturerInfo
+            ?.get("manufacturer")
+            ?.jsonPrimitive
+            ?.contentOrNull ?: "Unknown"
+        val country = manufacturerInfo
+            ?.get("country")
+            ?.jsonPrimitive
+            ?.contentOrNull ?: "Unknown"
 
-        val modelYear = modelYearData?.get(modelYearChar.toString())?.toInt() ?: 0
+        val modelYear = modelYearData
+            ?.get(modelYearChar.toString())
+            ?.jsonPrimitive
+            ?.intOrNull ?: 0
 
-        val assemblyPlant = assemblyPlantData?.get(manufacturer)?.get(assemblyPlantChar.toString()) ?: "Unknown"
+        val assemblyPlant = assemblyPlantData
+            ?.get(manufacturer)
+            ?.jsonObject
+            ?.get(assemblyPlantChar.toString())
+            ?.jsonPrimitive
+            ?.contentOrNull ?: "Unknown"
 
         return VinInfo(
             manufacturer = manufacturer,
