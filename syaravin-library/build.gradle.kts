@@ -8,11 +8,11 @@ plugins {
 
 android {
     namespace = "com.syarah.vinscanner"
-    compileSdk = 37
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 29
-        targetSdk = 37
+        targetSdk = 36
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
