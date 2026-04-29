@@ -54,6 +54,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 private const val TAG = "ScannerScreen"
 
@@ -77,6 +78,7 @@ internal fun ScannerScreen(
 
     // Get dependencies via remember to avoid recreating on recomposition
     val dependencies = remember { VinScannerDependencies.get() }
+    var isWarmupComplete by remember { mutableStateOf(false) }
 
     // Factory-created instances (per-screen lifecycle)
     val cameraSelector = remember { dependencies.createCameraSelector() }
@@ -112,6 +114,17 @@ internal fun ScannerScreen(
             }
         })
 
+    // Warm up heavy dependencies in background to reduce first-run frame drops.
+    LaunchedEffect(Unit) {
+        Log.d(TAG, "Starting scanner dependency warmup")
+        val warmupStart = System.currentTimeMillis()
+        withContext(Dispatchers.Default) {
+            dependencies.warmUpScannerDependencies()
+        }
+        isWarmupComplete = true
+        Log.d(TAG, "Scanner dependency warmup completed in ${System.currentTimeMillis() - warmupStart}ms")
+    }
+
     // Request permission on first launch
     LaunchedEffect(Unit) {
         Log.d(TAG, "LaunchedEffect for permission check.")
@@ -128,8 +141,8 @@ internal fun ScannerScreen(
     val lastProcessTime = remember { AtomicLong(0L) }
 
     // Set up image analysis
-    DisposableEffect(state.isScanning) {
-        if (state.isScanning) {
+    DisposableEffect(state.isScanning, isWarmupComplete) {
+        if (state.isScanning && isWarmupComplete) {
             Log.d(TAG, "Setting up image analyzer.")
             imageAnalysis.setAnalyzer(executor) { imageProxy ->
                 val currentTime = System.currentTimeMillis()
@@ -207,6 +220,13 @@ internal fun ScannerScreen(
                 preview = preview,
                 imageAnalyzer = imageAnalysis
             )
+
+            if (!isWarmupComplete) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center),
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
 
             // ROI overlay to guide user with dynamic border color
             val roiBorderColor by animateColorAsState(

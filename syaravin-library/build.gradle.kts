@@ -8,11 +8,11 @@ plugins {
 
 android {
     namespace = "com.syarah.vinscanner"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
-        minSdk = 24
-        targetSdk = 36
+        minSdk = 29
+        targetSdk = 37
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
@@ -82,6 +82,8 @@ dependencies {
     implementation(libs.camera.camera2)
     implementation(libs.camera.lifecycle)
     implementation(libs.camera.view)
+    implementation(libs.androidx.concurrent.futures)
+    implementation(libs.google.guava)
 
     // Google AI Edge LiteRT
     implementation(libs.ai.edge.litert.base)
@@ -115,7 +117,7 @@ afterEvaluate {
 
                 groupId = "com.syarah"
                 artifactId = "vinscanner"
-                version = "1.2.3"
+                version = "1.2.5"
 
                 pom {
                     name.set("Syarah VIN Scanner")

@@ -60,8 +60,16 @@ internal fun CameraPreview(
         },
         onStop = {
             Log.d(TAG, "Stopping camera preview")
+            releaseCameraUseCases(context, previewView, preview)
         }
     )
+
+    DisposableEffect(context, previewView, preview) {
+        onDispose {
+            Log.d(TAG, "Disposing camera preview composable")
+            releaseCameraUseCases(context, previewView, preview)
+        }
+    }
 
     AndroidView(
         factory = { previewView },
@@ -115,6 +123,29 @@ private fun bindCameraUseCases(
             Log.d(TAG, "Camera use cases bound successfully")
         } catch (e: Exception) {
             Log.e(TAG, "Error binding camera use cases", e)
+        }
+    }, ContextCompat.getMainExecutor(context))
+}
+
+private fun releaseCameraUseCases(
+    context: android.content.Context,
+    previewView: PreviewView,
+    preview: Preview
+) {
+    try {
+        preview.setSurfaceProvider(null)
+        previewView.setOnTouchListener(null)
+    } catch (e: Exception) {
+        Log.w(TAG, "Failed to clear preview surface/touch listener", e)
+    }
+
+    val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
+    cameraProviderFuture.addListener({
+        try {
+            cameraProviderFuture.get().unbindAll()
+            Log.d(TAG, "Camera use cases unbound successfully")
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to unbind camera use cases", e)
         }
     }, ContextCompat.getMainExecutor(context))
 }

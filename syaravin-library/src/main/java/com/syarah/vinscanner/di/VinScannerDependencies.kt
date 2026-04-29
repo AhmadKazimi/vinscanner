@@ -28,6 +28,8 @@ import java.io.FileInputStream
 import java.nio.channels.FileChannel
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * Thread-safe dependency injection factory for the VIN Scanner library.
@@ -250,6 +252,17 @@ internal object VinScannerDependencies {
                 extractTextUseCase = createExtractTextUseCase(),
                 validateVinUseCase = createValidateVinUseCase()
             )
+        }
+
+        /**
+         * Warm up expensive scanner dependencies in the background before first frame processing.
+         * This avoids first-run jank when lazy singletons are created on demand.
+         */
+        suspend fun warmUpScannerDependencies() = withContext(Dispatchers.Default) {
+            vinDetector
+            textExtractor
+            vinValidator
+            cameraDataSource
         }
     }
 }

@@ -8,11 +8,13 @@ import com.syarah.vinscanner.domain.model.VinNumber
 import com.syarah.vinscanner.domain.usecase.DetectVinUseCase
 import com.syarah.vinscanner.domain.usecase.ExtractTextUseCase
 import com.syarah.vinscanner.domain.usecase.ValidateVinUseCase
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * ViewModel for the scanner screen
@@ -54,15 +56,7 @@ internal class ScannerViewModel(
     }
 
     private fun stopScanning() {
-        // Recycle bitmap when stopping scanner
-        _state.value.latestRoiCroppedBitmap?.let { bitmap ->
-            try {
-                bitmap.recycle()
-                Log.d("ScannerViewModel", "Recycled ROI bitmap on stop")
-            } catch (e: Throwable) {
-                Log.w("ScannerViewModel", "Failed to recycle bitmap on stop", e)
-            }
-        }
+        recycleBitmapAsync(_state.value.latestRoiCroppedBitmap, "stop")
 
         _state.update {
             it.copy(
@@ -88,15 +82,7 @@ internal class ScannerViewModel(
     }
 
     private fun dismissResult() {
-        // Recycle bitmap when dismissing results
-        _state.value.latestRoiCroppedBitmap?.let { bitmap ->
-            try {
-                bitmap.recycle()
-                Log.d("ScannerViewModel", "Recycled ROI bitmap on dismiss")
-            } catch (e: Throwable) {
-                Log.w("ScannerViewModel", "Failed to recycle bitmap on dismiss", e)
-            }
-        }
+        recycleBitmapAsync(_state.value.latestRoiCroppedBitmap, "dismiss")
 
         _state.update {
             it.copy(
@@ -117,7 +103,9 @@ internal class ScannerViewModel(
         viewModelScope.launch {
             if (_state.value.detectedVin?.value == vin) return@launch
 
-            val validatedVin = validateVinUseCase(vin)
+            val validatedVin = withContext(Dispatchers.Default) {
+                validateVinUseCase(vin)
+            }
             _state.update {
                 it.copy(
                     detectedVin = validatedVin.copy(confidence = it.detectedVin?.confidence ?: 0f)
@@ -133,7 +121,9 @@ internal class ScannerViewModel(
 
             try {
                 // Validate the VIN
-                val validatedVin = validateVinUseCase(vin)
+                val validatedVin = withContext(Dispatchers.Default) {
+                    validateVinUseCase(vin)
+                }
 
                 // Update state with the result, including the cropped bitmap
                 _state.update { currentState ->
@@ -176,19 +166,13 @@ internal class ScannerViewModel(
      * Recycles the old bitmap to prevent memory leaks
      */
     fun onRoiCroppedBitmapUpdated(newBitmap: Bitmap?) {
-        // Recycle old bitmap if it exists and is different from the new one
-        _state.value.latestRoiCroppedBitmap?.let { oldBitmap ->
-            if (oldBitmap !== newBitmap) {
-                try {
-                    oldBitmap.recycle()
-                    Log.d("ScannerViewModel", "Recycled old ROI bitmap")
-                } catch (e: Throwable) {
-                    Log.w("ScannerViewModel", "Failed to recycle old bitmap", e)
-                }
-            }
-        }
+        val oldBitmap = _state.value.latestRoiCroppedBitmap
 
         _state.update { it.copy(latestRoiCroppedBitmap = newBitmap) }
+
+        if (oldBitmap !== newBitmap) {
+            recycleBitmapAsync(oldBitmap, "replace")
+        }
     }
 
     private fun updateRoiBorderState(state: RoiBorderState) {
@@ -200,12 +184,19 @@ internal class ScannerViewModel(
      */
     override fun onCleared() {
         super.onCleared()
-        _state.value.latestRoiCroppedBitmap?.let { bitmap ->
+        recycleBitmapAsync(_state.value.latestRoiCroppedBitmap, "cleared")
+    }
+
+    private fun recycleBitmapAsync(bitmap: Bitmap?, reason: String) {
+        if (bitmap == null) return
+        viewModelScope.launch(Dispatchers.Default) {
             try {
-                bitmap.recycle()
-                Log.d("ScannerViewModel", "Recycled ROI bitmap on cleared")
+                if (!bitmap.isRecycled) {
+                    bitmap.recycle()
+                    Log.d("ScannerViewModel", "Recycled ROI bitmap on $reason")
+                }
             } catch (e: Throwable) {
-                Log.w("ScannerViewModel", "Failed to recycle bitmap on cleared", e)
+                Log.w("ScannerViewModel", "Failed to recycle bitmap on $reason", e)
             }
         }
     }

@@ -15,6 +15,7 @@ import kotlin.math.min
 import kotlin.math.max
 
 private const val TAG = "VinDetectorImpl"
+private const val ENABLE_DETAILED_LOGS = false
 
 /**
  * Implementation of VinDetector using TensorFlow Lite
@@ -44,9 +45,11 @@ internal class VinDetectorImpl(
         withContext(Dispatchers.Default) {
             val startTime = System.currentTimeMillis()
 
-            Log.d(TAG, "=== AI DETECTION START ===")
-            Log.d(TAG, "Input bitmap: ${bitmap.width}x${bitmap.height}, config=${bitmap.config}")
-            Log.d(TAG, "Requested confidence threshold: $confidenceThreshold")
+            if (ENABLE_DETAILED_LOGS) {
+                Log.d(TAG, "=== AI DETECTION START ===")
+                Log.d(TAG, "Input bitmap: ${bitmap.width}x${bitmap.height}, config=${bitmap.config}")
+                Log.d(TAG, "Requested confidence threshold: $confidenceThreshold")
+            }
 
             try {
                 // Compute letterbox parameters (to later unmap predictions)
@@ -59,11 +62,15 @@ internal class VinDetectorImpl(
                 val padLeft = (MODEL_INPUT_SIZE - scaledWidth) / 2f
                 val padTop = (MODEL_INPUT_SIZE - scaledHeight) / 2f
 
-                Log.d(TAG, "Letterbox params: scaleFactor=$scaleFactor, scaled=${scaledWidth}x${scaledHeight}, padding=(${padLeft},${padTop})")
+                if (ENABLE_DETAILED_LOGS) {
+                    Log.d(TAG, "Letterbox params: scaleFactor=$scaleFactor, scaled=${scaledWidth}x${scaledHeight}, padding=(${padLeft},${padTop})")
+                }
 
                 // Preprocess (letterbox to 640x640)
                 val preprocessedBitmap = preprocessImage(bitmap)
-                Log.d(TAG, "Preprocessed bitmap: ${preprocessedBitmap.width}x${preprocessedBitmap.height}")
+                if (ENABLE_DETAILED_LOGS) {
+                    Log.d(TAG, "Preprocessed bitmap: ${preprocessedBitmap.width}x${preprocessedBitmap.height}")
+                }
                 convertBitmapToByteBuffer(preprocessedBitmap)
                 
                 // Prepare dynamic output buffer based on actual tensor shape
@@ -103,7 +110,9 @@ internal class VinDetectorImpl(
                     }
                 }
 
-                Log.d(TAG, "Output tensor shape=${outShape.contentToString()}, props=${propertiesCount}, num=${numCandidates}, propsFirst=${propsFirst}")
+                if (ENABLE_DETAILED_LOGS) {
+                    Log.d(TAG, "Output tensor shape=${outShape.contentToString()}, props=${propertiesCount}, num=${numCandidates}, propsFirst=${propsFirst}")
+                }
 
                 fun getProp(candidateIndex: Int, propIndex: Int): Float {
                     return if (propsFirst) outputDynamic[0][propIndex][candidateIndex] else outputDynamic[0][candidateIndex][propIndex]
@@ -113,7 +122,9 @@ internal class VinDetectorImpl(
                 val confThresh = max(confidenceThreshold, DEFAULT_CONF_THRESHOLD)
 
                 Log.i(TAG, "Using confidence threshold: $confThresh (requested=$confidenceThreshold, default=$DEFAULT_CONF_THRESHOLD)")
-                Log.d(TAG, "Scanning ${numCandidates} candidates...")
+                if (ENABLE_DETAILED_LOGS) {
+                    Log.d(TAG, "Scanning ${numCandidates} candidates...")
+                }
 
                 var maxConfidenceSeen = 0f
                 var candidatesAboveHalfThreshold = 0
@@ -144,7 +155,7 @@ internal class VinDetectorImpl(
                     // Track top 5 candidates for debugging
                     if (topIndices.size < 5) {
                         topIndices.add(i to conf)
-                    } else if (conf > topIndices.peek().second) {
+                    } else if (conf > (topIndices.peek()?.second ?: Float.NEGATIVE_INFINITY)) {
                         topIndices.poll()
                         topIndices.add(i to conf)
                     }
@@ -183,54 +194,45 @@ internal class VinDetectorImpl(
                 }
 
                 // Log top 5 candidates for debugging
-                Log.d(TAG, "=== TOP 5 CANDIDATES DEBUG ===")
-                val sortedTop = topIndices.sortedByDescending { it.second }
-                for ((idx, conf) in sortedTop) {
-                    val cx = getProp(idx, 0) * MODEL_INPUT_SIZE
-                    val cy = getProp(idx, 1) * MODEL_INPUT_SIZE
-                    val w = getProp(idx, 2) * MODEL_INPUT_SIZE
-                    val h = getProp(idx, 3) * MODEL_INPUT_SIZE
-                    val obj = if (propertiesCount > 4) getProp(idx, 4) else 1f
-                    
-                    // Re-calculate clsScore
-                    var clsScore = 1f
-                    if (propertiesCount > 5) {
-                        var maxCls = 0f
-                        var i = 5
-                        while (i < propertiesCount) {
-                            val s = getProp(idx, i)
-                            if (s > maxCls) maxCls = s
-                            i++
-                        }
-                        clsScore = maxCls
-                    }
+                if (ENABLE_DETAILED_LOGS) {
+                    Log.d(TAG, "=== TOP 5 CANDIDATES DEBUG ===")
+                    val sortedTop = topIndices.sortedByDescending { it.second }
+                    for ((idx, conf) in sortedTop) {
+                        val cx = getProp(idx, 0) * MODEL_INPUT_SIZE
+                        val cy = getProp(idx, 1) * MODEL_INPUT_SIZE
+                        val w = getProp(idx, 2) * MODEL_INPUT_SIZE
+                        val h = getProp(idx, 3) * MODEL_INPUT_SIZE
+                        val obj = if (propertiesCount > 4) getProp(idx, 4) else 1f
 
-                    val leftPxModel = cx - w / 2f
-                    val topPxModel = cy - h / 2f
-                    val rightPxModel = cx + w / 2f
-                    val bottomPxModel = cy + h / 2f
-
-                    val leftContent = ((leftPxModel - padLeft) / scaledWidth)
-                    val topContent = ((topPxModel - padTop) / scaledHeight)
-                    val rightContent = ((rightPxModel - padLeft) / scaledWidth)
-                    val bottomContent = ((bottomPxModel - padTop) / scaledHeight)
-                    
-                    val valid = rightContent > leftContent && bottomContent > topContent
-                    
-                    Log.d(TAG, "Candidate[$idx]: conf=$conf (obj=$obj, cls=$clsScore)")
-                    Log.d(TAG, "  Raw Model Box: cx=$cx, cy=$cy, w=$w, h=$h")
-                    Log.d(TAG, "  Px Model Box: L=$leftPxModel, T=$topPxModel, R=$rightPxModel, B=$bottomPxModel")
-                    Log.d(TAG, "  Content Box (pre-coerce): L=$leftContent, T=$topContent, R=$rightContent, B=$bottomContent")
-                    Log.d(TAG, "  Valid: $valid")
-                    if (!valid) {
-                         val failReason = when {
-                            leftContent >= rightContent && topContent >= bottomContent ->
-                                "left >= right AND top >= bottom"
-                            leftContent >= rightContent -> "left >= right"
-                            topContent >= bottomContent -> "top >= bottom"
-                            else -> "unknown"
+                        var clsScore = 1f
+                        if (propertiesCount > 5) {
+                            var maxCls = 0f
+                            var i = 5
+                            while (i < propertiesCount) {
+                                val s = getProp(idx, i)
+                                if (s > maxCls) maxCls = s
+                                i++
+                            }
+                            clsScore = maxCls
                         }
-                        Log.w(TAG, "  REJECT REASON: $failReason")
+
+                        val leftPxModel = cx - w / 2f
+                        val topPxModel = cy - h / 2f
+                        val rightPxModel = cx + w / 2f
+                        val bottomPxModel = cy + h / 2f
+
+                        val leftContent = ((leftPxModel - padLeft) / scaledWidth)
+                        val topContent = ((topPxModel - padTop) / scaledHeight)
+                        val rightContent = ((rightPxModel - padLeft) / scaledWidth)
+                        val bottomContent = ((bottomPxModel - padTop) / scaledHeight)
+
+                        val valid = rightContent > leftContent && bottomContent > topContent
+
+                        Log.d(TAG, "Candidate[$idx]: conf=$conf (obj=$obj, cls=$clsScore)")
+                        Log.d(TAG, "  Raw Model Box: cx=$cx, cy=$cy, w=$w, h=$h")
+                        Log.d(TAG, "  Px Model Box: L=$leftPxModel, T=$topPxModel, R=$rightPxModel, B=$bottomPxModel")
+                        Log.d(TAG, "  Content Box (pre-coerce): L=$leftContent, T=$topContent, R=$rightContent, B=$bottomContent")
+                        Log.d(TAG, "  Valid: $valid")
                     }
                 }
 
@@ -248,7 +250,7 @@ internal class VinDetectorImpl(
                 val processingTime = System.currentTimeMillis() - startTime
                 Log.i(TAG, "Detection completed in ${processingTime}ms, raw=${rawBoxes.size}, nms=${nmsBoxes.size}")
 
-                if (nmsBoxes.isNotEmpty()) {
+                if (ENABLE_DETAILED_LOGS && nmsBoxes.isNotEmpty()) {
                     nmsBoxes.forEachIndexed { idx, box ->
                         Log.d(TAG, "Box[$idx]: confidence=${box.confidence}, coords=(${box.left},${box.top},${box.right},${box.bottom})")
                     }
