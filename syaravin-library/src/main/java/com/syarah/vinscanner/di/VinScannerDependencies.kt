@@ -1,7 +1,9 @@
 package com.syarah.vinscanner.di
 
+import com.syarah.vinscanner.util.LogTags
+
 import android.content.Context
-import android.util.Log
+import com.syarah.vinscanner.util.SLog
 import android.view.Surface
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
@@ -20,6 +22,7 @@ import com.syarah.vinscanner.domain.usecase.DetectVinUseCase
 import com.syarah.vinscanner.domain.usecase.ExtractTextUseCase
 import com.syarah.vinscanner.domain.usecase.ValidateVinUseCase
 import com.syarah.vinscanner.presentation.scanner.ScannerViewModel
+import com.syarah.vinscanner.presentation.scanner.ScannerViewModelStrings
 import com.syarah.vinscanner.util.VinDecoder
 import org.tensorflow.lite.Interpreter
 import org.tensorflow.lite.gpu.CompatibilityList
@@ -37,7 +40,7 @@ import kotlinx.coroutines.withContext
  * and factory methods for per-screen lifecycle objects (camera components, executors).
  */
 internal object VinScannerDependencies {
-    private const val TAG = "VinScannerDeps"
+    private const val TAG = LogTags.LIBRARY
 
     @Volatile
     private var instance: DependencyContainer? = null
@@ -52,9 +55,9 @@ internal object VinScannerDependencies {
         if (instance == null) {
             synchronized(this) {
                 if (instance == null) {
-                    Log.d(TAG, "Initializing VIN Scanner dependencies...")
+                    SLog.d(TAG, "Initializing VIN Scanner dependencies...")
                     instance = DependencyContainer(appContext.applicationContext)
-                    Log.d(TAG, "VIN Scanner dependencies initialized successfully")
+                    SLog.d(TAG, "VIN Scanner dependencies initialized successfully")
                 }
             }
         }
@@ -76,6 +79,20 @@ internal object VinScannerDependencies {
     }
 
     /**
+     * Release all singleton resources created by this library.
+     * Safe to call multiple times.
+     */
+    fun release() {
+        synchronized(this) {
+            val current = instance ?: return
+            runCatching { current.release() }
+                .onFailure { SLog.w(TAG, "Failed to release VIN Scanner dependencies", it) }
+            instance = null
+            SLog.d(TAG, "VIN Scanner dependencies released")
+        }
+    }
+
+    /**
      * Internal container that holds all dependencies.
      * Singletons are lazily initialized on first access.
      * Factory methods create new instances for per-screen lifecycles.
@@ -91,7 +108,7 @@ internal object VinScannerDependencies {
          * Uses GPU delegate if available for better performance.
          */
         val interpreter: Interpreter by lazy {
-            Log.d(TAG, "Creating TensorFlow Lite Interpreter...")
+            SLog.d(TAG, "Creating TensorFlow Lite Interpreter...")
             val modelPath = "best_float32.tflite"
 
             // Load model from assets
@@ -102,7 +119,7 @@ internal object VinScannerDependencies {
                 val declaredLength = assetFileDescriptor.declaredLength
                 fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength)
             }
-            Log.d(TAG, "TFLite model loaded from assets: $modelPath")
+            SLog.d(TAG, "TFLite model loaded from assets: $modelPath")
 
             // Configure interpreter options
             val options = Interpreter.Options().apply {
@@ -111,17 +128,17 @@ internal object VinScannerDependencies {
                 // Use GPU delegate if available
                 val compatibilityList = CompatibilityList()
                 if (compatibilityList.isDelegateSupportedOnThisDevice) {
-                    Log.d(TAG, "GPU delegate is supported, enabling...")
+                    SLog.d(TAG, "GPU delegate is supported, enabling...")
                     val delegateOptions = compatibilityList.bestOptionsForThisDevice
                     addDelegate(GpuDelegate(delegateOptions))
-                    Log.d(TAG, "GPU delegate added successfully")
+                    SLog.d(TAG, "GPU delegate added successfully")
                 } else {
-                    Log.d(TAG, "GPU delegate not supported on this device")
+                    SLog.d(TAG, "GPU delegate not supported on this device")
                 }
             }
 
             val interpreter = Interpreter(modelBuffer, options)
-            Log.d(TAG, "TensorFlow Lite Interpreter created successfully")
+            SLog.d(TAG, "TensorFlow Lite Interpreter created successfully")
             interpreter
         }
 
@@ -130,7 +147,7 @@ internal object VinScannerDependencies {
          * Singleton because it's stateless and expensive to create.
          */
         val vinDetector: VinDetector by lazy {
-            Log.d(TAG, "Creating VinDetector...")
+            SLog.d(TAG, "Creating VinDetector...")
             VinDetectorImpl(interpreter)
         }
 
@@ -139,7 +156,7 @@ internal object VinScannerDependencies {
          * Singleton because ML Kit recognizer is expensive to create.
          */
         val textExtractor: TextExtractor by lazy {
-            Log.d(TAG, "Creating TextExtractor...")
+            SLog.d(TAG, "Creating TextExtractor...")
             TextExtractorImpl(appContext)
         }
 
@@ -148,8 +165,8 @@ internal object VinScannerDependencies {
          * Singleton because it's stateless.
          */
         val vinValidator: VinValidator by lazy {
-            Log.d(TAG, "Creating VinValidator...")
-            VinValidatorImpl()
+            SLog.d(TAG, "Creating VinValidator...")
+            VinValidatorImpl(appContext)
         }
 
         /**
@@ -157,7 +174,7 @@ internal object VinScannerDependencies {
          * Singleton because it loads data from JSON file.
          */
         val vinDecoder: VinDecoder by lazy {
-            Log.d(TAG, "Creating VinDecoder...")
+            SLog.d(TAG, "Creating VinDecoder...")
             VinDecoder(appContext)
         }
 
@@ -166,7 +183,7 @@ internal object VinScannerDependencies {
          * Singleton because it's stateless.
          */
         val cameraDataSource: CameraDataSource by lazy {
-            Log.d(TAG, "Creating CameraDataSource...")
+            SLog.d(TAG, "Creating CameraDataSource...")
             CameraDataSourceImpl(appContext)
         }
 
@@ -250,7 +267,8 @@ internal object VinScannerDependencies {
             return ScannerViewModel(
                 detectVinUseCase = createDetectVinUseCase(),
                 extractTextUseCase = createExtractTextUseCase(),
-                validateVinUseCase = createValidateVinUseCase()
+                validateVinUseCase = createValidateVinUseCase(),
+                strings = ScannerViewModelStrings.from(appContext)
             )
         }
 
@@ -263,6 +281,15 @@ internal object VinScannerDependencies {
             textExtractor
             vinValidator
             cameraDataSource
+        }
+
+        /**
+         * Release heavyweight singleton resources.
+         */
+        fun release() {
+            runCatching {
+                (textExtractor as? java.io.Closeable)?.close()
+            }.onFailure { SLog.w(TAG, "Failed to close text extractor", it) }
         }
     }
 }

@@ -1,3 +1,35 @@
 <resources>
     <string name="app_name">Syaravin</string>
+    <string name="scanner_preparing">Preparing scanner (first launch may take a few seconds)</string>
+    <string name="camera_permission_required_title">Camera Permission Required</string>
+    <string name="camera_permission_required_message">Please grant camera permission to scan VIN numbers</string>
+    <string name="grant_permission">Grant Permission</string>
+    <string name="vin_scanner_title">VIN Scanner</string>
+    <string name="start">Start</string>
+    <string name="stop">Stop</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="vin_enter_placeholder">Enter VIN Number</string>
+    <string name="vin_paste">Paste VIN</string>
+    <string name="vin_edit">Edit VIN</string>
+    <string name="vin_character_counter">%1$d / %2$d characters</string>
+    <string name="vin_clear">Clear VIN</string>
+    <string name="done">Done</string>
+    <string name="vin_detected">VIN Detected</string>
+    <string name="vin_number">VIN Number</string>
+    <string name="vin_image">VIN Image</string>
+    <string name="vin_image_content_description">Cropped VIN image</string>
+    <string name="car_information">Car Information</string>
+    <string name="manufacturer_label">Manufacturer: %1$s</string>
+    <string name="country_label">Country: %1$s</string>
+    <string name="model_year_label">Model Year: %1$s</string>
+    <string name="confirmed">Confirmed</string>
+    <string name="scan_again">Scan Again</string>
+    <string name="error_camera_permission_required">Camera permission is required</string>
+    <string name="error_camera_permission_required_for_scanning">Camera permission is required to scan VINs</string>
+    <string name="error_validating_vin">Error validating VIN: %1$s</string>
+    <string name="validation_invalid_chars_or_no_valid_vin">Invalid characters found in middle of VIN or no valid 17-character VIN found.</string>
+    <string name="validation_wrong_length">VIN must be 17 characters long, but was %1$d</string>
+    <string name="validation_contains_invalid_chars">VIN contains invalid characters (I, O, or Q)</string>
+    <string name="validation_insufficient_digits">VIN likely invalid (insufficient digits)</string>
+    <string name="validation_checksum_accepted">Invalid VIN checksum (accepted)</string>
 </resources>

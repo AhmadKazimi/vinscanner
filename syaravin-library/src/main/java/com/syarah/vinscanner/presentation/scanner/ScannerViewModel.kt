@@ -1,13 +1,14 @@
 package com.syarah.vinscanner.presentation.scanner
 
 import android.graphics.Bitmap
-import android.util.Log
+import com.syarah.vinscanner.util.SLog
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.syarah.vinscanner.domain.model.VinNumber
 import com.syarah.vinscanner.domain.usecase.DetectVinUseCase
 import com.syarah.vinscanner.domain.usecase.ExtractTextUseCase
 import com.syarah.vinscanner.domain.usecase.ValidateVinUseCase
+import com.syarah.vinscanner.util.LogTags
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,13 +17,16 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+private const val TAG = LogTags.LIBRARY
+
 /**
  * ViewModel for the scanner screen
  */
 internal class ScannerViewModel(
     private val detectVinUseCase: DetectVinUseCase,
     private val extractTextUseCase: ExtractTextUseCase,
-    private val validateVinUseCase: ValidateVinUseCase
+    private val validateVinUseCase: ValidateVinUseCase,
+    private val strings: ScannerViewModelStrings
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ScannerState())
@@ -44,12 +48,12 @@ internal class ScannerViewModel(
 
     private fun startScanning() {
         if (!_state.value.hasPermission) {
-            _state.update { it.copy(errorMessage = "Camera permission is required") }
+            _state.update { it.copy(errorMessage = strings.permissionRequired) }
             return
         }
 
         _state.update { it.copy(isScanning = true, errorMessage = null) }
-        Log.d("", "Starting VIN scanning")
+        SLog.d(TAG, "Starting VIN scanning")
 
         // Scanning logic will be implemented in the UI layer with CameraX
         // The ViewModel will receive detected VINs through events
@@ -65,7 +69,7 @@ internal class ScannerViewModel(
                 latestRoiCroppedBitmap = null  // Clear reference
             )
         }
-        Log.d("", "Stopped VIN scanning")
+        SLog.d(TAG, "Stopped VIN scanning")
     }
 
     private fun updatePermissionStatus(granted: Boolean) {
@@ -73,7 +77,7 @@ internal class ScannerViewModel(
         if (granted) {
             startScanning()
         } else {
-            _state.update { it.copy(errorMessage = "Camera permission is required to scan VINs") }
+            _state.update { it.copy(errorMessage = strings.permissionRequiredForScanning) }
         }
     }
 
@@ -141,16 +145,13 @@ internal class ScannerViewModel(
                 // Stop scanning after successful detection
                 stopScanning()
 
-                Log.d(
-                    "",
-                    "VIN detected and validated: ${validatedVin.value} (valid: ${validatedVin.isValid}), cropped bitmap: ${croppedBitmap != null}"
-                )
+                SLog.d(TAG, "VIN detected and validated: ${validatedVin.value} (valid: ${validatedVin.isValid}), cropped bitmap: ${croppedBitmap != null}")
             } catch (e: Exception) {
-                Log.e(e.message, "Error validating VIN")
+                SLog.e(TAG, "Error validating VIN", e)
                 _state.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = "Error validating VIN: ${e.message}"
+                        errorMessage = strings.errorValidatingVin(e.message.orEmpty())
                     )
                 }
             }
@@ -193,10 +194,10 @@ internal class ScannerViewModel(
             try {
                 if (!bitmap.isRecycled) {
                     bitmap.recycle()
-                    Log.d("ScannerViewModel", "Recycled ROI bitmap on $reason")
+                    SLog.d(TAG, "Recycled ROI bitmap on $reason")
                 }
             } catch (e: Throwable) {
-                Log.w("ScannerViewModel", "Failed to recycle bitmap on $reason", e)
+                SLog.w(TAG, "Failed to recycle bitmap on $reason", e)
             }
         }
     }

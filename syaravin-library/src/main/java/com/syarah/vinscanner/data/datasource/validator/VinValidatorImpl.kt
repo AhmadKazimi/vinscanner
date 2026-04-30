@@ -1,15 +1,20 @@
 package com.syarah.vinscanner.data.datasource.validator
 
-import android.util.Log
+import android.content.Context
+import com.syarah.vinscanner.util.LogTags
+import com.syarah.vinscanner.util.SLog
+import com.syarah.vinscanner.R
 import com.syarah.vinscanner.data.model.VinValidationResult
 import com.syarah.vinscanner.domain.model.VinNumber
 
-private const val TAG = "VinValidatorImpl"
+private const val TAG = LogTags.LIBRARY
 
 /**
  * Implementation of VinValidator with standard VIN validation rules
  */
-internal class VinValidatorImpl : VinValidator {
+internal class VinValidatorImpl(
+    private val context: Context
+) : VinValidator {
 
     companion object {
         // Character to value mapping for VIN checksum calculation
@@ -59,7 +64,7 @@ internal class VinValidatorImpl : VinValidator {
     }
 
     override fun validate(vin: String): VinValidationResult {
-        Log.d(TAG, "Validating text: $vin")
+        SLog.d(TAG, "Validating text: $vin")
         // Strip leading label before applying OCR corrections to avoid turning "VIN" into "V1N"
         val withoutLabel = stripLeadingVinLabel(vin)
         val correctedVin = correctOcrErrors(withoutLabel)
@@ -68,26 +73,26 @@ internal class VinValidatorImpl : VinValidator {
         if (extractedVin == null) {
             val result = VinValidationResult(
                 isValid = false,
-                errorMessage = "Invalid characters found in middle of VIN or no valid 17-character VIN found.",
+                errorMessage = context.getString(R.string.validation_invalid_chars_or_no_valid_vin),
                 formatValid = false,
                 wasTrimmed = wasTrimmed
             )
-            Log.d(TAG, "Validation result for '$vin': $result")
+            SLog.d(TAG, "Validation result for '$vin': $result")
             return result
         }
 
-        Log.d(TAG, "Extracted VIN: $extractedVin (wasTrimmed: $wasTrimmed)")
+        SLog.d(TAG, "Extracted VIN: $extractedVin (wasTrimmed: $wasTrimmed)")
 
 
         // 1. Check length
         if (extractedVin.length != VinNumber.VIN_LENGTH) {
             val result = VinValidationResult(
                 isValid = false,
-                errorMessage = "VIN must be 17 characters long, but was ${extractedVin.length}",
+                errorMessage = context.getString(R.string.validation_wrong_length, extractedVin.length),
                 formatValid = false,
                 wasTrimmed = wasTrimmed
             )
-            Log.d(TAG, "Validation result for '$vin': $result")
+            SLog.d(TAG, "Validation result for '$vin': $result")
             return result
         }
 
@@ -96,11 +101,11 @@ internal class VinValidatorImpl : VinValidator {
         if (hasInvalidChars) {
             val result = VinValidationResult(
                 isValid = false,
-                errorMessage = "VIN contains invalid characters (I, O, or Q)",
+                errorMessage = context.getString(R.string.validation_contains_invalid_chars),
                 formatValid = false,
                 wasTrimmed = wasTrimmed
             )
-            Log.d(TAG, "Validation result for '$vin': $result")
+            SLog.d(TAG, "Validation result for '$vin': $result")
             return result
         }
 
@@ -109,11 +114,11 @@ internal class VinValidatorImpl : VinValidator {
         if (digitCount < 5) {
             val result = VinValidationResult(
                 isValid = false,
-                errorMessage = "VIN likely invalid (insufficient digits)",
+                errorMessage = context.getString(R.string.validation_insufficient_digits),
                 formatValid = false,
                 wasTrimmed = wasTrimmed
             )
-            Log.d(TAG, "Validation result for '$vin': $result")
+            SLog.d(TAG, "Validation result for '$vin': $result")
             return result
         }
 
@@ -126,23 +131,23 @@ internal class VinValidatorImpl : VinValidator {
                 formatValid = true,
                 wasTrimmed = wasTrimmed
             )
-            Log.d(TAG, "Validation result for '$vin': $result")
+            SLog.d(TAG, "Validation result for '$vin': $result")
             return result
         }
 
 
         // Checksum failed, but we allow it (soft validation)
-        Log.w(TAG, "Checksum validation failed for '$extractedVin', but accepting as valid format.")
+        SLog.w(TAG, "Checksum validation failed for '$extractedVin', but accepting as valid format.")
         val result = VinValidationResult(
             isValid = true, // Relaxed validation: Accept even if checksum fails
-            errorMessage = "Invalid VIN checksum (accepted)",
+            errorMessage = context.getString(R.string.validation_checksum_accepted),
             checksumValid = false,
             formatValid = true,
             wasTrimmed = wasTrimmed
         )
 
 
-        Log.d(TAG, "Validation result for '$vin': $result")
+        SLog.d(TAG, "Validation result for '$vin': $result")
         return result
     }
 
@@ -184,7 +189,7 @@ internal class VinValidatorImpl : VinValidator {
 
         if (hasMiddleInvalidChars) {
             // Invalid! Characters like "ERA:PPSNAE..." have invalid chars in middle
-            Log.w(TAG, "Invalid characters found in middle of VIN: $trimmedBoth")
+            SLog.w(TAG, "Invalid characters found in middle of VIN: $trimmedBoth")
             return Pair(null, wasTrimmed)
         }
 
@@ -197,7 +202,7 @@ internal class VinValidatorImpl : VinValidator {
 
 
     private fun validateChecksum(vin: String): Boolean {
-        Log.d(TAG, "Validating checksum for VIN: $vin")
+        SLog.d(TAG, "Validating checksum for VIN: $vin")
 
         var sum = 0
         for (i in vin.indices) {
@@ -205,7 +210,7 @@ internal class VinValidatorImpl : VinValidator {
 
             val char = vin[i]
             val value = TRANSLITERATION[char]
-                ?: return false.also { Log.e(TAG, "Invalid character in VIN for checksum: $char") }
+                ?: return false.also { SLog.e(TAG, "Invalid character in VIN for checksum: $char") }
 
             val weight = WEIGHTS[i]
             sum += value * weight
@@ -217,7 +222,7 @@ internal class VinValidatorImpl : VinValidator {
 
         val isValid = checkDigit == expectedDigit
         if (!isValid) {
-            Log.w(TAG, "Checksum validation failed for '$vin'. Expected: $expectedDigit, Found: $checkDigit")
+            SLog.w(TAG, "Checksum validation failed for '$vin'. Expected: $expectedDigit, Found: $checkDigit")
         }
         return isValid
     }
@@ -238,7 +243,7 @@ internal class VinValidatorImpl : VinValidator {
             val currentVin = node.value
 
             if (validateChecksum(currentVin)) {
-                Log.i(TAG, "Valid checksum found for permutation: $currentVin")
+                SLog.i(TAG, "Valid checksum found for permutation: $currentVin")
                 return true
             }
 

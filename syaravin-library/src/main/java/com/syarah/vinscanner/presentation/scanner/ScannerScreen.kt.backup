@@ -4,7 +4,7 @@ import android.Manifest
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.util.Log
+import com.syarah.vinscanner.util.SLog
 import android.graphics.Bitmap
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
@@ -53,7 +53,7 @@ private const val TAG = "ScannerScreen"
 fun ScannerScreen(
 	viewModel: ScannerViewModel = koinViewModel()
 ) {
-	Log.d(TAG, "ScannerScreen composable started.")
+	SLog.d(TAG, "ScannerScreen composable started.")
 	val state by viewModel.state.collectAsStateWithLifecycle()
 	val context = LocalContext.current
 	val scope = rememberCoroutineScope()
@@ -73,10 +73,10 @@ fun ScannerScreen(
 		permission = Manifest.permission.CAMERA,
 		onPermissionResult = { granted ->
 			if (granted) {
-				Log.d(TAG, "Camera permission granted.")
+				SLog.d(TAG, "Camera permission granted.")
 				viewModel.onEvent(ScannerEvent.PermissionGranted)
 			} else {
-				Log.w(TAG, "Camera permission denied.")
+				SLog.w(TAG, "Camera permission denied.")
 				viewModel.onEvent(ScannerEvent.PermissionDenied)
 			}
 		}
@@ -84,12 +84,12 @@ fun ScannerScreen(
 
 	// Request permission on first launch
 	LaunchedEffect(Unit) {
-		Log.d(TAG, "LaunchedEffect for permission check.")
+		SLog.d(TAG, "LaunchedEffect for permission check.")
 		if (!cameraPermissionState.status.isGranted) {
-			Log.d(TAG, "Permission not granted, launching permission request.")
+			SLog.d(TAG, "Permission not granted, launching permission request.")
 			cameraPermissionState.launchPermissionRequest()
 		} else {
-			Log.d(TAG, "Permission already granted.")
+			SLog.d(TAG, "Permission already granted.")
 			viewModel.onEvent(ScannerEvent.PermissionGranted)
 		}
 	}
@@ -100,7 +100,7 @@ fun ScannerScreen(
 	// Set up image analysis
 	DisposableEffect(state.isScanning) {
 		if (state.isScanning) {
-			Log.d(TAG, "Setting up image analyzer.")
+			SLog.d(TAG, "Setting up image analyzer.")
 			imageAnalysis.setAnalyzer(executor) { imageProxy ->
 				val currentTime = System.currentTimeMillis()
 
@@ -108,7 +108,7 @@ fun ScannerScreen(
 				if (!processing && currentTime - lastProcessTime >= 500) {
 					processing = true
 					lastProcessTime = currentTime
-					Log.d(TAG, "New image received for processing.")
+					SLog.d(TAG, "New image received for processing.")
 					scope.launch(kotlinx.coroutines.Dispatchers.Default) {
 						processImage(
 							imageProxy = imageProxy,
@@ -129,9 +129,9 @@ fun ScannerScreen(
 					}
 				} else {
 					if (processing) {
-						Log.v(TAG, "Skipping image processing, already in progress.")
+						SLog.v(TAG, "Skipping image processing, already in progress.")
 					} else {
-						Log.v(TAG, "Skipping image processing, throttled.")
+						SLog.v(TAG, "Skipping image processing, throttled.")
 					}
 					imageProxy.close()
 				}
@@ -139,7 +139,7 @@ fun ScannerScreen(
 		}
 
 		onDispose {
-			Log.d(TAG, "Disposing image analyzer.")
+			SLog.d(TAG, "Disposing image analyzer.")
 			imageAnalysis.clearAnalyzer()
 		}
 	}
@@ -305,11 +305,11 @@ private suspend fun processImage(
 	onVinDetected: (String, Float, Bitmap?) -> Unit,
 	onBoxesDetected: (List<com.kazimi.syaravin.domain.model.BoundingBox>) -> Unit
 ) {
-	Log.d(TAG, "Processing image...")
+	SLog.d(TAG, "Processing image...")
 	try {
 		// Convert ImageProxy to Bitmap
 		val bitmap = cameraDataSource.imageToBitmap(imageProxy)
-		Log.d(TAG, "Image converted to Bitmap with dimensions: ${bitmap.width}x${bitmap.height}")
+		SLog.d(TAG, "Image converted to Bitmap with dimensions: ${bitmap.width}x${bitmap.height}")
 
 		try {
 			// Crop to ROI first to reduce noise and improve accuracy
@@ -324,11 +324,11 @@ private suspend fun processImage(
 
 			val processedBitmap: Bitmap = try {
 				if (shouldCrop) {
-					Log.d(TAG, "Cropping to ROI: [$leftPx,$topPx,$rightPx,$bottomPx] -> ${roiWidth}x${roiHeight}")
+					SLog.d(TAG, "Cropping to ROI: [$leftPx,$topPx,$rightPx,$bottomPx] -> ${roiWidth}x${roiHeight}")
 					Bitmap.createBitmap(bitmap, leftPx, topPx, roiWidth, roiHeight)
 				} else bitmap
 			} catch (e: Exception) {
-				Log.e(TAG, "Failed to crop to ROI, falling back to full image", e)
+				SLog.e(TAG, "Failed to crop to ROI, falling back to full image", e)
 				bitmap
 			}
 
@@ -339,7 +339,7 @@ private suspend fun processImage(
 
 			try {
 				// Run object detection to get bounding boxes on ROI image
-				Log.d(TAG, "Detecting VIN boxes...")
+				SLog.d(TAG, "Detecting VIN boxes...")
 				val detectionResult = vinDetector.detect(processedBitmap)
 				val boxes = detectionResult.boundingBoxes
 				val mappedBoxes = if (shouldCrop) {
@@ -356,7 +356,7 @@ private suspend fun processImage(
 					}
 				} else boxes
 				onBoxesDetected(mappedBoxes)
-				Log.d(TAG, "Detected ${boxes.size} VIN boxes (mapped: ${mappedBoxes.size}).")
+				SLog.d(TAG, "Detected ${boxes.size} VIN boxes (mapped: ${mappedBoxes.size}).")
 
 				// Try OCR inside each detected box first (sorted by confidence)
 				for (box in boxes.sortedByDescending { it.confidence }) {
@@ -367,7 +367,7 @@ private suspend fun processImage(
 						if (validation.isValid) {
 							bestVin = candidate
 							bestConfidence = box.confidence
-							Log.d(TAG, "Valid VIN from box: $bestVin (conf=${box.confidence})")
+							SLog.d(TAG, "Valid VIN from box: $bestVin (conf=${box.confidence})")
 
 							// Crop the bitmap around the detected VIN box
 							try {
@@ -390,10 +390,10 @@ private suspend fun processImage(
 									// Create a mutable copy to ensure it's independent
 									croppedVinBitmap = tempBitmap.copy(tempBitmap.config ?: Bitmap.Config.ARGB_8888, false)
 									tempBitmap.recycle()
-									Log.d(TAG, "Cropped VIN bitmap: ${boxWidth}x${boxHeight}")
+									SLog.d(TAG, "Cropped VIN bitmap: ${boxWidth}x${boxHeight}")
 								}
 							} catch (e: Exception) {
-								Log.e(TAG, "Failed to crop VIN bitmap", e)
+								SLog.e(TAG, "Failed to crop VIN bitmap", e)
 							}
 							break
 						}
@@ -401,9 +401,9 @@ private suspend fun processImage(
 				}
 
 				// Extract all text from the ROI image
-				Log.d(TAG, "Extracting all text from ROI image...")
+				SLog.d(TAG, "Extracting all text from ROI image...")
 				allText = textExtractor.extractAllText(processedBitmap)
-				Log.d(TAG, "Extracted text: $allText")
+				SLog.d(TAG, "Extracted text: $allText")
 			} finally {
 				if (processedBitmap !== bitmap) {
 					try { processedBitmap.recycle() } catch (_: Throwable) {}
@@ -412,7 +412,7 @@ private suspend fun processImage(
 
 			// If none found from boxes, fall back to ROI text lines and require validation
 			if (bestVin == null) {
-				Log.d(TAG, "Falling back to ROI text lines for VIN candidate...")
+				SLog.d(TAG, "Falling back to ROI text lines for VIN candidate...")
 				for (text in allText) {
 					val cleanedText = vinValidator.cleanVin(text)
 					val validation = vinValidator.validate(cleanedText)
@@ -428,9 +428,9 @@ private suspend fun processImage(
 									processedBitmap.config ?: Bitmap.Config.ARGB_8888,
 									false
 								)
-								Log.d(TAG, "Using full ROI as cropped bitmap: ${croppedVinBitmap?.width}x${croppedVinBitmap?.height}")
+								SLog.d(TAG, "Using full ROI as cropped bitmap: ${croppedVinBitmap?.width}x${croppedVinBitmap?.height}")
 							} catch (e: Exception) {
-								Log.e(TAG, "Failed to copy processed bitmap", e)
+								SLog.e(TAG, "Failed to copy processed bitmap", e)
 							}
 						}
 						break
@@ -440,14 +440,14 @@ private suspend fun processImage(
 
 			// If a VIN was found, report it
 			if (bestVin != null) {
-				Log.i(TAG, "VIN detected: $bestVin with confidence $bestConfidence")
+				SLog.i(TAG, "VIN detected: $bestVin with confidence $bestConfidence")
 				onVinDetected(bestVin, bestConfidence, croppedVinBitmap)
 			} else {
-				Log.d(TAG, "No valid VIN found in the extracted text.")
+				SLog.d(TAG, "No valid VIN found in the extracted text.")
 			}
 
 		} catch (e: Exception) {
-			Log.e(TAG, "Error processing image", e)
+			SLog.e(TAG, "Error processing image", e)
 		} finally {
 			try { bitmap.recycle() } catch (_: Throwable) {}
 		}

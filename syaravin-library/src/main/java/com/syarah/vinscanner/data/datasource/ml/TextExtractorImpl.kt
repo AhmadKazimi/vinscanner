@@ -1,9 +1,11 @@
 package com.syarah.vinscanner.data.datasource.ml
 
+import com.syarah.vinscanner.util.LogTags
+
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Rect
-import android.util.Log
+import com.syarah.vinscanner.util.SLog
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.common.moduleinstall.ModuleInstall
@@ -16,12 +18,14 @@ import com.syarah.vinscanner.domain.model.BoundingBox
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import java.io.Closeable
 import java.util.concurrent.atomic.AtomicBoolean
 
-private const val TAG = "TextExtractorImpl"
+private const val TAG = LogTags.LIBRARY
 private const val ML_KIT_MIN_SIZE = 32 // ML Kit requires minimum 32x32 pixels
 
 /**
@@ -31,7 +35,7 @@ private const val ML_KIT_MIN_SIZE = 32 // ML Kit requires minimum 32x32 pixels
  */
 internal class TextExtractorImpl(
     private val context: Context
-) : TextExtractor {
+) : TextExtractor, Closeable {
 
     // Lazily initialise recogniser – it is thread-safe and can be reused.
     private val recogniser by lazy {
@@ -60,7 +64,7 @@ internal class TextExtractorImpl(
                 val expandedRect = ensureMinimumSize(cropRect, bitmap.width, bitmap.height)
 
                 if (expandedRect.width() != cropRect.width() || expandedRect.height() != cropRect.height()) {
-                    Log.d(TAG, "Expanded box from ${cropRect.width()}x${cropRect.height()} to ${expandedRect.width()}x${expandedRect.height()}")
+                    SLog.d(TAG, "Expanded box from ${cropRect.width()}x${cropRect.height()} to ${expandedRect.width()}x${expandedRect.height()}")
                 }
 
                 val cropped = Bitmap.createBitmap(
@@ -74,14 +78,14 @@ internal class TextExtractorImpl(
                 // Detect rotation angle for better OCR on angled text
                 val rotationDegrees = detectRotation(cropped)
                 if (rotationDegrees != 0) {
-                    Log.d(TAG, "Detected text rotation: $rotationDegrees degrees")
+                    SLog.d(TAG, "Detected text rotation: $rotationDegrees degrees")
                 }
 
                 val image = InputImage.fromBitmap(cropped, rotationDegrees)
                 val result = recognizer.process(image).await()
                 result.text.takeIf { it.isNotBlank() }
             } catch (e: Exception) {
-                Log.e(TAG, "Error extracting text from region", e)
+                SLog.e(TAG, "Error extracting text from region", e)
                 null
             }
         }
@@ -91,7 +95,7 @@ internal class TextExtractorImpl(
         try {
             val rotationDegrees = detectRotation(bitmap)
             if (rotationDegrees != 0) {
-                Log.d(TAG, "Detected full image rotation: $rotationDegrees degrees")
+                SLog.d(TAG, "Detected full image rotation: $rotationDegrees degrees")
             }
 
             val image = InputImage.fromBitmap(bitmap, rotationDegrees)
@@ -100,7 +104,7 @@ internal class TextExtractorImpl(
                 block.lines.map { it.text }
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error extracting text from image", e)
+            SLog.e(TAG, "Error extracting text from image", e)
             emptyList()
         }
     }
@@ -110,7 +114,7 @@ internal class TextExtractorImpl(
         try {
             val rotationDegrees = detectRotation(bitmap)
             if (rotationDegrees != 0) {
-                Log.d(TAG, "Detected full image rotation for bounds: $rotationDegrees degrees")
+                SLog.d(TAG, "Detected full image rotation for bounds: $rotationDegrees degrees")
             }
 
             val image = InputImage.fromBitmap(bitmap, rotationDegrees)
@@ -131,12 +135,17 @@ internal class TextExtractorImpl(
                 }
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error extracting text with bounds from image", e)
+            SLog.e(TAG, "Error extracting text with bounds from image", e)
             emptyList()
         }
     }
 
     private fun getRecognizerOrNull(): TextRecognizer? {
+        if (skipOcrForSession && isGooglePlayServicesReady() && isMlKitRuntimePresent()) {
+            skipOcrForSession = false
+            SLog.i(TAG, "ML Kit became available during session, re-enabling OCR")
+        }
+
         if (skipOcrForSession) return null
 
         if (!isGooglePlayServicesReady() || !isMlKitRuntimePresent()) {
@@ -148,7 +157,7 @@ internal class TextExtractorImpl(
         return try {
             recogniser
         } catch (t: Throwable) {
-            Log.e(TAG, "ML Kit recognizer unavailable for this session", t)
+            SLog.e(TAG, "ML Kit recognizer unavailable for this session", t)
             skipOcrForSession = true
             requestMlKitWarmupInBackground()
             null
@@ -160,7 +169,7 @@ internal class TextExtractorImpl(
             GoogleApiAvailability.getInstance()
                 .isGooglePlayServicesAvailable(context) == ConnectionResult.SUCCESS
         } catch (t: Throwable) {
-            Log.w(TAG, "Unable to verify Google Play services availability", t)
+            SLog.w(TAG, "Unable to verify Google Play services availability", t)
             false
         }
     }
@@ -171,7 +180,7 @@ internal class TextExtractorImpl(
             Class.forName("com.google.mlkit.vision.text.latin.TextRecognizerOptions")
             true
         } catch (t: Throwable) {
-            Log.w(TAG, "ML Kit runtime classes are not available", t)
+            SLog.w(TAG, "ML Kit runtime classes are not available", t)
             false
         }
     }
@@ -193,12 +202,17 @@ internal class TextExtractorImpl(
                     .await()
 
                 if (response.areModulesAlreadyInstalled()) {
-                    Log.i(TAG, "ML Kit OCR module already installed")
+                    SLog.i(TAG, "ML Kit OCR module already installed")
                 } else {
-                    Log.i(TAG, "ML Kit OCR module install requested in background")
+                    SLog.i(TAG, "ML Kit OCR module install requested in background")
+                }
+
+                if (isGooglePlayServicesReady() && isMlKitRuntimePresent()) {
+                    skipOcrForSession = false
                 }
             } catch (t: Throwable) {
-                Log.w(TAG, "ML Kit OCR module install request failed", t)
+                SLog.w(TAG, "ML Kit OCR module install request failed", t)
+                warmupRequested.set(false)
             }
         }
     }
@@ -273,5 +287,11 @@ internal class TextExtractorImpl(
         val right = (box.right * bitmap.width).toInt().coerceIn(left, bitmap.width)
         val bottom = (box.bottom * bitmap.height).toInt().coerceIn(top, bitmap.height)
         return Rect(left, top, right, bottom)
+    }
+
+    override fun close() {
+        backgroundScope.cancel()
+        runCatching { recogniser.close() }
+            .onFailure { SLog.w(TAG, "Failed to close ML Kit recognizer", it) }
     }
 }

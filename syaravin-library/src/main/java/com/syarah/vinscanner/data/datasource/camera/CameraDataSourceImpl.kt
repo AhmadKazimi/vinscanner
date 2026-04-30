@@ -1,5 +1,7 @@
 package com.syarah.vinscanner.data.datasource.camera
 
+import com.syarah.vinscanner.util.LogTags
+
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -7,7 +9,7 @@ import android.graphics.ImageFormat
 import android.graphics.Matrix
 import android.graphics.Rect
 import android.graphics.YuvImage
-import android.util.Log
+import com.syarah.vinscanner.util.SLog
 import androidx.camera.core.ImageProxy
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -15,7 +17,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 
-private const val TAG = "CameraDataSourceImpl"
+private const val TAG = LogTags.LIBRARY
 
 /**
  * Implementation of CameraDataSource for camera operations
@@ -34,7 +36,6 @@ internal class CameraDataSourceImpl(
 
     override fun stopCamera() {
         // Camera stop will be handled by CameraX lifecycle
-        Log.d(TAG, "Camera stopped")
     }
 
     override fun imageToBitmap(imageProxy: ImageProxy): Bitmap {
@@ -46,22 +47,14 @@ internal class CameraDataSourceImpl(
     }
 
     private fun convertYuvToBitmap(imageProxy: ImageProxy): Bitmap {
-        Log.d(TAG, "=== YUV Conversion START ===")
-        Log.d(TAG, "ImageProxy format=${imageProxy.format}, width=${imageProxy.width}, height=${imageProxy.height}, rotation=${imageProxy.imageInfo.rotationDegrees}")
-
         return try {
-            Log.d(TAG, "Attempting direct YUV→RGB conversion (no JPEG compression)")
-            val startTime = System.currentTimeMillis()
-            val bitmap = convertYuvToBitmapDirect(imageProxy)
-            val duration = System.currentTimeMillis() - startTime
-            Log.i(TAG, "✓ Direct YUV→RGB conversion SUCCESS in ${duration}ms - Bitmap: ${bitmap.width}x${bitmap.height}, config=${bitmap.config}")
-            bitmap
+            convertYuvToBitmapDirect(imageProxy)
         } catch (e: Exception) {
-            Log.e(TAG, "✗ Direct YUV→RGB conversion FAILED, falling back to JPEG method", e)
+            SLog.e(TAG, "✗ Direct YUV→RGB conversion FAILED, falling back to JPEG method", e)
             val startTime = System.currentTimeMillis()
             val bitmap = convertYuvToBitmapViaJpeg(imageProxy)
             val duration = System.currentTimeMillis() - startTime
-            Log.w(TAG, "Fallback JPEG conversion completed in ${duration}ms - Bitmap: ${bitmap.width}x${bitmap.height}")
+            SLog.w(TAG, "Fallback JPEG conversion completed in ${duration}ms - Bitmap: ${bitmap.width}x${bitmap.height}")
             bitmap
         }
     }

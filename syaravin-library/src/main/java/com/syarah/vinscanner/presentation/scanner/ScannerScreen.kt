@@ -1,7 +1,9 @@
 package com.syarah.vinscanner.presentation.scanner
 
+import com.syarah.vinscanner.util.LogTags
+
 import android.Manifest
-import android.util.Log
+import com.syarah.vinscanner.util.SLog
 import android.graphics.Bitmap
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
@@ -27,8 +29,10 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.syarah.vinscanner.R
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -48,6 +52,7 @@ import com.syarah.vinscanner.util.ImagePreprocessor
 import com.syarah.vinscanner.util.RoiConfig
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -56,7 +61,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-private const val TAG = "ScannerScreen"
+private const val TAG = LogTags.LIBRARY
 
 /**
  * Main scanner screen for VIN detection
@@ -66,7 +71,6 @@ private const val TAG = "ScannerScreen"
 internal fun ScannerScreen(
     onVinConfirmed: (VinNumber) -> Unit = {}, onCancelled: () -> Unit = {}
 ) {
-    Log.d(TAG, "ScannerScreen composable started.")
 
     // Create ViewModel with custom factory
     val viewModel: ScannerViewModel = viewModel(
@@ -96,9 +100,13 @@ internal fun ScannerScreen(
     val processingScope = remember { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
     DisposableEffect(Unit) {
         onDispose {
-            Log.d(TAG, "Shutting down camera executor")
+            SLog.d(TAG, "Shutting down camera executor")
+            imageAnalysis.clearAnalyzer()
             processingScope.cancel()
-            executor.shutdown()
+            executor.shutdownNow()
+            if (!executor.awaitTermination(2, TimeUnit.SECONDS)) {
+                SLog.w(TAG, "Camera executor did not terminate within timeout")
+            }
         }
     }
 
@@ -106,33 +114,33 @@ internal fun ScannerScreen(
     val cameraPermissionState = rememberPermissionState(
         permission = Manifest.permission.CAMERA, onPermissionResult = { granted ->
             if (granted) {
-                Log.d(TAG, "Camera permission granted.")
+                SLog.d(TAG, "Camera permission granted.")
                 viewModel.onEvent(ScannerEvent.PermissionGranted)
             } else {
-                Log.w(TAG, "Camera permission denied.")
+                SLog.w(TAG, "Camera permission denied.")
                 viewModel.onEvent(ScannerEvent.PermissionDenied)
             }
         })
 
     // Warm up heavy dependencies in background to reduce first-run frame drops.
     LaunchedEffect(Unit) {
-        Log.d(TAG, "Starting scanner dependency warmup")
+        SLog.d(TAG, "Starting scanner dependency warmup")
         val warmupStart = System.currentTimeMillis()
         withContext(Dispatchers.Default) {
             dependencies.warmUpScannerDependencies()
         }
         isWarmupComplete = true
-        Log.d(TAG, "Scanner dependency warmup completed in ${System.currentTimeMillis() - warmupStart}ms")
+        SLog.d(TAG, "Scanner dependency warmup completed in ${System.currentTimeMillis() - warmupStart}ms")
     }
 
     // Request permission on first launch
     LaunchedEffect(Unit) {
-        Log.d(TAG, "LaunchedEffect for permission check.")
+        SLog.d(TAG, "LaunchedEffect for permission check.")
         if (!cameraPermissionState.status.isGranted) {
-            Log.d(TAG, "Permission not granted, launching permission request.")
+            SLog.d(TAG, "Permission not granted, launching permission request.")
             cameraPermissionState.launchPermissionRequest()
         } else {
-            Log.d(TAG, "Permission already granted.")
+            SLog.d(TAG, "Permission already granted.")
             viewModel.onEvent(ScannerEvent.PermissionGranted)
         }
     }
@@ -143,7 +151,6 @@ internal fun ScannerScreen(
     // Set up image analysis
     DisposableEffect(state.isScanning, isWarmupComplete) {
         if (state.isScanning && isWarmupComplete) {
-            Log.d(TAG, "Setting up image analyzer.")
             imageAnalysis.setAnalyzer(executor) { imageProxy ->
                 val currentTime = System.currentTimeMillis()
                 val previousTime = lastProcessTime.get()
@@ -152,7 +159,6 @@ internal fun ScannerScreen(
                     isProcessingFrame.compareAndSet(false, true)
                 ) {
                     lastProcessTime.set(currentTime)
-                    Log.d(TAG, "New image received for processing.")
                     processingScope.launch {
                         try {
                             processImage(
@@ -175,24 +181,17 @@ internal fun ScannerScreen(
                                 }
                             )
                         } catch (cancelled: CancellationException) {
-                            Log.d(TAG, "Image processing cancelled")
                         } finally {
                             isProcessingFrame.set(false)
                         }
                     }
                 } else {
-                    if (isProcessingFrame.get()) {
-                        Log.v(TAG, "Skipping image processing, already in progress.")
-                    } else {
-                        Log.v(TAG, "Skipping image processing, throttled.")
-                    }
                     imageProxy.close()
                 }
             }
         }
 
         onDispose {
-            Log.d(TAG, "Disposing image analyzer.")
             imageAnalysis.clearAnalyzer()
         }
     }
@@ -218,14 +217,25 @@ internal fun ScannerScreen(
                 modifier = Modifier.fillMaxSize(),
                 cameraSelector = cameraSelector,
                 preview = preview,
-                imageAnalyzer = imageAnalysis
+                imageAnalyzer = imageAnalysis,
             )
 
             if (!isWarmupComplete) {
-                CircularProgressIndicator(
+                Column(
                     modifier = Modifier.align(Alignment.Center),
-                    color = MaterialTheme.colorScheme.primary
-                )
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    CircularProgressIndicator(
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = stringResource(R.string.scanner_preparing),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White,
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
 
             // ROI overlay to guide user with dynamic border color
@@ -265,7 +275,7 @@ internal fun ScannerScreen(
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "Camera Permission Required",
+                    text = stringResource(R.string.camera_permission_required_title),
                     style = MaterialTheme.typography.headlineMedium,
                     color = Color.White,
                     textAlign = TextAlign.Center
@@ -274,7 +284,7 @@ internal fun ScannerScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "Please grant camera permission to scan VIN numbers",
+                    text = stringResource(R.string.camera_permission_required_message),
                     style = MaterialTheme.typography.bodyLarge,
                     color = Color.Gray,
                     textAlign = TextAlign.Center
@@ -286,7 +296,7 @@ internal fun ScannerScreen(
                     onClick = { cameraPermissionState.launchPermissionRequest() }
 
                 ) {
-                    Text("Grant Permission")
+                    Text(stringResource(R.string.grant_permission))
                 }
             }
         }
@@ -295,7 +305,7 @@ internal fun ScannerScreen(
         if (state.hasPermission) {
             TopAppBar(
                 modifier = Modifier.align(Alignment.TopCenter),
-                title = { Text("VIN Scanner") },
+                title = { Text(stringResource(R.string.vin_scanner_title)) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Black.copy(alpha = 0.5f), titleContentColor = Color.White
                 ),
@@ -318,7 +328,7 @@ internal fun ScannerScreen(
                             } else {
                                 Icons.Filled.PlayArrow
                             },
-                            contentDescription = if (state.isScanning) "Stop" else "Start",
+                            contentDescription = if (state.isScanning) stringResource(R.string.stop) else stringResource(R.string.start),
                             tint = Color.White
                         )
                     }
@@ -335,13 +345,13 @@ internal fun ScannerScreen(
                     .clip(CircleShape)
                     .background(Color.White)
                     .clickable {
-                        Log.d(TAG, "Enter manually button clicked")
+                        SLog.d(TAG, "Enter manually button clicked")
 
                         // Get latest ROI-cropped bitmap from state
                         val roiBitmap = state.latestRoiCroppedBitmap
 
                         if (roiBitmap != null) {
-                            Log.d(
+                            SLog.d(
                                 TAG,
                                 "Passing empty VIN with ROI bitmap (${roiBitmap.width}x${roiBitmap.height})"
                             )
@@ -357,7 +367,7 @@ internal fun ScannerScreen(
                             // Invoke callback with bitmap
                             onVinConfirmed(manualEntryVin)
                         } else {
-                            Log.w(TAG, "No ROI bitmap available, passing empty VIN without image")
+                            SLog.w(TAG, "No ROI bitmap available, passing empty VIN without image")
 
                             // Fallback: pass empty VIN without bitmap
                             onVinConfirmed(VinNumber(value = "", confidence = 0f, isValid = false))
@@ -381,7 +391,7 @@ internal fun ScannerScreen(
                             contentDescription = "vin_scanner_dismiss_error"
                         },
                     ) {
-                        Text("Dismiss")
+                        Text(stringResource(R.string.dismiss))
                     }
                 }) {
                 Text(error)
@@ -401,11 +411,9 @@ private suspend fun processImage(
     onRoiBorderStateChange: (RoiBorderState) -> Unit,
     onRoiBitmapCaptured: (Bitmap) -> Unit
 ) {
-    Log.d(TAG, "Processing image...")
     try {
         // Convert ImageProxy to Bitmap
         val bitmap = cameraDataSource.imageToBitmap(imageProxy)
-        Log.d(TAG, "Image converted to Bitmap with dimensions: ${bitmap.width}x${bitmap.height}")
 
         try {
             // Crop to ROI first to reduce noise and improve accuracy
@@ -420,10 +428,6 @@ private suspend fun processImage(
 
             val processedBitmap: Bitmap = try {
                 if (shouldCrop) {
-                    Log.d(
-                        TAG,
-                        "Cropping to ROI: [$leftPx,$topPx,$rightPx,$bottomPx] -> ${roiWidth}x${roiHeight}"
-                    )
                     val cropped = Bitmap.createBitmap(bitmap, leftPx, topPx, roiWidth, roiHeight)
 
                     // Store a copy for manual entry (create new bitmap to prevent recycling issues)
@@ -436,18 +440,14 @@ private suspend fun processImage(
                         kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
                             onRoiBitmapCaptured(safeRoiCopy)
                         }
-                        Log.d(
-                            TAG,
-                            "Stored ROI bitmap copy for manual entry: ${safeRoiCopy.width}x${safeRoiCopy.height}"
-                        )
                     } catch (e: Exception) {
-                        Log.e(TAG, "Failed to create ROI bitmap copy", e)
+                        SLog.e(TAG, "Failed to create ROI bitmap copy", e)
                     }
 
                     cropped
                 } else bitmap
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to crop to ROI, falling back to full image", e)
+                SLog.e(TAG, "Failed to crop to ROI, falling back to full image", e)
                 bitmap
             }
 
@@ -458,7 +458,6 @@ private suspend fun processImage(
 
             try {
                 // Run object detection to get bounding boxes on ROI image
-                Log.d(TAG, "Detecting VIN boxes...")
                 val detectionResult = vinDetector.detect(processedBitmap)
                 val boxes = detectionResult.boundingBoxes
                 val mappedBoxes = if (shouldCrop) {
@@ -475,7 +474,6 @@ private suspend fun processImage(
                     }
                 } else boxes
                 onBoxesDetected(mappedBoxes)
-                Log.d(TAG, "Detected ${boxes.size} VIN boxes (mapped: ${mappedBoxes.size}).")
 
                 // Update ROI border state based on detection
                 if (mappedBoxes.isEmpty()) {
@@ -493,7 +491,7 @@ private suspend fun processImage(
                         if (validation.isValid) {
                             bestVin = candidate
                             bestConfidence = box.confidence
-                            Log.d(TAG, "Valid VIN from box: $bestVin (conf=${box.confidence})")
+                            SLog.d(TAG, "VIN detected from box with confidence=${box.confidence}")
 
                             // Crop and enhance the bitmap using the AI detection box
                             try {
@@ -512,12 +510,8 @@ private suspend fun processImage(
                                     }
                                     safeBitmap
                                 }
-                                Log.d(
-                                    TAG,
-                                    "Cropped and enhanced VIN from AI detection: ${croppedVinBitmap?.width}x${croppedVinBitmap?.height}"
-                                )
                             } catch (e: Exception) {
-                                Log.e(TAG, "Failed to crop and enhance VIN bitmap", e)
+                                SLog.e(TAG, "Failed to crop and enhance VIN bitmap", e)
                             }
                             break
                         }
@@ -525,14 +519,12 @@ private suspend fun processImage(
                 }
 
                 // Extract all text from the ROI image
-                Log.d(TAG, "Extracting all text from ROI image...")
                 allText = textExtractor.extractAllText(processedBitmap)
-                Log.d(TAG, "Extracted text: $allText")
 
                 // If none found from boxes, fall back to ROI text lines and require validation
                 /* Fallback disabled by user request - rely on AI detection only
                 if (bestVin == null) {
-                    Log.d(TAG, "Falling back to ROI text lines for VIN candidate...")
+                    SLog.d(TAG, "Falling back to ROI text lines for VIN candidate...")
                     for (text in allText) {
                         val cleanedText = vinValidator.cleanVin(text)
                         val validation = vinValidator.validate(cleanedText)
@@ -540,7 +532,7 @@ private suspend fun processImage(
                             bestVin = cleanedText
                             bestConfidence = 1.0f
                             // VIN found from text, AI model did not detect box location
-                            Log.d(TAG, "VIN found from text without AI detection box")
+                            SLog.d(TAG, "VIN found from text without AI detection box")
                             break
                         }
                     }
@@ -558,18 +550,15 @@ private suspend fun processImage(
 
             // If a VIN was found, report it
             if (bestVin != null) {
-                Log.i(TAG, "VIN detected: $bestVin with confidence $bestConfidence")
+                SLog.d(TAG, "VIN detected with confidence=$bestConfidence")
                 onRoiBorderStateChange(RoiBorderState.VALID_VIN_DETECTED)
                 onVinDetected(bestVin, bestConfidence, croppedVinBitmap)
-            } else {
-                Log.d(TAG, "No valid VIN found in the extracted text.")
             }
 
         } catch (cancelled: CancellationException) {
-            Log.d(TAG, "Image processing cancelled before completion")
             throw cancelled
         } catch (e: Exception) {
-            Log.e(TAG, "Error processing image", e)
+            SLog.e(TAG, "Error processing image", e)
         } finally {
             try {
                 bitmap.recycle()
@@ -577,10 +566,9 @@ private suspend fun processImage(
             }
         }
     } catch (cancelled: CancellationException) {
-        Log.d(TAG, "Image conversion cancelled")
         throw cancelled
     } catch (e: Exception) {
-        Log.e(TAG, "Error converting image", e)
+        SLog.e(TAG, "Error converting image", e)
     } finally {
         imageProxy.close()
     }

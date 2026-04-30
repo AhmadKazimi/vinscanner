@@ -22,6 +22,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -31,6 +32,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.syarah.vinscanner.R
 
 @Composable
 internal fun VinTextField(
@@ -111,7 +113,7 @@ internal fun VinTextField(
                         ) {
                             if (vin.isEmpty()) {
                                 Text(
-                                    text = "Enter VIN Number",
+                                    text = stringResource(R.string.vin_enter_placeholder),
                                     style = TextStyle(
                                         fontSize = 20.sp,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
@@ -146,7 +148,7 @@ internal fun VinTextField(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.AddCircle,
-                                contentDescription = "Paste VIN",
+                                contentDescription = stringResource(R.string.vin_paste),
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         }
@@ -162,7 +164,7 @@ internal fun VinTextField(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Edit,
-                                contentDescription = "Edit VIN",
+                                contentDescription = stringResource(R.string.vin_edit),
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         }
@@ -173,7 +175,7 @@ internal fun VinTextField(
         
         // Character counter
         Text(
-            text = "${vin.length} / 17 characters",
+            text = stringResource(R.string.vin_character_counter, vin.length, 17),
             style = MaterialTheme.typography.bodySmall,
             color = if (vin.length == 17) {
                 MaterialTheme.colorScheme.primary

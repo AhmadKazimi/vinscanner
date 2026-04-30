@@ -8,8 +8,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.syarah.vinscanner.R
 
 @Composable
 internal fun VinEditBar(
@@ -40,17 +42,17 @@ internal fun VinEditBar(
                 IconButton(onClick = onClear) {
                     Icon(
                         imageVector = Icons.Default.Clear,
-                        contentDescription = "Clear VIN"
+                        contentDescription = stringResource(R.string.vin_clear)
                     )
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(onClick = onDone) {
                     Icon(
                         imageVector = Icons.Default.Done,
-                        contentDescription = "Done"
+                        contentDescription = stringResource(R.string.done)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = "Done")
+                    Text(text = stringResource(R.string.done))
                 }
             }
         }

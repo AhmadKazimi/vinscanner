@@ -14,6 +14,10 @@ import com.syarah.vinscanner.di.VinScannerDependencies
 import com.syarah.vinscanner.domain.model.VinNumber
 import com.syarah.vinscanner.presentation.scanner.ScannerScreen
 import com.syarah.vinscanner.ui.theme.SyaravinTheme
+import com.syarah.vinscanner.util.LogTags
+import com.syarah.vinscanner.util.SLog
+
+private const val TAG = LogTags.LIBRARY
 
 /**
  * Internal activity that hosts the VIN scanner UI.
@@ -22,6 +26,7 @@ import com.syarah.vinscanner.ui.theme.SyaravinTheme
 internal class VinScannerActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        SLog.w(TAG, "VIN scanner activity created")
 
         // Initialize dependency factory with Application context
         VinScannerDependencies.initialize(applicationContext)
@@ -47,6 +52,13 @@ internal class VinScannerActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onDestroy() {
+        SLog.w(TAG, "VIN scanner activity destroying; releasing dependencies")
+        VinScannerDependencies.release()
+        SLog.w(TAG, "VIN scanner dependencies released")
+        super.onDestroy()
     }
 
     private fun returnResult(vinNumber: VinNumber) {

@@ -1,0 +1,35 @@
+<resources>
+    <string name="app_name">ماسح رقم الهيكل</string>
+    <string name="scanner_preparing">جاري تجهيز الماسح (قد يستغرق التشغيل الأول بضع ثوانٍ)</string>
+    <string name="camera_permission_required_title">إذن الكاميرا مطلوب</string>
+    <string name="camera_permission_required_message">يرجى منح إذن الكاميرا لمسح رقم الهيكل</string>
+    <string name="grant_permission">منح الإذن</string>
+    <string name="vin_scanner_title">ماسح رقم الهيكل</string>
+    <string name="start">بدء</string>
+    <string name="stop">إيقاف</string>
+    <string name="dismiss">إغلاق</string>
+    <string name="vin_enter_placeholder">أدخل رقم الهيكل</string>
+    <string name="vin_paste">لصق رقم الهيكل</string>
+    <string name="vin_edit">تعديل رقم الهيكل</string>
+    <string name="vin_character_counter">%1$d / %2$d حرفًا</string>
+    <string name="vin_clear">مسح رقم الهيكل</string>
+    <string name="done">تم</string>
+    <string name="vin_detected">تم اكتشاف رقم الهيكل</string>
+    <string name="vin_number">رقم الهيكل</string>
+    <string name="vin_image">صورة رقم الهيكل</string>
+    <string name="vin_image_content_description">صورة رقم الهيكل المقصوصة</string>
+    <string name="car_information">معلومات السيارة</string>
+    <string name="manufacturer_label">الشركة المصنعة: %1$s</string>
+    <string name="country_label">الدولة: %1$s</string>
+    <string name="model_year_label">سنة الموديل: %1$s</string>
+    <string name="confirmed">تأكيد</string>
+    <string name="scan_again">مسح مرة أخرى</string>
+    <string name="error_camera_permission_required">إذن الكاميرا مطلوب</string>
+    <string name="error_camera_permission_required_for_scanning">إذن الكاميرا مطلوب لمسح رقم الهيكل</string>
+    <string name="error_validating_vin">خطأ أثناء التحقق من رقم الهيكل: %1$s</string>
+    <string name="validation_invalid_chars_or_no_valid_vin">تم العثور على أحرف غير صالحة داخل رقم الهيكل أو لم يتم العثور على رقم هيكل صالح مكوّن من 17 حرفًا.</string>
+    <string name="validation_wrong_length">يجب أن يكون رقم الهيكل مكوّنًا من 17 حرفًا، ولكنه كان %1$d</string>
+    <string name="validation_contains_invalid_chars">يحتوي رقم الهيكل على أحرف غير صالحة (I أو O أو Q)</string>
+    <string name="validation_insufficient_digits">من المحتمل أن رقم الهيكل غير صالح (عدد الأرقام غير كافٍ)</string>
+    <string name="validation_checksum_accepted">المجموع الاختباري لرقم الهيكل غير صالح (تم القبول)</string>
+</resources>

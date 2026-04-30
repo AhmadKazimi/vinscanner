@@ -1,12 +1,12 @@
 package com.syarah.vinscanner.util
 
-import android.util.Log
+import com.syarah.vinscanner.util.SLog
 
 /**
  * Simple thermal management utility to prevent overheating
  */
 internal object ThermalManager {
-    private const val TAG = "ThermalManager"
+    private const val TAG = LogTags.LIBRARY
     
     // Performance tracking
     private var processingCount = 0L
@@ -30,7 +30,7 @@ internal object ThermalManager {
         // Check processing rate
         val currentRate = processingCount / maxOf(elapsedSeconds, 1.0)
         if (currentRate > MAX_PROCESSING_RATE) {
-            Log.w(TAG, "Throttling due to high processing rate: $currentRate fps")
+            SLog.w(TAG, "Throttling due to high processing rate: $currentRate fps")
             return true
         }
         
@@ -40,7 +40,7 @@ internal object ThermalManager {
         } else 0L
         
         if (avgProcessingTime > MAX_AVG_PROCESSING_TIME) {
-            Log.w(TAG, "Throttling due to high processing time: ${avgProcessingTime}ms")
+            SLog.w(TAG, "Throttling due to high processing time: ${avgProcessingTime}ms")
             return true
         }
         
@@ -56,7 +56,7 @@ internal object ThermalManager {
         processingCount = 0L
         totalProcessingTime = 0L
         startTime = System.currentTimeMillis()
-        Log.d(TAG, "Performance counters reset")
+        SLog.d(TAG, "Performance counters reset")
     }
     
     fun getStats(): String {

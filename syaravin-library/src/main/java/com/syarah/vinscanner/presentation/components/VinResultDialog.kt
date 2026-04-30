@@ -1,7 +1,7 @@
 
 package com.syarah.vinscanner.presentation.components
 
-import android.util.Log
+import com.syarah.vinscanner.util.SLog
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -18,14 +18,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.syarah.vinscanner.di.VinScannerDependencies
 import com.syarah.vinscanner.domain.model.VinNumber
+import com.syarah.vinscanner.R
 import com.syarah.vinscanner.util.ImagePreprocessor
+import com.syarah.vinscanner.util.LogTags
 import com.syarah.vinscanner.util.VinDecoder
+import com.syarah.vinscanner.data.datasource.validator.VinValidator
+
+private const val TAG = LogTags.LIBRARY
 
 /**
  * Dialog to display VIN detection results
@@ -57,7 +63,8 @@ internal fun VinResultSheetContent(
     onCopy: (String) -> Unit,
     onVinChanged: (String) -> Unit,
     onConfirm: (VinNumber) -> Unit = {},
-    vinDecoder: VinDecoder = VinScannerDependencies.get().vinDecoder
+    vinDecoder: VinDecoder = VinScannerDependencies.get().vinDecoder,
+    vinValidator: VinValidator = VinScannerDependencies.get().vinValidator
 ) {
     var vin by remember(vinNumber) { mutableStateOf(vinNumber.value) }
 
@@ -69,7 +76,7 @@ internal fun VinResultSheetContent(
 
     // Reflect true validity using checksum rules when editable VIN changes
     val isCurrentVinValid by remember(vin) {
-        mutableStateOf(com.syarah.vinscanner.data.datasource.validator.VinValidatorImpl().validate(vin).isValid)
+        mutableStateOf(vinValidator.validate(vin).isValid)
     }
 
     Column(
@@ -91,7 +98,7 @@ internal fun VinResultSheetContent(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "VIN Detected",
+                    text = stringResource(R.string.vin_detected),
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF212121)
@@ -121,7 +128,7 @@ internal fun VinResultSheetContent(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = "VIN Number",
+                        text = stringResource(R.string.vin_number),
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF0D0DB5)
@@ -142,10 +149,7 @@ internal fun VinResultSheetContent(
                 val displayBitmap = remember(bitmap) {
                     ImagePreprocessor.downscaleForDisplay(bitmap)
                 }
-                Log.d(
-                    "VinResultDialog",
-                    "Displaying cropped image: ${displayBitmap.width}x${displayBitmap.height}"
-                )
+                SLog.d(TAG, "Displaying cropped image: ${displayBitmap.width}x${displayBitmap.height}")
 
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -162,7 +166,7 @@ internal fun VinResultSheetContent(
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         Text(
-                            text = "VIN Image",
+                            text = stringResource(R.string.vin_image),
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF0D0DB5)
@@ -170,7 +174,7 @@ internal fun VinResultSheetContent(
 
                         Image(
                             bitmap = displayBitmap.asImageBitmap(),
-                            contentDescription = "Cropped VIN image",
+                            contentDescription = stringResource(R.string.vin_image_content_description),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .heightIn(min = 80.dp, max = 150.dp),
@@ -179,7 +183,7 @@ internal fun VinResultSheetContent(
                     }
                 }
             } ?: run {
-                Log.d("VinResultDialog", "No cropped image available")
+                SLog.d(TAG, "No cropped image available")
             }
 
             // Car Information Card
@@ -199,7 +203,7 @@ internal fun VinResultSheetContent(
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         Text(
-                            text = "Car Information",
+                            text = stringResource(R.string.car_information),
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF0D0DB5)
@@ -209,21 +213,21 @@ internal fun VinResultSheetContent(
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Text(
-                                text = "Manufacturer: ${info.manufacturer}",
+                                text = stringResource(R.string.manufacturer_label, info.manufacturer),
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFF212121)
                             )
 
                             Text(
-                                text = "Country: ${info.country}",
+                                text = stringResource(R.string.country_label, info.country),
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFF212121)
                             )
 
                             Text(
-                                text = "Model Year: ${info.modelYear}",
+                                text = stringResource(R.string.model_year_label, info.modelYear),
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFF212121)
@@ -270,7 +274,7 @@ internal fun VinResultSheetContent(
                 )
             ) {
                 Text(
-                    text = "Confirmed",
+                    text = stringResource(R.string.confirmed),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -288,7 +292,7 @@ internal fun VinResultSheetContent(
                 )
             ) {
                 Text(
-                    text = "Scan Again",
+                    text = stringResource(R.string.scan_again),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )

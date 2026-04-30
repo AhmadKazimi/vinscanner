@@ -1,7 +1,9 @@
 package com.syarah.vinscanner.data.repository
 
+import com.syarah.vinscanner.util.LogTags
+
 import android.graphics.Bitmap
-import android.util.Log
+import com.syarah.vinscanner.util.SLog
 import com.syarah.vinscanner.data.datasource.camera.CameraDataSource
 import com.syarah.vinscanner.data.datasource.ml.TextExtractor
 import com.syarah.vinscanner.data.datasource.ml.VinDetector
@@ -15,7 +17,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 
-private const val TAG = "VinScannerRepository"
+private const val TAG = LogTags.LIBRARY
 
 /**
  * Implementation of VinScannerRepository
@@ -86,7 +88,7 @@ internal class VinScannerRepositoryImpl(
                     // Clean up
                     bitmap.recycle()
                 } catch (e: Exception) {
-                    Log.e(TAG, "Error processing camera frame", e)
+                    SLog.e(TAG, "Error processing camera frame", e)
                 } finally {
                     // Always close the image to avoid memory leaks
                     imageProxy.close()

@@ -1,6 +1,8 @@
 package com.syarah.vinscanner.presentation.components
 
-import android.util.Log
+import com.syarah.vinscanner.util.LogTags
+
+import com.syarah.vinscanner.util.SLog
 import android.view.ViewGroup
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
@@ -11,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -18,9 +21,9 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import com.syarah.vinscanner.util.DisposableEffectWithLifecycle
-import java.util.concurrent.ExecutorService
+import java.util.concurrent.atomic.AtomicLong
 
-private const val TAG = "CameraPreview"
+private const val TAG = LogTags.LIBRARY
 
 /**
  * Composable for displaying camera preview using CameraX
@@ -34,6 +37,9 @@ internal fun CameraPreview(
     lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
 ) {
     val context = LocalContext.current
+    val appContext = remember(context) { context.applicationContext }
+    val activeGeneration = remember { AtomicLong(0L) }
+    val currentLifecycleOwner = rememberUpdatedState(lifecycleOwner)
 
     val previewView = remember {
         PreviewView(context).apply {
@@ -48,26 +54,42 @@ internal fun CameraPreview(
 
     DisposableEffectWithLifecycle(
         onStart = {
-            Log.d(TAG, "Starting camera preview")
+            SLog.w(TAG, "Camera preview starting")
             bindCameraUseCases(
-                context = context,
-                lifecycleOwner = lifecycleOwner,
+                context = appContext,
+                lifecycleOwner = currentLifecycleOwner.value,
                 previewView = previewView,
                 cameraSelector = cameraSelector,
                 preview = preview,
-                imageAnalyzer = imageAnalyzer
+                imageAnalyzer = imageAnalyzer,
+                generationRef = activeGeneration,
+                expectedGeneration = activeGeneration.incrementAndGet()
             )
         },
         onStop = {
-            Log.d(TAG, "Stopping camera preview")
-            releaseCameraUseCases(context, previewView, preview)
+            SLog.w(TAG, "Camera preview stopping")
+            releaseCameraUseCases(
+                context = appContext,
+                previewView = previewView,
+                preview = preview,
+                imageAnalyzer = imageAnalyzer,
+                generationRef = activeGeneration,
+                expectedGeneration = activeGeneration.incrementAndGet()
+            )
         }
     )
 
-    DisposableEffect(context, previewView, preview) {
+    DisposableEffect(appContext, previewView, preview, imageAnalyzer) {
         onDispose {
-            Log.d(TAG, "Disposing camera preview composable")
-            releaseCameraUseCases(context, previewView, preview)
+            SLog.w(TAG, "Camera preview disposing")
+            releaseCameraUseCases(
+                context = appContext,
+                previewView = previewView,
+                preview = preview,
+                imageAnalyzer = imageAnalyzer,
+                generationRef = activeGeneration,
+                expectedGeneration = activeGeneration.incrementAndGet()
+            )
         }
     }
 
@@ -83,16 +105,22 @@ private fun bindCameraUseCases(
     previewView: PreviewView,
     cameraSelector: CameraSelector,
     preview: Preview,
-    imageAnalyzer: ImageAnalysis
+    imageAnalyzer: ImageAnalysis,
+    generationRef: AtomicLong,
+    expectedGeneration: Long
 ) {
+    val appContext = context.applicationContext
     val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
 
     cameraProviderFuture.addListener({
         try {
+            // Ignore stale async callbacks that arrive after a dispose/release cycle.
+            if (generationRef.get() != expectedGeneration) return@addListener
+
             val cameraProvider = cameraProviderFuture.get()
 
             // Unbind all use cases before rebinding
-            cameraProvider.unbindAll()
+            cameraProvider.unbind(preview, imageAnalyzer)
 
             // Set the surface provider for preview
             preview.setSurfaceProvider(previewView.surfaceProvider)
@@ -120,32 +148,39 @@ private fun bindCameraUseCases(
                 true
             }
 
-            Log.d(TAG, "Camera use cases bound successfully")
+            SLog.w(TAG, "Camera use cases bound")
         } catch (e: Exception) {
-            Log.e(TAG, "Error binding camera use cases", e)
+            SLog.e(TAG, "Error binding camera use cases", e)
         }
-    }, ContextCompat.getMainExecutor(context))
+    }, ContextCompat.getMainExecutor(appContext))
 }
 
 private fun releaseCameraUseCases(
     context: android.content.Context,
     previewView: PreviewView,
-    preview: Preview
+    preview: Preview,
+    imageAnalyzer: ImageAnalysis,
+    generationRef: AtomicLong,
+    expectedGeneration: Long
 ) {
+    val appContext = context.applicationContext
+
     try {
         preview.setSurfaceProvider(null)
         previewView.setOnTouchListener(null)
     } catch (e: Exception) {
-        Log.w(TAG, "Failed to clear preview surface/touch listener", e)
+        SLog.w(TAG, "Failed to clear preview surface/touch listener", e)
     }
 
     val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
     cameraProviderFuture.addListener({
         try {
-            cameraProviderFuture.get().unbindAll()
-            Log.d(TAG, "Camera use cases unbound successfully")
+            if (generationRef.get() != expectedGeneration) return@addListener
+
+            cameraProviderFuture.get().unbind(preview, imageAnalyzer)
+            SLog.w(TAG, "Camera use cases unbound")
         } catch (e: Exception) {
-            Log.w(TAG, "Failed to unbind camera use cases", e)
+            SLog.w(TAG, "Failed to unbind camera use cases", e)
         }
-    }, ContextCompat.getMainExecutor(context))
+    }, ContextCompat.getMainExecutor(appContext))
 }

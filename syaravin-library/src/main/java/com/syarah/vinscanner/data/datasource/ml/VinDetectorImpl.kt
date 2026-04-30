@@ -1,9 +1,11 @@
 package com.syarah.vinscanner.data.datasource.ml
 
+import com.syarah.vinscanner.util.LogTags
+
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Matrix
-import android.util.Log
+import com.syarah.vinscanner.util.SLog
 import com.syarah.vinscanner.data.model.DetectionResult
 import com.syarah.vinscanner.domain.model.BoundingBox
 import kotlinx.coroutines.Dispatchers
@@ -14,7 +16,7 @@ import java.nio.ByteOrder
 import kotlin.math.min
 import kotlin.math.max
 
-private const val TAG = "VinDetectorImpl"
+private const val TAG = LogTags.LIBRARY
 private const val ENABLE_DETAILED_LOGS = false
 
 /**
@@ -46,9 +48,9 @@ internal class VinDetectorImpl(
             val startTime = System.currentTimeMillis()
 
             if (ENABLE_DETAILED_LOGS) {
-                Log.d(TAG, "=== AI DETECTION START ===")
-                Log.d(TAG, "Input bitmap: ${bitmap.width}x${bitmap.height}, config=${bitmap.config}")
-                Log.d(TAG, "Requested confidence threshold: $confidenceThreshold")
+                SLog.d(TAG, "=== AI DETECTION START ===")
+                SLog.d(TAG, "Input bitmap: ${bitmap.width}x${bitmap.height}, config=${bitmap.config}")
+                SLog.d(TAG, "Requested confidence threshold: $confidenceThreshold")
             }
 
             try {
@@ -63,13 +65,13 @@ internal class VinDetectorImpl(
                 val padTop = (MODEL_INPUT_SIZE - scaledHeight) / 2f
 
                 if (ENABLE_DETAILED_LOGS) {
-                    Log.d(TAG, "Letterbox params: scaleFactor=$scaleFactor, scaled=${scaledWidth}x${scaledHeight}, padding=(${padLeft},${padTop})")
+                    SLog.d(TAG, "Letterbox params: scaleFactor=$scaleFactor, scaled=${scaledWidth}x${scaledHeight}, padding=(${padLeft},${padTop})")
                 }
 
                 // Preprocess (letterbox to 640x640)
                 val preprocessedBitmap = preprocessImage(bitmap)
                 if (ENABLE_DETAILED_LOGS) {
-                    Log.d(TAG, "Preprocessed bitmap: ${preprocessedBitmap.width}x${preprocessedBitmap.height}")
+                    SLog.d(TAG, "Preprocessed bitmap: ${preprocessedBitmap.width}x${preprocessedBitmap.height}")
                 }
                 convertBitmapToByteBuffer(preprocessedBitmap)
                 
@@ -111,7 +113,7 @@ internal class VinDetectorImpl(
                 }
 
                 if (ENABLE_DETAILED_LOGS) {
-                    Log.d(TAG, "Output tensor shape=${outShape.contentToString()}, props=${propertiesCount}, num=${numCandidates}, propsFirst=${propsFirst}")
+                    SLog.d(TAG, "Output tensor shape=${outShape.contentToString()}, props=${propertiesCount}, num=${numCandidates}, propsFirst=${propsFirst}")
                 }
 
                 fun getProp(candidateIndex: Int, propIndex: Int): Float {
@@ -121,9 +123,8 @@ internal class VinDetectorImpl(
                 val rawBoxes = mutableListOf<BoundingBox>()
                 val confThresh = max(confidenceThreshold, DEFAULT_CONF_THRESHOLD)
 
-                Log.i(TAG, "Using confidence threshold: $confThresh (requested=$confidenceThreshold, default=$DEFAULT_CONF_THRESHOLD)")
                 if (ENABLE_DETAILED_LOGS) {
-                    Log.d(TAG, "Scanning ${numCandidates} candidates...")
+                    SLog.d(TAG, "Scanning ${numCandidates} candidates...")
                 }
 
                 var maxConfidenceSeen = 0f
@@ -195,7 +196,7 @@ internal class VinDetectorImpl(
 
                 // Log top 5 candidates for debugging
                 if (ENABLE_DETAILED_LOGS) {
-                    Log.d(TAG, "=== TOP 5 CANDIDATES DEBUG ===")
+                    SLog.d(TAG, "=== TOP 5 CANDIDATES DEBUG ===")
                     val sortedTop = topIndices.sortedByDescending { it.second }
                     for ((idx, conf) in sortedTop) {
                         val cx = getProp(idx, 0) * MODEL_INPUT_SIZE
@@ -228,31 +229,22 @@ internal class VinDetectorImpl(
 
                         val valid = rightContent > leftContent && bottomContent > topContent
 
-                        Log.d(TAG, "Candidate[$idx]: conf=$conf (obj=$obj, cls=$clsScore)")
-                        Log.d(TAG, "  Raw Model Box: cx=$cx, cy=$cy, w=$w, h=$h")
-                        Log.d(TAG, "  Px Model Box: L=$leftPxModel, T=$topPxModel, R=$rightPxModel, B=$bottomPxModel")
-                        Log.d(TAG, "  Content Box (pre-coerce): L=$leftContent, T=$topContent, R=$rightContent, B=$bottomContent")
-                        Log.d(TAG, "  Valid: $valid")
+                        SLog.d(TAG, "Candidate[$idx]: conf=$conf (obj=$obj, cls=$clsScore)")
+                        SLog.d(TAG, "  Raw Model Box: cx=$cx, cy=$cy, w=$w, h=$h")
+                        SLog.d(TAG, "  Px Model Box: L=$leftPxModel, T=$topPxModel, R=$rightPxModel, B=$bottomPxModel")
+                        SLog.d(TAG, "  Content Box (pre-coerce): L=$leftContent, T=$topContent, R=$rightContent, B=$bottomContent")
+                        SLog.d(TAG, "  Valid: $valid")
                     }
-                }
-
-                // Log detection statistics
-                Log.i(TAG, "Detection stats: maxConfidence=$maxConfidenceSeen, candidatesAboveHalfThresh=$candidatesAboveHalfThreshold, rawBoxes=${rawBoxes.size}")
-
-                if (rawBoxes.isEmpty() && maxConfidenceSeen > 0f) {
-                    Log.w(TAG, "⚠ NO boxes detected! Max confidence was $maxConfidenceSeen (threshold=$confThresh)")
-                    Log.w(TAG, "⚠ Consider lowering threshold or checking model training data")
                 }
 
                 // Apply NMS to reduce duplicates
                 val nmsBoxes = nonMaxSuppression(rawBoxes, NMS_IOU_THRESHOLD)
 
                 val processingTime = System.currentTimeMillis() - startTime
-                Log.i(TAG, "Detection completed in ${processingTime}ms, raw=${rawBoxes.size}, nms=${nmsBoxes.size}")
 
                 if (ENABLE_DETAILED_LOGS && nmsBoxes.isNotEmpty()) {
                     nmsBoxes.forEachIndexed { idx, box ->
-                        Log.d(TAG, "Box[$idx]: confidence=${box.confidence}, coords=(${box.left},${box.top},${box.right},${box.bottom})")
+                        SLog.d(TAG, "Box[$idx]: confidence=${box.confidence}, coords=(${box.left},${box.top},${box.right},${box.bottom})")
                     }
                 }
 
@@ -261,7 +253,7 @@ internal class VinDetectorImpl(
                     processingTimeMs = processingTime
                 )
             } catch (e: Exception) {
-                Log.e(TAG, "Error during VIN detection", e)
+                SLog.e(TAG, "Error during VIN detection", e)
                 DetectionResult(
                     boundingBoxes = emptyList(),
                     processingTimeMs = System.currentTimeMillis() - startTime
@@ -270,7 +262,7 @@ internal class VinDetectorImpl(
         }
 
     override fun preprocessImage(bitmap: Bitmap): Bitmap {
-        Log.d(TAG, "Original bitmap dimensions: ${bitmap.width}x${bitmap.height}")
+        SLog.d(TAG, "Original bitmap dimensions: ${bitmap.width}x${bitmap.height}")
         // Create a square bitmap with MODEL_INPUT_SIZE dimensions
         val scaleFactor = min(
             MODEL_INPUT_SIZE.toFloat() / bitmap.width,
