@@ -3,6 +3,7 @@ package com.syarah.vinscanner.di
 import com.syarah.vinscanner.util.LogTags
 
 import android.content.Context
+import android.os.SystemClock
 import com.syarah.vinscanner.util.SLog
 import android.view.Surface
 import androidx.camera.core.CameraSelector
@@ -55,9 +56,9 @@ internal object VinScannerDependencies {
         if (instance == null) {
             synchronized(this) {
                 if (instance == null) {
-                    SLog.d(TAG, "Initializing VIN Scanner dependencies...")
+                    val startMs = SystemClock.elapsedRealtime()
                     instance = DependencyContainer(appContext.applicationContext)
-                    SLog.d(TAG, "VIN Scanner dependencies initialized successfully")
+                    SLog.w(TAG, "DependencyContainer created in ${SystemClock.elapsedRealtime() - startMs}ms")
                 }
             }
         }
@@ -264,12 +265,13 @@ internal object VinScannerDependencies {
          * Should be created via ViewModelProvider to respect Activity/Fragment lifecycle.
          */
         fun createScannerViewModel(): ScannerViewModel {
+            val startMs = SystemClock.elapsedRealtime()
             return ScannerViewModel(
-                detectVinUseCase = createDetectVinUseCase(),
-                extractTextUseCase = createExtractTextUseCase(),
-                validateVinUseCase = createValidateVinUseCase(),
+                vinValidator = vinValidator,
                 strings = ScannerViewModelStrings.from(appContext)
-            )
+            ).also {
+                SLog.w(TAG, "createScannerViewModel() took ${SystemClock.elapsedRealtime() - startMs}ms")
+            }
         }
 
         /**

@@ -5,6 +5,7 @@ import com.syarah.vinscanner.util.LogTags
 import android.Manifest
 import com.syarah.vinscanner.util.SLog
 import android.graphics.Bitmap
+import android.os.SystemClock
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
@@ -71,6 +72,10 @@ private const val TAG = LogTags.LIBRARY
 internal fun ScannerScreen(
     onVinConfirmed: (VinNumber) -> Unit = {}, onCancelled: () -> Unit = {}
 ) {
+    val screenStartMs = remember { SystemClock.elapsedRealtime() }
+    LaunchedEffect(Unit) {
+        SLog.w(TAG, "ScannerScreen first composition reached after ${SystemClock.elapsedRealtime() - screenStartMs}ms")
+    }
 
     // Create ViewModel with custom factory
     val viewModel: ScannerViewModel = viewModel(
@@ -90,11 +95,11 @@ internal fun ScannerScreen(
     val imageAnalysis = remember { dependencies.createImageAnalysis() }
     val executor = remember { dependencies.createExecutor() }
 
-    // Singletons - safe to access directly
-    val cameraDataSource = dependencies.cameraDataSource
-    val vinDetector = dependencies.vinDetector
-    val textExtractor = dependencies.textExtractor
-    val vinValidator = dependencies.vinValidator
+    // Defer heavy singleton creation until first frame processing on background thread.
+    val cameraDataSourceLazy = remember { lazy { dependencies.cameraDataSource } }
+    val vinDetectorLazy = remember { lazy { dependencies.vinDetector } }
+    val textExtractorLazy = remember { lazy { dependencies.textExtractor } }
+    val vinValidatorLazy = remember { lazy { dependencies.vinValidator } }
 
     // Clean up executor on dispose
     val processingScope = remember { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
@@ -135,12 +140,11 @@ internal fun ScannerScreen(
 
     // Request permission on first launch
     LaunchedEffect(Unit) {
-        SLog.d(TAG, "LaunchedEffect for permission check.")
-        if (!cameraPermissionState.status.isGranted) {
-            SLog.d(TAG, "Permission not granted, launching permission request.")
+        val granted = cameraPermissionState.status.isGranted
+        SLog.w(TAG, "Permission status check result: granted=$granted")
+        if (!granted) {
             cameraPermissionState.launchPermissionRequest()
         } else {
-            SLog.d(TAG, "Permission already granted.")
             viewModel.onEvent(ScannerEvent.PermissionGranted)
         }
     }
@@ -163,10 +167,10 @@ internal fun ScannerScreen(
                         try {
                             processImage(
                                 imageProxy = imageProxy,
-                                cameraDataSource = cameraDataSource,
-                                vinDetector = vinDetector,
-                                textExtractor = textExtractor,
-                                vinValidator = vinValidator,
+                                cameraDataSource = cameraDataSourceLazy.value,
+                                vinDetector = vinDetectorLazy.value,
+                                textExtractor = textExtractorLazy.value,
+                                vinValidator = vinValidatorLazy.value,
                                 onVinDetected = { vin, confidence, croppedBitmap ->
                                     viewModel.onVinDetected(vin, confidence, croppedBitmap)
                                 },

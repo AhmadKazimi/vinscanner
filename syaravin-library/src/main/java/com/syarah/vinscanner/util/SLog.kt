@@ -2,6 +2,8 @@ package com.syarah.vinscanner.util
 
 import android.util.Log
 import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 /**
  * Library-wide structured logger that keeps a single Android log tag and emits
@@ -11,6 +13,8 @@ internal object SLog {
 
     private const val MAX_VALUE_LENGTH = 8_192
     private const val MAX_STACKTRACE_LENGTH = 16_384
+    private val TIMESTAMP_FORMATTER: DateTimeFormatter =
+        DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss a")
 
     private const val DEFAULT_MIN_LEVEL = Log.WARN
 
@@ -53,7 +57,7 @@ internal object SLog {
         val escapedThrowable = escapeJson(
             throwable?.stackTraceToString().orEmpty().take(MAX_STACKTRACE_LENGTH)
         )
-        val timestamp = Instant.now().toString()
+        val timestamp = TIMESTAMP_FORMATTER.format(Instant.now().atZone(ZoneId.systemDefault()))
 
         // OTel-style shape: severityText + body + attributes
         return if (throwable == null) {

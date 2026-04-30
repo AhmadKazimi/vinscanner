@@ -1,5 +1,7 @@
 package com.syarah.vinscanner
 
+import androidx.compose.material3.Typography
+
 /**
  * Main entry point for VIN scanning functionality.
  *
@@ -26,6 +28,9 @@ package com.syarah.vinscanner
  * ```
  */
 object VinScanner {
+    @Volatile
+    internal var typographyOverride: Typography? = null
+
     /**
      * Returns the ActivityResultContract for VIN scanning.
      * Use with registerForActivityResult() in your Activity or Fragment.
@@ -33,7 +38,22 @@ object VinScanner {
     fun Contract(): VinScannerContract = VinScannerContract()
 
     /**
+     * Optional: Provide host-app typography so scanner UI uses the same fonts.
+     * Call once at app startup, e.g. `VinScanner.setTypography(AppTypography)`.
+     */
+    fun setTypography(typography: Typography) {
+        typographyOverride = typography
+    }
+
+    /**
+     * Clears typography override and reverts scanner UI to library default typography.
+     */
+    fun clearTypographyOverride() {
+        typographyOverride = null
+    }
+
+    /**
      * Library version
      */
-    const val VERSION = "1.2.8"
+    const val VERSION = "1.2.81"
 }

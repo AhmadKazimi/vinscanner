@@ -4,10 +4,8 @@ import android.graphics.Bitmap
 import com.syarah.vinscanner.util.SLog
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.syarah.vinscanner.data.datasource.validator.VinValidator
 import com.syarah.vinscanner.domain.model.VinNumber
-import com.syarah.vinscanner.domain.usecase.DetectVinUseCase
-import com.syarah.vinscanner.domain.usecase.ExtractTextUseCase
-import com.syarah.vinscanner.domain.usecase.ValidateVinUseCase
 import com.syarah.vinscanner.util.LogTags
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,9 +21,7 @@ private const val TAG = LogTags.LIBRARY
  * ViewModel for the scanner screen
  */
 internal class ScannerViewModel(
-    private val detectVinUseCase: DetectVinUseCase,
-    private val extractTextUseCase: ExtractTextUseCase,
-    private val validateVinUseCase: ValidateVinUseCase,
+    private val vinValidator: VinValidator,
     private val strings: ScannerViewModelStrings
 ) : ViewModel() {
 
@@ -52,8 +48,8 @@ internal class ScannerViewModel(
             return
         }
 
+        SLog.w(TAG, "startScanning invoked")
         _state.update { it.copy(isScanning = true, errorMessage = null) }
-        SLog.d(TAG, "Starting VIN scanning")
 
         // Scanning logic will be implemented in the UI layer with CameraX
         // The ViewModel will receive detected VINs through events
@@ -73,6 +69,9 @@ internal class ScannerViewModel(
     }
 
     private fun updatePermissionStatus(granted: Boolean) {
+        if (granted) {
+            SLog.w(TAG, "PermissionGranted event handled")
+        }
         _state.update { it.copy(hasPermission = granted) }
         if (granted) {
             startScanning()
@@ -108,7 +107,8 @@ internal class ScannerViewModel(
             if (_state.value.detectedVin?.value == vin) return@launch
 
             val validatedVin = withContext(Dispatchers.Default) {
-                validateVinUseCase(vin)
+                val validationResult = vinValidator.validate(vin)
+                VinNumber(value = vin, isValid = validationResult.isValid)
             }
             _state.update {
                 it.copy(
@@ -126,7 +126,8 @@ internal class ScannerViewModel(
             try {
                 // Validate the VIN
                 val validatedVin = withContext(Dispatchers.Default) {
-                    validateVinUseCase(vin)
+                    val validationResult = vinValidator.validate(vin)
+                    VinNumber(value = vin, isValid = validationResult.isValid)
                 }
 
                 // Update state with the result, including the cropped bitmap

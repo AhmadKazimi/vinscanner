@@ -10,6 +10,7 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import com.syarah.vinscanner.VinScanner
 
 private val DarkColorScheme = darkColorScheme(
 	primary = Purple80,
@@ -52,7 +53,7 @@ internal fun SyaravinTheme(
 
 	MaterialTheme(
 		colorScheme = colorScheme,
-		typography = Typography,
+		typography = VinScanner.typographyOverride ?: Typography,
 		content = content
 	)
 }
