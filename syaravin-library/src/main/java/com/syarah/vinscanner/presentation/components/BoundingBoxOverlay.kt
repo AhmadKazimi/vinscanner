@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import com.syarah.vinscanner.domain.model.BoundingBox
+import com.syarah.vinscanner.util.ScannerPerfConfig
 
 /**
  * Composable that draws bounding boxes over detected VIN regions
@@ -33,6 +34,12 @@ internal fun BoundingBoxOverlay(
     Canvas(
         modifier = modifier.fillMaxSize()
     ) {
+        val renderStartNs = System.nanoTime()
+        val textPaint = android.graphics.Paint().apply {
+            this.color = color.toArgb()
+            textSize = 40f
+            isAntiAlias = true
+        }
         boundingBoxes.forEach { box ->
             // Draw bounding box
             drawRect(
@@ -51,21 +58,16 @@ internal fun BoundingBoxOverlay(
             // Draw confidence score if high enough
             if (box.confidence > 0.25f) {
                 drawIntoCanvas { canvas ->
-                    val paint = android.graphics.Paint().apply {
-                        this.color = color.toArgb()
-                        textSize = 40f
-                        isAntiAlias = true
-                    }
-
                     val confidenceText = "${(box.confidence * 100).toInt()}%"
                     canvas.nativeCanvas.drawText(
                         confidenceText,
                         box.left * size.width + 10,
                         box.top * size.height - 10,
-                        paint
+                        textPaint
                     )
                 }
             }
         }
+        ScannerPerfConfig.overlayTiming.log(System.nanoTime() - renderStartNs)
     }
 }

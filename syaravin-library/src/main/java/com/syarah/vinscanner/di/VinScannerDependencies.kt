@@ -25,9 +25,11 @@ import com.syarah.vinscanner.domain.usecase.ValidateVinUseCase
 import com.syarah.vinscanner.presentation.scanner.ScannerViewModel
 import com.syarah.vinscanner.presentation.scanner.ScannerViewModelStrings
 import com.syarah.vinscanner.util.VinDecoder
+import com.syarah.vinscanner.util.ScannerPerfConfig
 import org.tensorflow.lite.Interpreter
 import org.tensorflow.lite.gpu.CompatibilityList
 import org.tensorflow.lite.gpu.GpuDelegate
+import org.tensorflow.lite.nnapi.NnApiDelegate
 import java.io.FileInputStream
 import java.nio.channels.FileChannel
 import java.util.concurrent.ExecutorService
@@ -124,21 +126,38 @@ internal object VinScannerDependencies {
 
             // Configure interpreter options
             val options = Interpreter.Options().apply {
-                setNumThreads(4)
+                setNumThreads(ScannerPerfConfig.interpreterThreads)
+                setUseXNNPACK(ScannerPerfConfig.useXnnpack)
 
-                // Use GPU delegate if available
-                val compatibilityList = CompatibilityList()
-                if (compatibilityList.isDelegateSupportedOnThisDevice) {
-                    SLog.d(TAG, "GPU delegate is supported, enabling...")
-                    val delegateOptions = compatibilityList.bestOptionsForThisDevice
-                    addDelegate(GpuDelegate(delegateOptions))
-                    SLog.d(TAG, "GPU delegate added successfully")
-                } else {
-                    SLog.d(TAG, "GPU delegate not supported on this device")
+                when (ScannerPerfConfig.delegateMode) {
+                    "cpu", "xnnpack" -> {
+                        SLog.w(
+                            TAG,
+                            "TFLite delegate mode=${ScannerPerfConfig.delegateMode}, xnnpack=${ScannerPerfConfig.useXnnpack}, threads=${ScannerPerfConfig.interpreterThreads}"
+                        )
+                    }
+                    "nnapi" -> {
+                        addDelegate(NnApiDelegate())
+                        SLog.w(TAG, "TFLite delegate mode=nnapi, threads=${ScannerPerfConfig.interpreterThreads}")
+                    }
+                    "gpu" -> {
+                        val compatibilityList = CompatibilityList()
+                        if (compatibilityList.isDelegateSupportedOnThisDevice) {
+                            val delegateOptions = compatibilityList.bestOptionsForThisDevice
+                            addDelegate(GpuDelegate(delegateOptions))
+                            SLog.w(TAG, "TFLite delegate mode=gpu, threads=${ScannerPerfConfig.interpreterThreads}")
+                        } else {
+                            SLog.w(TAG, "GPU delegate not supported, falling back to CPU/XNNPACK")
+                        }
+                    }
+                    else -> {
+                        SLog.w(TAG, "Unknown delegate mode=${ScannerPerfConfig.delegateMode}, using CPU/XNNPACK")
+                    }
                 }
             }
 
             val interpreter = Interpreter(modelBuffer, options)
+            interpreter.allocateTensors()
             SLog.d(TAG, "TensorFlow Lite Interpreter created successfully")
             interpreter
         }
@@ -221,7 +240,12 @@ internal object VinScannerDependencies {
         fun createImageAnalysis(): ImageAnalysis {
             return ImageAnalysis.Builder()
                 .setTargetRotation(Surface.ROTATION_0)
-                .setTargetResolution(android.util.Size(540, 960))
+                .setTargetResolution(
+                    android.util.Size(
+                        ScannerPerfConfig.imageAnalysisWidth,
+                        ScannerPerfConfig.imageAnalysisHeight
+                    )
+                )
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                 .build()
         }

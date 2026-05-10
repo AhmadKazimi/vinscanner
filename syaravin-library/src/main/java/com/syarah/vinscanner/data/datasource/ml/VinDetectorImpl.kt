@@ -15,6 +15,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.min
 import kotlin.math.max
+import java.util.concurrent.atomic.AtomicBoolean
 
 private const val TAG = LogTags.LIBRARY
 private const val ENABLE_DETAILED_LOGS = false
@@ -42,6 +43,10 @@ internal class VinDetectorImpl(
     ).apply {
         order(ByteOrder.nativeOrder())
     }
+    private val warmupDone = AtomicBoolean(false)
+    @Volatile private var cachedOutputDimA = -1
+    @Volatile private var cachedOutputDimB = -1
+    @Volatile private var cachedOutputDynamic: Array<Array<FloatArray>>? = null
 
     override suspend fun detect(bitmap: Bitmap, confidenceThreshold: Float): DetectionResult =
         withContext(Dispatchers.Default) {
@@ -54,6 +59,7 @@ internal class VinDetectorImpl(
             }
 
             try {
+                maybeWarmupInterpreter()
                 // Compute letterbox parameters (to later unmap predictions)
                 val scaleFactor = min(
                     MODEL_INPUT_SIZE.toFloat() / bitmap.width,
@@ -75,13 +81,13 @@ internal class VinDetectorImpl(
                 }
                 convertBitmapToByteBuffer(preprocessedBitmap)
                 
-                // Prepare dynamic output buffer based on actual tensor shape
+                // Reuse output buffer for the configured model output shape.
                 val outShape = interpreter.getOutputTensor(0).shape()
                 // Expected formats (examples): [1, 8400, 6] or [1, 6, 8400] or [1, 8400, 85] / [1, 85, 8400]
                 require(outShape.size == 3) { "Unexpected output tensor rank: ${outShape.contentToString()}" }
                 val dimA = outShape[1]
                 val dimB = outShape[2]
-                val outputDynamic: Array<Array<FloatArray>> = Array(1) { Array(dimA) { FloatArray(dimB) } }
+                val outputDynamic = getOrCreateOutputBuffer(dimA, dimB)
                 val outputMap = mapOf(0 to outputDynamic)
 
                 // Run inference
@@ -260,6 +266,31 @@ internal class VinDetectorImpl(
                 )
             }
         }
+
+    private fun maybeWarmupInterpreter() {
+        if (warmupDone.compareAndSet(false, true)) {
+            repeat(3) {
+                imgData.rewind()
+                val outShape = interpreter.getOutputTensor(0).shape()
+                val dimA = outShape[1]
+                val dimB = outShape[2]
+                val warmupOutput = getOrCreateOutputBuffer(dimA, dimB)
+                interpreter.runForMultipleInputsOutputs(arrayOf(imgData), mapOf(0 to warmupOutput))
+            }
+        }
+    }
+
+    private fun getOrCreateOutputBuffer(dimA: Int, dimB: Int): Array<Array<FloatArray>> {
+        val cached = cachedOutputDynamic
+        if (cached != null && dimA == cachedOutputDimA && dimB == cachedOutputDimB) {
+            return cached
+        }
+        val created = Array(1) { Array(dimA) { FloatArray(dimB) } }
+        cachedOutputDimA = dimA
+        cachedOutputDimB = dimB
+        cachedOutputDynamic = created
+        return created
+    }
 
     override fun preprocessImage(bitmap: Bitmap): Bitmap {
         SLog.d(TAG, "Original bitmap dimensions: ${bitmap.width}x${bitmap.height}")

@@ -16,6 +16,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
+import com.syarah.vinscanner.util.ScannerPerfConfig
+import com.syarah.vinscanner.util.ThrottledDurationLogger
 
 private const val TAG = LogTags.LIBRARY
 
@@ -25,6 +27,9 @@ private const val TAG = LogTags.LIBRARY
 internal class CameraDataSourceImpl(
     private val context: Context
 ) : CameraDataSource {
+    private val imageToBitmapTiming = ThrottledDurationLogger("image_to_bitmap_total", 30, ScannerPerfConfig.perfLogsEnabled)
+    private val yuvToRgbTiming = ThrottledDurationLogger("yuv_to_rgb_direct", 30, ScannerPerfConfig.perfLogsEnabled)
+    private val rotateTiming = ThrottledDurationLogger("bitmap_rotate", 30, ScannerPerfConfig.perfLogsEnabled)
 
     override fun startCamera(): Flow<ImageProxy> = callbackFlow {
         // Camera flow will be implemented with CameraX in the presentation layer
@@ -39,9 +44,14 @@ internal class CameraDataSourceImpl(
     }
 
     override fun imageToBitmap(imageProxy: ImageProxy): Bitmap {
+        val startNs = System.nanoTime()
         return when (imageProxy.format) {
-            ImageFormat.YUV_420_888 -> convertYuvToBitmap(imageProxy)
-            ImageFormat.NV21, ImageFormat.NV16 -> convertYuvToBitmap(imageProxy)
+            ImageFormat.YUV_420_888 -> convertYuvToBitmap(imageProxy).also {
+                imageToBitmapTiming.log(System.nanoTime() - startNs)
+            }
+            ImageFormat.NV21, ImageFormat.NV16 -> convertYuvToBitmap(imageProxy).also {
+                imageToBitmapTiming.log(System.nanoTime() - startNs)
+            }
             else -> throw IllegalArgumentException("Unsupported image format: ${imageProxy.format}")
         }
     }
@@ -64,6 +74,7 @@ internal class CameraDataSourceImpl(
      * Eliminates JPEG compression artifacts that degrade AI detection.
      */
     private fun convertYuvToBitmapDirect(imageProxy: ImageProxy): Bitmap {
+        val conversionStartNs = System.nanoTime()
         val yBuffer = imageProxy.planes[0].buffer
         val uBuffer = imageProxy.planes[1].buffer
         val vBuffer = imageProxy.planes[2].buffer
@@ -111,9 +122,13 @@ internal class CameraDataSourceImpl(
         }
 
         bitmap.setPixels(pixels, 0, width, 0, 0, width, height)
+        yuvToRgbTiming.log(System.nanoTime() - conversionStartNs)
 
         // Rotate bitmap if needed (preserve existing rotation handling)
-        return rotateBitmap(bitmap, imageProxy.imageInfo.rotationDegrees)
+        val rotateStartNs = System.nanoTime()
+        val rotated = rotateBitmap(bitmap, imageProxy.imageInfo.rotationDegrees)
+        rotateTiming.log(System.nanoTime() - rotateStartNs)
+        return rotated
     }
 
     /**
@@ -189,4 +204,5 @@ internal class CameraDataSourceImpl(
             true
         )
     }
+
 }

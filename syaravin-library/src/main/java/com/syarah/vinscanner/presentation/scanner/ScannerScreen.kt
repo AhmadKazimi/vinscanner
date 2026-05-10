@@ -51,6 +51,7 @@ import com.syarah.vinscanner.ui.theme.RoiNeutralBorder
 import com.syarah.vinscanner.ui.theme.RoiValidBorder
 import com.syarah.vinscanner.util.ImagePreprocessor
 import com.syarah.vinscanner.util.RoiConfig
+import com.syarah.vinscanner.util.ScannerPerfConfig
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.TimeUnit
@@ -159,13 +160,15 @@ internal fun ScannerScreen(
                 val currentTime = System.currentTimeMillis()
                 val previousTime = lastProcessTime.get()
 
-                if (currentTime - previousTime >= 500L &&
+                if (currentTime - previousTime >= ScannerPerfConfig.inferenceIntervalMs &&
                     isProcessingFrame.compareAndSet(false, true)
                 ) {
                     lastProcessTime.set(currentTime)
+                    val frameReceivedNs = System.nanoTime()
                     processingScope.launch {
                         try {
                             processImage(
+                                frameReceivedNs = frameReceivedNs,
                                 imageProxy = imageProxy,
                                 cameraDataSource = cameraDataSourceLazy.value,
                                 vinDetector = vinDetectorLazy.value,
@@ -190,6 +193,7 @@ internal fun ScannerScreen(
                         }
                     }
                 } else {
+                    ScannerPerfConfig.frameTiming.onFrameDropped()
                     imageProxy.close()
                 }
             }
@@ -405,6 +409,7 @@ internal fun ScannerScreen(
 }
 
 private suspend fun processImage(
+    frameReceivedNs: Long,
     imageProxy: ImageProxy,
     cameraDataSource: CameraDataSource,
     vinDetector: VinDetector,
@@ -415,12 +420,20 @@ private suspend fun processImage(
     onRoiBorderStateChange: (RoiBorderState) -> Unit,
     onRoiBitmapCaptured: (Bitmap) -> Unit
 ) {
+    var stageImageToBitmapNs = 0L
+    var stageRoiCropNs = 0L
+    var stageDetectionNs = 0L
+    var stageTextNs = 0L
+    var stagePostNs = 0L
     try {
         // Convert ImageProxy to Bitmap
+        val imageToBitmapStartNs = System.nanoTime()
         val bitmap = cameraDataSource.imageToBitmap(imageProxy)
+        stageImageToBitmapNs = System.nanoTime() - imageToBitmapStartNs
 
         try {
             // Crop to ROI first to reduce noise and improve accuracy
+            val roiCropStartNs = System.nanoTime()
             val roi = RoiConfig.roi
             val leftPx = (roi.left * bitmap.width).toInt().coerceIn(0, bitmap.width - 1)
             val topPx = (roi.top * bitmap.height).toInt().coerceIn(0, bitmap.height - 1)
@@ -454,6 +467,7 @@ private suspend fun processImage(
                 SLog.e(TAG, "Failed to crop to ROI, falling back to full image", e)
                 bitmap
             }
+            stageRoiCropNs = System.nanoTime() - roiCropStartNs
 
             var allText: List<String> = emptyList()
             var bestVin: String? = null
@@ -462,7 +476,9 @@ private suspend fun processImage(
 
             try {
                 // Run object detection to get bounding boxes on ROI image
+                val detectionStartNs = System.nanoTime()
                 val detectionResult = vinDetector.detect(processedBitmap)
+                stageDetectionNs = System.nanoTime() - detectionStartNs
                 val boxes = detectionResult.boundingBoxes
                 val mappedBoxes = if (shouldCrop) {
                     val roiWidthNorm = roi.right - roi.left
@@ -487,6 +503,7 @@ private suspend fun processImage(
                 }
 
                 // Try OCR inside each detected box first (sorted by confidence)
+                val textStartNs = System.nanoTime()
                 for (box in boxes.sortedByDescending { it.confidence }) {
                     val textInBox = textExtractor.extractText(processedBitmap, box)
                     if (!textInBox.isNullOrBlank()) {
@@ -524,6 +541,7 @@ private suspend fun processImage(
 
                 // Extract all text from the ROI image
                 allText = textExtractor.extractAllText(processedBitmap)
+                stageTextNs = System.nanoTime() - textStartNs
 
                 // If none found from boxes, fall back to ROI text lines and require validation
                 /* Fallback disabled by user request - rely on AI detection only
@@ -553,11 +571,13 @@ private suspend fun processImage(
 
 
             // If a VIN was found, report it
+            val postStartNs = System.nanoTime()
             if (bestVin != null) {
                 SLog.d(TAG, "VIN detected with confidence=$bestConfidence")
                 onRoiBorderStateChange(RoiBorderState.VALID_VIN_DETECTED)
                 onVinDetected(bestVin, bestConfidence, croppedVinBitmap)
             }
+            stagePostNs = System.nanoTime() - postStartNs
 
         } catch (cancelled: CancellationException) {
             throw cancelled
@@ -574,6 +594,14 @@ private suspend fun processImage(
     } catch (e: Exception) {
         SLog.e(TAG, "Error converting image", e)
     } finally {
+        val totalNs = System.nanoTime() - frameReceivedNs
+        val stageSummary =
+            "camera_to_bitmap_ms=${"%.2f".format(stageImageToBitmapNs / 1_000_000.0)} " +
+                "roi_crop_ms=${"%.2f".format(stageRoiCropNs / 1_000_000.0)} " +
+                "detect_ms=${"%.2f".format(stageDetectionNs / 1_000_000.0)} " +
+                "ocr_ms=${"%.2f".format(stageTextNs / 1_000_000.0)} " +
+                "post_ms=${"%.2f".format(stagePostNs / 1_000_000.0)}"
+        ScannerPerfConfig.frameTiming.onFrameFinished(totalNs, stageSummary)
         imageProxy.close()
     }
 }
