@@ -1,14 +1,14 @@
 package com.kazimi.sample
 
-import android.graphics.Bitmap
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
@@ -21,28 +21,17 @@ import com.syarah.vinscanner.domain.model.VinNumber
 
 class MainActivity : ComponentActivity() {
 
+    private val viewModel: MainViewModel by viewModels()
+
     private val vinScannerLauncher = registerForActivityResult(
         VinScanner.Contract()
     ) { result ->
         when (result) {
-            is VinScanResult.Success -> {
-                // Store VinNumber to access bitmap
-                scannedVin = result.vinNumber
-                resultMessage = null
-            }
-            is VinScanResult.Cancelled -> {
-                scannedVin = null
-                resultMessage = "Scan cancelled by user"
-            }
-            is VinScanResult.Error -> {
-                scannedVin = null
-                resultMessage = "Error: ${result.message}"
-            }
+            is VinScanResult.Success -> viewModel.onScanSuccess(result.vinNumber)
+            is VinScanResult.Cancelled -> viewModel.onScanCancelled()
+            is VinScanResult.Error -> viewModel.onScanError(result.message)
         }
     }
-
-    private var scannedVin by mutableStateOf<VinNumber?>(null)
-    private var resultMessage by mutableStateOf<String?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,8 +43,8 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     SampleAppScreen(
-                        scannedVin = scannedVin,
-                        resultMessage = resultMessage,
+                        scannedVin = viewModel.scannedVin,
+                        resultMessage = viewModel.resultMessage,
                         onScanClick = {
                             vinScannerLauncher.launch(Unit)
                         }

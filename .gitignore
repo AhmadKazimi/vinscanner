@@ -19,3 +19,4 @@ local.properties
 
 # Bitbucket credentials - DO NOT COMMIT
 gradle.properties
+.kotlin/*

@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import androidx.activity.result.contract.ActivityResultContract
+import androidx.core.content.IntentCompat
 import com.syarah.vinscanner.domain.model.VinNumber
 
 /**
@@ -33,7 +34,7 @@ class VinScannerContract : ActivityResultContract<Unit, VinScanResult>() {
     override fun parseResult(resultCode: Int, intent: Intent?): VinScanResult {
         return when (resultCode) {
             Activity.RESULT_OK -> {
-                intent?.getParcelableExtra<VinNumber>(EXTRA_VIN_RESULT)?.let {
+                intent?.let { IntentCompat.getParcelableExtra(it, EXTRA_VIN_RESULT, VinNumber::class.java) }?.let {
                     VinScanResult.Success(it)
                 } ?: VinScanResult.Error("Invalid result data")
             }
