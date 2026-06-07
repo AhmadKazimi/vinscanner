@@ -8,6 +8,8 @@ import com.syarah.vinscanner.util.SLog
 import android.view.Surface
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.resolutionselector.ResolutionSelector
+import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.core.Preview
 import com.syarah.vinscanner.data.datasource.camera.CameraDataSource
 import com.syarah.vinscanner.data.datasource.camera.CameraDataSourceImpl
@@ -240,11 +242,18 @@ internal object VinScannerDependencies {
         fun createImageAnalysis(): ImageAnalysis {
             return ImageAnalysis.Builder()
                 .setTargetRotation(Surface.ROTATION_0)
-                .setTargetResolution(
-                    android.util.Size(
-                        ScannerPerfConfig.imageAnalysisWidth,
-                        ScannerPerfConfig.imageAnalysisHeight
-                    )
+                .setResolutionSelector(
+                    ResolutionSelector.Builder()
+                        .setResolutionStrategy(
+                            ResolutionStrategy(
+                                android.util.Size(
+                                    ScannerPerfConfig.imageAnalysisWidth,
+                                    ScannerPerfConfig.imageAnalysisHeight
+                                ),
+                                ResolutionStrategy.FALLBACK_RULE_CLOSEST_LOWER_THEN_HIGHER
+                            )
+                        )
+                        .build()
                 )
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                 .build()

@@ -45,8 +45,9 @@ internal object ScannerPerfConfig {
 
     val delegateMode: String =
         System.getProperty("syaravin.perf.tflite.delegate", "gpu")
-            .trim()
-            .lowercase()
+            ?.trim()
+            ?.lowercase()
+            ?: "gpu"
 
     val useXnnpack: Boolean =
         java.lang.Boolean.parseBoolean(
