@@ -2,6 +2,12 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Before modifying anything
+
+Read `docs/INDEX.md` first. It lists every topic doc and tells you which file to read for your specific change. Only read the files relevant to what you are about to touch — do not read the full set.
+
+The `syaravin-library/CODEBASE.md` is a full reference; the `docs/` files are the fast-lookup equivalent split by topic.
+
 ## Project Overview
 
 Syaravin is an Android VIN (Vehicle Identification Number) scanner application that performs real-time detection and validation using:
@@ -87,12 +93,10 @@ Syaravin is an Android VIN (Vehicle Identification Number) scanner application t
 - `BoundingBoxOverlay.kt` - Real-time detection visualization
 - `RoiOverlay.kt` - Region of Interest visualization for focused scanning
 
-**Dependency Injection** (registered in `SyarahvinApplication.kt`):
-- `appModule` - Application-level dependencies and utilities
-- `cameraModule` - Camera data source and executor services
-- `mlModule` - TFLite interpreter, text extractor, validator (all as `single`)
-- `repositoryModule` - Repository implementations
-- `viewModelModule` - ViewModels with `viewModelOf` scope
+**Dependency Injection**:
+- The **library** (`syaravin-library`) uses manual DI via `VinScannerDependencies` — no Koin inside the library
+- The **sample app** uses Koin (registered in `SyarahvinApplication.kt`): `appModule`, `cameraModule`, `mlModule`, `repositoryModule`, `viewModelModule`
+- See `docs/di.md` for the library DI details
 
 **Performance & Optimization**:
 - `ThermalManager.kt` - Frame rate and processing time monitoring to prevent overheating

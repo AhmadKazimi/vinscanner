@@ -61,6 +61,10 @@ internal class VinValidatorImpl(
             'A' to '4', '4' to 'A',
             'G' to '6', '6' to 'G'
         )
+
+        private val VIN_LABEL_PREFIX = Regex("""(?i)^\s*VIN(?:\s*(?:NUMBER|NO|#))?\s*[:#=–—\-]?\s*""")
+        private val VIN_BODY_PREFIX = Regex("""^VIN\s*[:#=–—\-]?\s*""")
+        private val VIN_PATTERN = Regex("""[A-HJ-NPR-Z0-9]{17}""")
     }
 
     override fun validate(vin: String): VinValidationResult {
@@ -124,12 +128,14 @@ internal class VinValidatorImpl(
 
 
         // 4. Validate Checksum, trying permutations for ambiguous characters (bounded)
-        if (validateChecksumWithPermutations(extractedVin)) {
+        val checksumVin = validateChecksumWithPermutations(extractedVin)
+        if (checksumVin != null) {
             val result = VinValidationResult(
                 isValid = true,
                 checksumValid = true,
                 formatValid = true,
-                wasTrimmed = wasTrimmed
+                wasTrimmed = wasTrimmed,
+                correctedVin = checksumVin
             )
             SLog.d(TAG, "Validation result for '$vin': $result")
             return result
@@ -158,9 +164,7 @@ internal class VinValidatorImpl(
         return extractedVin ?: ""
     }
     private fun stripLeadingVinLabel(text: String): String {
-        // Remove optional leading label like "VIN:", "vin - ", "VIN no", "VIN#", etc. (case-insensitive)
-        val pattern = Regex("(?i)^\\s*VIN(?:\\s*(?:NUMBER|NO|#))?\\s*[:#=\\u2013\\u2014\\-]?\\s*")
-        return text.replaceFirst(pattern, "")
+        return text.replaceFirst(VIN_LABEL_PREFIX, "")
     }
 
 
@@ -169,35 +173,32 @@ internal class VinValidatorImpl(
     }
 
     private fun extractVin(text: String): Pair<String?, Boolean> {
-        // Normalize input and remove an optional leading "VIN" label with separators (e.g., "VIN:", "Vin - ", etc.)
         val normalized = text.trim().uppercase()
-            .replaceFirst(Regex("^VIN\\s*[:#=\u2013\u2014\\-]?\\s*"), "")
+            .replaceFirst(VIN_BODY_PREFIX, "")
 
-        // Trim invalid characters from START
         val trimmedStart = normalized.dropWhile { it !in 'A'..'Z' && it !in '0'..'9' }
-
-        // Trim invalid characters from END
         val trimmedBoth = trimmedStart.dropLastWhile { it !in 'A'..'Z' && it !in '0'..'9' }
+        val wasTrimmed = normalized != trimmedBoth
 
-        // Track if trimming occurred
-        val wasTrimmed = (normalized != trimmedBoth)
-
-        // Check if there are invalid characters IN THE MIDDLE (after trimming start/end)
-        val hasMiddleInvalidChars = trimmedBoth.any {
-            it !in 'A'..'Z' && it !in '0'..'9'
+        // Try regex directly — handles trailing OCR noise like "\nMPY" because the pattern
+        // requires 17 consecutive valid VIN chars, so whitespace/newlines act as natural breaks.
+        val match = VIN_PATTERN.find(trimmedBoth)
+        if (match != null) {
+            return Pair(match.value, wasTrimmed || match.value != trimmedBoth)
         }
 
-        if (hasMiddleInvalidChars) {
-            // Invalid! Characters like "ERA:PPSNAE..." have invalid chars in middle
-            SLog.w(TAG, "Invalid characters found in middle of VIN: $trimmedBoth")
-            return Pair(null, wasTrimmed)
+        // Try again with whitespace collapsed — handles OCR-inserted spaces inside the VIN
+        // e.g. "1FMSKBBB0MGC2 1557" → "1FMSKBBB0MGC21557"
+        val noWhitespace = trimmedBoth.filter { !it.isWhitespace() }
+        if (noWhitespace.length >= 17) {
+            val matchNoWs = VIN_PATTERN.find(noWhitespace)
+            if (matchNoWs != null) {
+                return Pair(matchNoWs.value, true)
+            }
         }
 
-        // Now we have a clean alphanumeric string, find 17-char VIN (exclude I, O, Q)
-        val vinRegex = Regex("[A-HJ-NPR-Z0-9]{17}")
-        val match = vinRegex.find(trimmedBoth)
-
-        return Pair(match?.value, wasTrimmed)
+        SLog.w(TAG, "No valid 17-char VIN sequence found in: $trimmedBoth")
+        return Pair(null, wasTrimmed)
     }
 
 
@@ -227,8 +228,8 @@ internal class VinValidatorImpl(
         return isValid
     }
 
-    private fun validateChecksumWithPermutations(vin: String): Boolean {
-        // Prefer the original string; allow at most 1 ambiguous substitution
+    private fun validateChecksumWithPermutations(vin: String): String? {
+        // Returns the checksum-passing VIN (original or a 1-position ambiguous substitution), or null.
         val maxChanges = 1
         data class Node(val value: String, val changes: Int)
 
@@ -244,12 +245,11 @@ internal class VinValidatorImpl(
 
             if (validateChecksum(currentVin)) {
                 SLog.i(TAG, "Valid checksum found for permutation: $currentVin")
-                return true
+                return currentVin
             }
 
             if (node.changes >= maxChanges) continue
 
-            // Generate next level of permutations (single-position swaps only)
             for (i in currentVin.indices) {
                 val char = currentVin[i]
                 val swappedChar = AMBIGUOUS_CHARS[char]
@@ -261,6 +261,6 @@ internal class VinValidatorImpl(
                 }
             }
         }
-        return false
+        return null
     }
 }

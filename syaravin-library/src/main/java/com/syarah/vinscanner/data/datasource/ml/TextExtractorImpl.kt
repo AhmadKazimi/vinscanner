@@ -45,9 +45,19 @@ internal class TextExtractorImpl(
     private val warmupRequested = AtomicBoolean(false)
     @Volatile
     private var skipOcrForSession = false
+    private val mlKitPresent: Boolean by lazy {
+        try {
+            Class.forName("com.google.mlkit.vision.text.TextRecognition")
+            Class.forName("com.google.mlkit.vision.text.latin.TextRecognizerOptions")
+            true
+        } catch (t: Throwable) {
+            SLog.w(TAG, "ML Kit runtime classes are not available", t)
+            false
+        }
+    }
 
     init {
-        if (!isGooglePlayServicesReady() || !isMlKitRuntimePresent()) {
+        if (!isGooglePlayServicesReady() || !mlKitPresent) {
             skipOcrForSession = true
             requestMlKitWarmupInBackground()
         }
@@ -67,7 +77,7 @@ internal class TextExtractorImpl(
                     SLog.d(TAG, "Expanded box from ${cropRect.width()}x${cropRect.height()} to ${expandedRect.width()}x${expandedRect.height()}")
                 }
 
-                val cropped = Bitmap.createBitmap(
+                var cropped = Bitmap.createBitmap(
                     bitmap,
                     expandedRect.left,
                     expandedRect.top,
@@ -75,13 +85,23 @@ internal class TextExtractorImpl(
                     expandedRect.height()
                 )
 
-                // Detect rotation angle for better OCR on angled text
-                val rotationDegrees = detectRotation(cropped)
-                if (rotationDegrees != 0) {
-                    SLog.d(TAG, "Detected text rotation: $rotationDegrees degrees")
+                // Upscale if the bitmap itself was too small to reach 32px via re-anchoring
+                if (cropped.width < ML_KIT_MIN_SIZE || cropped.height < ML_KIT_MIN_SIZE) {
+                    val scale = maxOf(
+                        ML_KIT_MIN_SIZE.toFloat() / cropped.width,
+                        ML_KIT_MIN_SIZE.toFloat() / cropped.height
+                    )
+                    val scaled = Bitmap.createScaledBitmap(
+                        cropped,
+                        (cropped.width * scale).toInt().coerceAtLeast(ML_KIT_MIN_SIZE),
+                        (cropped.height * scale).toInt().coerceAtLeast(ML_KIT_MIN_SIZE),
+                        true
+                    )
+                    cropped.recycle()
+                    cropped = scaled
                 }
 
-                val image = InputImage.fromBitmap(cropped, rotationDegrees)
+                val image = InputImage.fromBitmap(cropped, 0)
                 val result = recognizer.process(image).await()
                 result.text.takeIf { it.isNotBlank() }
             } catch (e: Exception) {
@@ -141,14 +161,14 @@ internal class TextExtractorImpl(
     }
 
     private fun getRecognizerOrNull(): TextRecognizer? {
-        if (skipOcrForSession && isGooglePlayServicesReady() && isMlKitRuntimePresent()) {
+        if (skipOcrForSession && isGooglePlayServicesReady() && mlKitPresent) {
             skipOcrForSession = false
             SLog.i(TAG, "ML Kit became available during session, re-enabling OCR")
         }
 
         if (skipOcrForSession) return null
 
-        if (!isGooglePlayServicesReady() || !isMlKitRuntimePresent()) {
+        if (!isGooglePlayServicesReady() || !mlKitPresent) {
             skipOcrForSession = true
             requestMlKitWarmupInBackground()
             return null
@@ -174,22 +194,11 @@ internal class TextExtractorImpl(
         }
     }
 
-    private fun isMlKitRuntimePresent(): Boolean {
-        return try {
-            Class.forName("com.google.mlkit.vision.text.TextRecognition")
-            Class.forName("com.google.mlkit.vision.text.latin.TextRecognizerOptions")
-            true
-        } catch (t: Throwable) {
-            SLog.w(TAG, "ML Kit runtime classes are not available", t)
-            false
-        }
-    }
-
     private fun requestMlKitWarmupInBackground() {
         if (!warmupRequested.compareAndSet(false, true)) return
 
         backgroundScope.launch {
-            if (!isMlKitRuntimePresent()) return@launch
+            if (!mlKitPresent) return@launch
 
             try {
                 val requestBuilder = ModuleInstallRequest.newBuilder()
@@ -207,7 +216,7 @@ internal class TextExtractorImpl(
                     SLog.i(TAG, "ML Kit OCR module install requested in background")
                 }
 
-                if (isGooglePlayServicesReady() && isMlKitRuntimePresent()) {
+                if (isGooglePlayServicesReady() && mlKitPresent) {
                     skipOcrForSession = false
                 }
             } catch (t: Throwable) {
@@ -247,34 +256,36 @@ internal class TextExtractorImpl(
 
     /**
      * Ensures a bounding box meets ML Kit's minimum size requirement (32x32 pixels).
-     * Expands the box equally in all directions while staying within bitmap bounds.
+     * Expands symmetrically first, then re-anchors against the opposite edge if a boundary
+     * clamp would leave the dimension still below the minimum.
      */
     private fun ensureMinimumSize(rect: Rect, bitmapWidth: Int, bitmapHeight: Int): Rect {
-        var width = rect.width()
-        var height = rect.height()
+        if (rect.width() >= ML_KIT_MIN_SIZE && rect.height() >= ML_KIT_MIN_SIZE) return rect
 
-        // Check if expansion is needed
-        if (width >= ML_KIT_MIN_SIZE && height >= ML_KIT_MIN_SIZE) {
-            return rect // Already meets minimum size
+        var left = rect.left
+        var top = rect.top
+        var right = rect.right
+        var bottom = rect.bottom
+
+        if (right - left < ML_KIT_MIN_SIZE) {
+            val shortage = ML_KIT_MIN_SIZE - (right - left)
+            left -= shortage / 2
+            right += shortage - shortage / 2
+            if (left < 0) { right -= left; left = 0 }
+            if (right > bitmapWidth) { left -= (right - bitmapWidth); right = bitmapWidth }
+            left = left.coerceAtLeast(0)
         }
 
-        // Calculate how much to expand
-        val widthExpansion = maxOf(0, ML_KIT_MIN_SIZE - width)
-        val heightExpansion = maxOf(0, ML_KIT_MIN_SIZE - height)
+        if (bottom - top < ML_KIT_MIN_SIZE) {
+            val shortage = ML_KIT_MIN_SIZE - (bottom - top)
+            top -= shortage / 2
+            bottom += shortage - shortage / 2
+            if (top < 0) { bottom -= top; top = 0 }
+            if (bottom > bitmapHeight) { top -= (bottom - bitmapHeight); bottom = bitmapHeight }
+            top = top.coerceAtLeast(0)
+        }
 
-        // Expand equally in both directions (left/right for width, top/bottom for height)
-        val expandLeft = widthExpansion / 2
-        val expandRight = widthExpansion - expandLeft // Handle odd numbers
-        val expandTop = heightExpansion / 2
-        val expandBottom = heightExpansion - expandTop // Handle odd numbers
-
-        // Apply expansion and clamp to bitmap bounds
-        val newLeft = (rect.left - expandLeft).coerceIn(0, bitmapWidth)
-        val newTop = (rect.top - expandTop).coerceIn(0, bitmapHeight)
-        val newRight = (rect.right + expandRight).coerceIn(0, bitmapWidth)
-        val newBottom = (rect.bottom + expandBottom).coerceIn(0, bitmapHeight)
-
-        return Rect(newLeft, newTop, newRight, newBottom)
+        return Rect(left, top, right, bottom)
     }
 
     /**

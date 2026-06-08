@@ -37,12 +37,13 @@ internal class VinDetectorImpl(
         private const val NMS_IOU_THRESHOLD = 0.45f
     }
 
-    // Pre-allocated input buffer for better performance
+    // Pre-allocated buffers for better performance
     private val imgData: ByteBuffer = ByteBuffer.allocateDirect(
         MODEL_INPUT_SIZE * MODEL_INPUT_SIZE * PIXEL_SIZE * 4 // 4 bytes per float
     ).apply {
         order(ByteOrder.nativeOrder())
     }
+    private val intValues = IntArray(MODEL_INPUT_SIZE * MODEL_INPUT_SIZE)
     private val warmupDone = AtomicBoolean(false)
     @Volatile private var cachedOutputDimA = -1
     @Volatile private var cachedOutputDimB = -1
@@ -80,7 +81,8 @@ internal class VinDetectorImpl(
                     SLog.d(TAG, "Preprocessed bitmap: ${preprocessedBitmap.width}x${preprocessedBitmap.height}")
                 }
                 convertBitmapToByteBuffer(preprocessedBitmap)
-                
+                preprocessedBitmap.recycle()
+
                 // Reuse output buffer for the configured model output shape.
                 val outShape = interpreter.getOutputTensor(0).shape()
                 // Expected formats (examples): [1, 8400, 6] or [1, 6, 8400] or [1, 8400, 85] / [1, 85, 8400]
@@ -133,10 +135,9 @@ internal class VinDetectorImpl(
                     SLog.d(TAG, "Scanning ${numCandidates} candidates...")
                 }
 
-                var maxConfidenceSeen = 0f
-                var candidatesAboveHalfThreshold = 0
-
-                val topIndices = java.util.PriorityQueue<Pair<Int, Float>>(6) { a, b -> a.second.compareTo(b.second) }
+                val topIndices: java.util.PriorityQueue<Pair<Int, Float>>? =
+                    if (ENABLE_DETAILED_LOGS) java.util.PriorityQueue(6) { a: Pair<Int, Float>, b -> a.second.compareTo(b.second) }
+                    else null
 
                 for (i in 0 until numCandidates) {
                     val cx = getProp(i, 0) * MODEL_INPUT_SIZE
@@ -159,17 +160,14 @@ internal class VinDetectorImpl(
 
                     val conf = obj * clsScore
 
-                    // Track top 5 candidates for debugging
-                    if (topIndices.size < 5) {
-                        topIndices.add(i to conf)
-                    } else if (conf > (topIndices.peek()?.second ?: Float.NEGATIVE_INFINITY)) {
-                        topIndices.poll()
-                        topIndices.add(i to conf)
+                    if (ENABLE_DETAILED_LOGS && topIndices != null) {
+                        if (topIndices.size < 5) {
+                            topIndices.add(i to conf)
+                        } else if (conf > (topIndices.peek()?.second ?: Float.NEGATIVE_INFINITY)) {
+                            topIndices.poll()
+                            topIndices.add(i to conf)
+                        }
                     }
-
-                    // Track maximum confidence and near-threshold candidates
-                    if (conf > maxConfidenceSeen) maxConfidenceSeen = conf
-                    if (conf > confThresh / 2) candidatesAboveHalfThreshold++
 
                     if (conf < confThresh) continue
 
@@ -203,7 +201,7 @@ internal class VinDetectorImpl(
                 // Log top 5 candidates for debugging
                 if (ENABLE_DETAILED_LOGS) {
                     SLog.d(TAG, "=== TOP 5 CANDIDATES DEBUG ===")
-                    val sortedTop = topIndices.sortedByDescending { it.second }
+                    val sortedTop = topIndices!!.sortedByDescending { it.second }
                     for ((idx, conf) in sortedTop) {
                         val cx = getProp(idx, 0) * MODEL_INPUT_SIZE
                         val cy = getProp(idx, 1) * MODEL_INPUT_SIZE
@@ -328,7 +326,6 @@ internal class VinDetectorImpl(
     private fun convertBitmapToByteBuffer(bitmap: Bitmap) {
         imgData.rewind()
 
-        val intValues = IntArray(MODEL_INPUT_SIZE * MODEL_INPUT_SIZE)
         bitmap.getPixels(intValues, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
 
         // Convert the image pixels to floating point values

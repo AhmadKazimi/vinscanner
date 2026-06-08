@@ -13,5 +13,6 @@ internal data class VinValidationResult(
     val errorMessage: String? = null,
     val checksumValid: Boolean = false,
     val formatValid: Boolean = false,
-    val wasTrimmed: Boolean = false
+    val wasTrimmed: Boolean = false,
+    val correctedVin: String? = null
 )

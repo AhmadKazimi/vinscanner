@@ -152,6 +152,7 @@ internal fun ScannerScreen(
 
     val isProcessingFrame = remember { AtomicBoolean(false) }
     val lastProcessTime = remember { AtomicLong(0L) }
+    val roiFrameCounter = remember { AtomicLong(0L) }
 
     // Set up image analysis
     DisposableEffect(state.isScanning, isWarmupComplete) {
@@ -174,6 +175,7 @@ internal fun ScannerScreen(
                                 vinDetector = vinDetectorLazy.value,
                                 textExtractor = textExtractorLazy.value,
                                 vinValidator = vinValidatorLazy.value,
+                                roiFrameCounter = roiFrameCounter,
                                 onVinDetected = { vin, confidence, croppedBitmap ->
                                     viewModel.onVinDetected(vin, confidence, croppedBitmap)
                                 },
@@ -408,6 +410,8 @@ internal fun ScannerScreen(
     }
 }
 
+private val scanFrameCounter = AtomicLong(0)
+
 private suspend fun processImage(
     frameReceivedNs: Long,
     imageProxy: ImageProxy,
@@ -415,6 +419,7 @@ private suspend fun processImage(
     vinDetector: VinDetector,
     textExtractor: TextExtractor,
     vinValidator: VinValidator,
+    roiFrameCounter: AtomicLong,
     onVinDetected: (String, Float, Bitmap?) -> Unit,
     onBoxesDetected: (List<com.syarah.vinscanner.domain.model.BoundingBox>) -> Unit,
     onRoiBorderStateChange: (RoiBorderState) -> Unit,
@@ -447,18 +452,20 @@ private suspend fun processImage(
                 if (shouldCrop) {
                     val cropped = Bitmap.createBitmap(bitmap, leftPx, topPx, roiWidth, roiHeight)
 
-                    // Store a copy for manual entry (create new bitmap to prevent recycling issues)
-                    try {
-                        val roiCopy = cropped.copy(Bitmap.Config.ARGB_8888, false)
-                        val safeRoiCopy = ImagePreprocessor.downscaleForDisplay(roiCopy)
-                        if (safeRoiCopy !== roiCopy && !roiCopy.isRecycled) {
-                            roiCopy.recycle()
+                    // Store a copy for manual entry; throttled to 1-in-5 frames to reduce allocation pressure
+                    if (roiFrameCounter.incrementAndGet() % 5L == 1L) {
+                        try {
+                            val roiCopy = cropped.copy(Bitmap.Config.ARGB_8888, false)
+                            val safeRoiCopy = ImagePreprocessor.downscaleForDisplay(roiCopy)
+                            if (safeRoiCopy !== roiCopy && !roiCopy.isRecycled) {
+                                roiCopy.recycle()
+                            }
+                            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                                onRoiBitmapCaptured(safeRoiCopy)
+                            }
+                        } catch (e: Exception) {
+                            SLog.e(TAG, "Failed to create ROI bitmap copy", e)
                         }
-                        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
-                            onRoiBitmapCaptured(safeRoiCopy)
-                        }
-                    } catch (e: Exception) {
-                        SLog.e(TAG, "Failed to create ROI bitmap copy", e)
                     }
 
                     cropped
@@ -469,7 +476,6 @@ private suspend fun processImage(
             }
             stageRoiCropNs = System.nanoTime() - roiCropStartNs
 
-            var allText: List<String> = emptyList()
             var bestVin: String? = null
             var bestConfidence = 0f
             var croppedVinBitmap: Bitmap? = null
@@ -504,43 +510,55 @@ private suspend fun processImage(
 
                 // Try OCR inside each detected box first (sorted by confidence)
                 val textStartNs = System.nanoTime()
-                for (box in boxes.sortedByDescending { it.confidence }) {
+                val frame = scanFrameCounter.incrementAndGet()
+                val sortedBoxes = boxes.sortedByDescending { it.confidence }
+                if (sortedBoxes.isNotEmpty()) {
+                    SLog.w(TAG, "VIN_SCAN frame=$frame boxes=${sortedBoxes.size} bitmap=${processedBitmap.width}x${processedBitmap.height}")
+                }
+                for ((boxIdx, box) in sortedBoxes.withIndex()) {
+                    val boxTag = "${boxIdx + 1}/${sortedBoxes.size}"
+                    val boxCoords = "L=${"%.3f".format(box.left)} T=${"%.3f".format(box.top)} R=${"%.3f".format(box.right)} B=${"%.3f".format(box.bottom)}"
                     val textInBox = textExtractor.extractText(processedBitmap, box)
-                    if (!textInBox.isNullOrBlank()) {
-                        val candidate = vinValidator.cleanVin(textInBox)
-                        val validation = vinValidator.validate(candidate)
-                        if (validation.isValid) {
-                            bestVin = candidate
-                            bestConfidence = box.confidence
-                            SLog.d(TAG, "VIN detected from box with confidence=${box.confidence}")
+                    if (textInBox.isNullOrBlank()) {
+                        SLog.w(TAG, "VIN_CANDIDATE frame=$frame box=$boxTag conf=${"%.3f".format(box.confidence)} $boxCoords ocr=null")
+                        continue
+                    }
+                    val candidate = vinValidator.cleanVin(textInBox)
+                    val validation = vinValidator.validate(candidate)
+                    val outcome = if (validation.isValid) "ACCEPTED" else "REJECTED"
+                    val reason = validation.errorMessage ?: if (validation.checksumValid) "checksum_ok" else "soft_accept"
+                    SLog.w(TAG, "VIN_CANDIDATE frame=$frame box=$boxTag conf=${"%.3f".format(box.confidence)} $boxCoords ocr=\"${textInBox.take(40)}\" clean=\"$candidate\" $outcome reason=\"$reason\"")
+                    if (validation.isValid) {
+                        bestVin = validation.correctedVin ?: candidate
+                        bestConfidence = box.confidence
 
-                            // Crop and enhance the bitmap using the AI detection box
-                            try {
-                                val enhancedVinBitmap = ImagePreprocessor.cropAndEnhance(
-                                    processedBitmap,
-                                    box.left,
-                                    box.top,
-                                    box.right,
-                                    box.bottom,
-                                    paddingPercent = 0.15f
-                                )
-                                croppedVinBitmap = enhancedVinBitmap?.let { rawBitmap ->
-                                    val safeBitmap = ImagePreprocessor.downscaleForDisplay(rawBitmap)
-                                    if (safeBitmap !== rawBitmap && !rawBitmap.isRecycled) {
-                                        rawBitmap.recycle()
-                                    }
-                                    safeBitmap
+                        // Crop and enhance the bitmap using the AI detection box
+                        try {
+                            val enhancedVinBitmap = ImagePreprocessor.cropAndEnhance(
+                                processedBitmap,
+                                box.left,
+                                box.top,
+                                box.right,
+                                box.bottom,
+                                paddingPercent = 0.15f
+                            )
+                            croppedVinBitmap = enhancedVinBitmap?.let { rawBitmap ->
+                                val safeBitmap = ImagePreprocessor.downscaleForDisplay(rawBitmap)
+                                if (safeBitmap !== rawBitmap && !rawBitmap.isRecycled) {
+                                    rawBitmap.recycle()
                                 }
-                            } catch (e: Exception) {
-                                SLog.e(TAG, "Failed to crop and enhance VIN bitmap", e)
+                                safeBitmap
                             }
-                            break
+                        } catch (e: Exception) {
+                            SLog.e(TAG, "Failed to crop and enhance VIN bitmap", e)
                         }
+                        break
                     }
                 }
+                if (sortedBoxes.isNotEmpty()) {
+                    SLog.w(TAG, "VIN_RESULT frame=$frame result=${bestVin ?: "none"}")
+                }
 
-                // Extract all text from the ROI image
-                allText = textExtractor.extractAllText(processedBitmap)
                 stageTextNs = System.nanoTime() - textStartNs
 
                 // If none found from boxes, fall back to ROI text lines and require validation

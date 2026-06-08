@@ -31,6 +31,8 @@ class MainActivity : ComponentActivity() {
             is VinScanResult.Cancelled -> viewModel.onScanCancelled()
             is VinScanResult.Error -> viewModel.onScanError(result.message)
         }
+        // 1FMSKBBB0MGC21557
+        // 1FMSK8BB0MGC21557
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,16 +41,14 @@ class MainActivity : ComponentActivity() {
         setContent {
             MaterialTheme {
                 Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background
                 ) {
                     SampleAppScreen(
                         scannedVin = viewModel.scannedVin,
                         resultMessage = viewModel.resultMessage,
                         onScanClick = {
                             vinScannerLauncher.launch(Unit)
-                        }
-                    )
+                        })
                 }
             }
         }
@@ -57,9 +57,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun SampleAppScreen(
-    scannedVin: VinNumber?,
-    resultMessage: String?,
-    onScanClick: () -> Unit
+    scannedVin: VinNumber?, resultMessage: String?, onScanClick: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -77,22 +75,19 @@ fun SampleAppScreen(
         Spacer(modifier = Modifier.height(32.dp))
 
         Button(
-            onClick = onScanClick,
-            modifier = Modifier
+            onClick = onScanClick, modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp)
         ) {
             Text(
-                text = "Start VIN Scan",
-                style = MaterialTheme.typography.titleMedium
+                text = "Start VIN Scan", style = MaterialTheme.typography.titleMedium
             )
         }
 
         Spacer(modifier = Modifier.height(32.dp))
 
         Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
+            modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant
             )
         ) {
@@ -133,20 +128,17 @@ fun SampleAppScreen(
                         }
                     }
                     Text(
-                        text = vinText,
-                        style = MaterialTheme.typography.bodyLarge
+                        text = vinText, style = MaterialTheme.typography.bodyLarge
                     )
                 } else if (resultMessage != null) {
                     // Show error/cancelled message
                     Text(
-                        text = resultMessage,
-                        style = MaterialTheme.typography.bodyLarge
+                        text = resultMessage, style = MaterialTheme.typography.bodyLarge
                     )
                 } else {
                     // No result yet
                     Text(
-                        text = "No scan result yet",
-                        style = MaterialTheme.typography.bodyLarge
+                        text = "No scan result yet", style = MaterialTheme.typography.bodyLarge
                     )
                 }
             }
