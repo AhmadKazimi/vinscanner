@@ -3,6 +3,7 @@ package com.syarah.vinscanner.domain.model
 import android.graphics.Bitmap
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
+import kotlinx.parcelize.TypeParceler
 
 /**
  * Represents a Vehicle Identification Number (VIN)
@@ -12,11 +13,12 @@ import kotlinx.parcelize.Parcelize
  * @property croppedImage The cropped bitmap showing the detected VIN region (optional)
  */
 @Parcelize
+@TypeParceler<Bitmap?, BitmapParceler>()
 data class VinNumber(
     val value: String,
     val confidence: Float = 0f,
     val isValid: Boolean = false,
-    val croppedImage: Bitmap? = null
+    val croppedImage: Bitmap? = null,
 ) : Parcelable {
     companion object {
         const val VIN_LENGTH = 17

@@ -47,8 +47,8 @@ internal fun CameraPreview(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
             )
-            // Set implementation mode for better performance
             implementationMode = PreviewView.ImplementationMode.PERFORMANCE
+            scaleType = PreviewView.ScaleType.FIT_CENTER
         }
     }
 

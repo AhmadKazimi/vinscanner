@@ -258,14 +258,21 @@ internal fun ScannerScreen(
             )
 
             RoiOverlay(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(9f / 16f)
+                    .align(Alignment.Center),
                 roiBox = RoiConfig.roi,
                 borderColor = roiBorderColor
             )
 
             // Bounding box overlay
             BoundingBoxOverlay(
-                modifier = Modifier.fillMaxSize(), boundingBoxes = state.detectionBoxes
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(9f / 16f)
+                    .align(Alignment.Center),
+                boundingBoxes = state.detectionBoxes
             )
 
             // Scanning indicator
@@ -542,13 +549,7 @@ private suspend fun processImage(
                                 box.bottom,
                                 paddingPercent = 0.15f
                             )
-                            croppedVinBitmap = enhancedVinBitmap?.let { rawBitmap ->
-                                val safeBitmap = ImagePreprocessor.downscaleForDisplay(rawBitmap)
-                                if (safeBitmap !== rawBitmap && !rawBitmap.isRecycled) {
-                                    rawBitmap.recycle()
-                                }
-                                safeBitmap
-                            }
+                            croppedVinBitmap = enhancedVinBitmap
                         } catch (e: Exception) {
                             SLog.e(TAG, "Failed to crop and enhance VIN bitmap", e)
                         }

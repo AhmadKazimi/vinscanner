@@ -26,22 +26,37 @@ import com.syarah.vinscanner.domain.model.VinNumber
  * ```
  */
 class VinScannerContract : ActivityResultContract<Unit, VinScanResult>() {
+    override fun createIntent(
+        context: Context,
+        input: Unit,
+    ): Intent = Intent(context, VinScannerActivity::class.java)
 
-    override fun createIntent(context: Context, input: Unit): Intent {
-        return Intent(context, VinScannerActivity::class.java)
-    }
-
-    override fun parseResult(resultCode: Int, intent: Intent?): VinScanResult {
-        return when (resultCode) {
+    override fun parseResult(
+        resultCode: Int,
+        intent: Intent?,
+    ): VinScanResult =
+        when (resultCode) {
             Activity.RESULT_OK -> {
-                intent?.let { IntentCompat.getParcelableExtra(it, EXTRA_VIN_RESULT, VinNumber::class.java) }?.let {
-                    VinScanResult.Success(it)
-                } ?: VinScanResult.Error("Invalid result data")
+                intent
+                    ?.let {
+                        IntentCompat.getParcelableExtra(
+                            it,
+                            EXTRA_VIN_RESULT,
+                            VinNumber::class.java,
+                        )
+                    }?.let {
+                        VinScanResult.Success(it)
+                    } ?: VinScanResult.Error("Invalid result data")
             }
-            Activity.RESULT_CANCELED -> VinScanResult.Cancelled
-            else -> VinScanResult.Error("Unknown error")
+
+            Activity.RESULT_CANCELED -> {
+                VinScanResult.Cancelled
+            }
+
+            else -> {
+                VinScanResult.Error("Unknown error")
+            }
         }
-    }
 
     companion object {
         internal const val EXTRA_VIN_RESULT = "extra_vin_result"

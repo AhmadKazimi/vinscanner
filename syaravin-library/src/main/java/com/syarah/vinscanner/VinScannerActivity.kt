@@ -33,7 +33,10 @@ internal class VinScannerActivity : ComponentActivity() {
         // Initialize dependency factory with Application context
         val initStartMs = SystemClock.elapsedRealtime()
         VinScannerDependencies.initialize(applicationContext)
-        SLog.w(TAG, "Dependencies.initialize() took ${SystemClock.elapsedRealtime() - initStartMs}ms")
+        SLog.w(
+            TAG,
+            "Dependencies.initialize() took ${SystemClock.elapsedRealtime() - initStartMs}ms",
+        )
 
         enableEdgeToEdge()
         val setContentStartMs = SystemClock.elapsedRealtime()
@@ -41,7 +44,7 @@ internal class VinScannerActivity : ComponentActivity() {
             SyaravinTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    color = MaterialTheme.colorScheme.background,
                 ) {
                     ScannerScreen(
                         onVinConfirmed = { vinNumber ->
@@ -52,12 +55,15 @@ internal class VinScannerActivity : ComponentActivity() {
                             // User cancelled scanning
                             setResult(Activity.RESULT_CANCELED)
                             finish()
-                        }
+                        },
                     )
                 }
             }
         }
-        SLog.w(TAG, "setContent() returned in ${SystemClock.elapsedRealtime() - setContentStartMs}ms; total onCreate=${SystemClock.elapsedRealtime() - startMs}ms")
+        SLog.w(
+            TAG,
+            "setContent() returned in ${SystemClock.elapsedRealtime() - setContentStartMs}ms; total onCreate=${SystemClock.elapsedRealtime() - startMs}ms",
+        )
     }
 
     override fun onDestroy() {
@@ -66,9 +72,10 @@ internal class VinScannerActivity : ComponentActivity() {
     }
 
     private fun returnResult(vinNumber: VinNumber) {
-        val resultIntent = Intent().apply {
-            putExtra(EXTRA_VIN_RESULT, vinNumber)
-        }
+        val resultIntent =
+            Intent().apply {
+                putExtra(EXTRA_VIN_RESULT, vinNumber)
+            }
         setResult(Activity.RESULT_OK, resultIntent)
         finish()
     }

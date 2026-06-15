@@ -55,5 +55,5 @@ object VinScanner {
     /**
      * Library version
      */
-    const val VERSION = "1.3.2"
+    const val VERSION = "1.3.3"
 }

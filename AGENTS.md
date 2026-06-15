@@ -268,3 +268,13 @@ See `PERFORMANCE_OPTIMIZATIONS.md` for detailed optimization history.
 - `PERFORMANCE_OPTIMIZATIONS.md` - Detailed thermal and performance optimization history
 - `INTEGRATION_SUMMARY.md` - Enhanced confidence system integration details
 - `gradle/libs.versions.toml` - Centralized dependency version management
+
+<!-- lean-ctx-compression -->
+OUTPUT STYLE: dense
+- Each statement = one atomic fact line
+- Use abbreviations: fn, cfg, impl, deps, req, res, ctx, err, ret
+- Diff lines only (+/-/~), never repeat unchanged code
+- Symbols: → (causes), + (adds), − (removes), ~ (modifies), ∴ (therefore)
+- No narration, no filler, no hedging
+- BUDGET: ≤200 tokens per response unless code block required
+<!-- /lean-ctx-compression -->
