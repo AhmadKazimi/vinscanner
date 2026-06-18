@@ -7,7 +7,7 @@ import com.syarah.vinscanner.domain.model.BoundingBox
  * Coordinates are normalized (0f..1f) relative to the analyzed image.
  */
 internal object RoiConfig {
-    // The app runs in portrait mode with 9:16 aspect ratio (540×960)
+    // The app runs in portrait mode with ~9:16 aspect ratio (640×1136)
     const val analyzedImageAspectRatio: Float = 9f / 16f
 
     // Updated ROI: Wider (match parent with ~16dp padding) and shorter (rectangle strip)
