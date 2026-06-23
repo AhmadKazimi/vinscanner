@@ -198,7 +198,7 @@ internal object VinScannerDependencies {
         }
 
         /**
-         * Create a 720p ImageCapture use case for grabbing a sharp still on manual capture.
+         * Create a 1080p ImageCapture use case for grabbing a sharp still on manual capture.
          * Uses Zero-Shutter-Lag so the returned frame is the one closest to the
          * capture instant (minimal lag on a moving camera). Forced to a 16:9 sensor aspect
          * ratio so it rotates to the same 9:16 portrait frame as ImageAnalysis.
@@ -214,15 +214,15 @@ internal object VinScannerDependencies {
                         .setAspectRatioStrategy(AspectRatioStrategy.RATIO_16_9_FALLBACK_AUTO_STRATEGY)
                         .setResolutionStrategy(
                             ResolutionStrategy(
-                                android.util.Size(1280, 720),
+                                android.util.Size(1920, 1080),
                                 ResolutionStrategy.FALLBACK_RULE_CLOSEST_LOWER_THEN_HIGHER,
                             ),
                         )
                         .setResolutionFilter(
                             ResolutionFilter { supportedSizes, _ ->
                                 val bounded = supportedSizes.filter { size ->
-                                    maxOf(size.width, size.height) <= 1280 &&
-                                        minOf(size.width, size.height) <= 720
+                                    maxOf(size.width, size.height) <= 1920 &&
+                                        minOf(size.width, size.height) <= 1080
                                 }
                                 bounded.ifEmpty {
                                     listOf(supportedSizes.minBy { size ->

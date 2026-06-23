@@ -14,8 +14,6 @@ import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -308,14 +306,13 @@ internal fun ScannerScreen(
                 }
             }
 
-            // ROI overlay to guide user with dynamic border color
-            val roiBorderColor by animateColorAsState(
-                targetValue = when (state.roiBorderState) {
-                    RoiBorderState.VALID_VIN_DETECTED -> RoiValidBorder
-                    RoiBorderState.NEUTRAL -> RoiValidBorder
-                    RoiBorderState.NO_DETECTION -> RoiInvalidBorder
-                }, animationSpec = tween(durationMillis = 250), label = "roi_border_color"
-            )
+            // ROI overlay border target color. RoiOverlay animates this internally and reads it
+            // only in its draw phase, so the transition does not recompose this screen.
+            val roiBorderTarget = when (state.roiBorderState) {
+                RoiBorderState.VALID_VIN_DETECTED -> RoiValidBorder
+                RoiBorderState.NEUTRAL -> RoiValidBorder
+                RoiBorderState.NO_DETECTION -> RoiInvalidBorder
+            }
 
             RoiOverlay(
                 modifier = Modifier
@@ -323,7 +320,7 @@ internal fun ScannerScreen(
                     .aspectRatio(9f / 16f)
                     .align(Alignment.Center),
                 roiBox = RoiConfig.roi,
-                borderColor = roiBorderColor
+                borderColor = roiBorderTarget
             )
 
             // Guidance: keep VIN inside the box, centered, and close.
@@ -615,8 +612,8 @@ internal fun captureDecodeSampleSize(width: Int, height: Int): Int {
     if (width <= 0 || height <= 0) return 1
     var sampleSize = 1
     while (
-        maxOf(width / (sampleSize * 2), height / (sampleSize * 2)) > 1280 ||
-        minOf(width / (sampleSize * 2), height / (sampleSize * 2)) > 720
+        maxOf(width / (sampleSize * 2), height / (sampleSize * 2)) > 1920 ||
+        minOf(width / (sampleSize * 2), height / (sampleSize * 2)) > 1080
     ) {
         sampleSize *= 2
     }
@@ -626,8 +623,8 @@ internal fun captureDecodeSampleSize(width: Int, height: Int): Int {
 private fun boundCapturedBitmap(bitmap: Bitmap): Bitmap {
     val scale = minOf(
         1f,
-        1280f / maxOf(bitmap.width, bitmap.height),
-        720f / minOf(bitmap.width, bitmap.height),
+        1920f / maxOf(bitmap.width, bitmap.height),
+        1080f / minOf(bitmap.width, bitmap.height),
     )
     if (scale >= 1f) return bitmap
     return Bitmap.createScaledBitmap(

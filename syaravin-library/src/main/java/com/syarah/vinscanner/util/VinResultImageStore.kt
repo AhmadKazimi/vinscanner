@@ -11,9 +11,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 private const val RESULT_DIRECTORY = "syaravin-results"
-private const val MAX_RESULT_BYTES = 512 * 1024
-private const val MAX_RESULT_PIXELS = 500_000
-private const val MAX_RESULT_DIMENSION = 1280
+private const val MAX_RESULT_BYTES = 3 * 1024 * 1024
+private const val MAX_RESULT_PIXELS = 2_500_000
+private const val MAX_RESULT_DIMENSION = 2200
 private const val RESULT_MAX_AGE_MS = 24 * 60 * 60 * 1000L
 
 internal object VinResultImageStore {

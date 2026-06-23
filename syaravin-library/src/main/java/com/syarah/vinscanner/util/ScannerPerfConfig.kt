@@ -9,8 +9,8 @@ private const val TAG = LogTags.LIBRARY
 
 internal object ScannerPerfConfig {
     private const val DEFAULT_INFERENCE_INTERVAL_MS = 500L
-    private const val DEFAULT_IMAGE_ANALYSIS_WIDTH = 640
-    private const val DEFAULT_IMAGE_ANALYSIS_HEIGHT = 1136
+    private const val DEFAULT_IMAGE_ANALYSIS_WIDTH = 1080
+    private const val DEFAULT_IMAGE_ANALYSIS_HEIGHT = 1920
     private const val DEFAULT_INTERPRETER_THREADS = 4
     private const val DEFAULT_LOG_EVERY_N_FRAMES = 30
 

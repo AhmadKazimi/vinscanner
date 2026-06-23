@@ -32,7 +32,7 @@ internal object ImagePreprocessor {
 
     // Unsharp strength. Cross kernel center = 1 + 4*amount, cardinal neighbors = -amount.
     // 1.0 == old aggressive kernel (center 5 / neighbor -1); keep this low for a subtle boost.
-    private const val SHARPEN_AMOUNT = 0.15f
+    private const val SHARPEN_AMOUNT = 0.25f
 
     /**
      * Cross kernel (center = 1 + 4*amount, 4 cardinal neighbors = -amount, corners=0; sum=1).
@@ -45,8 +45,14 @@ internal object ImagePreprocessor {
         src.getPixels(pixels, 0, w, 0, 0, w, h)
 
         val a = SHARPEN_AMOUNT
-        fun mix(c: Int, t: Int, b: Int, l: Int, r: Int): Int =
-            (c + a * (4 * c - t - b - l - r)).roundToInt().coerceIn(0, 255)
+
+        fun mix(
+            c: Int,
+            t: Int,
+            b: Int,
+            l: Int,
+            r: Int,
+        ): Int = (c + a * (4 * c - t - b - l - r)).roundToInt().coerceIn(0, 255)
 
         val out = IntArray(w * h)
         for (y in 0 until h) {
@@ -60,8 +66,20 @@ internal object ImagePreprocessor {
                     Color.argb(
                         c ushr 24,
                         mix(Color.red(c), Color.red(t), Color.red(b2), Color.red(l), Color.red(r2)),
-                        mix(Color.green(c), Color.green(t), Color.green(b2), Color.green(l), Color.green(r2)),
-                        mix(Color.blue(c), Color.blue(t), Color.blue(b2), Color.blue(l), Color.blue(r2)),
+                        mix(
+                            Color.green(c),
+                            Color.green(t),
+                            Color.green(b2),
+                            Color.green(l),
+                            Color.green(r2),
+                        ),
+                        mix(
+                            Color.blue(c),
+                            Color.blue(t),
+                            Color.blue(b2),
+                            Color.blue(l),
+                            Color.blue(r2),
+                        ),
                     )
             }
         }
@@ -110,47 +128,14 @@ internal object ImagePreprocessor {
         return enhanced
     }
 
-    fun cropAndEnhance(
-        bitmap: Bitmap,
-        left: Float,
-        top: Float,
-        right: Float,
-        bottom: Float,
-        paddingPercent: Float = 0.15f,
-    ): Bitmap? {
-        return try {
-            val boxWidth = (right - left) * bitmap.width
-            val boxHeight = (bottom - top) * bitmap.height
-            val padX = boxWidth * paddingPercent
-            val padY = boxHeight * paddingPercent
-
-            val leftPx = ((left * bitmap.width) - padX).toInt().coerceIn(0, bitmap.width - 1)
-            val topPx = ((top * bitmap.height) - padY).toInt().coerceIn(0, bitmap.height - 1)
-            val rightPx = ((right * bitmap.width) + padX).toInt().coerceIn(leftPx + 1, bitmap.width)
-            val bottomPx =
-                ((bottom * bitmap.height) + padY).toInt().coerceIn(topPx + 1, bitmap.height)
-
-            val width = rightPx - leftPx
-            val height = bottomPx - topPx
-            if (width <= 0 || height <= 0) return null
-
-            val cropped = Bitmap.createBitmap(bitmap, leftPx, topPx, width, height)
-            enhanceVinImage(cropped).also {
-                if (it !== cropped) cropped.recycle()
-            }
-        } catch (_: Exception) {
-            null
-        }
-    }
-
     /**
      * Downscale for display, then sharpen + boost contrast. Used for the result image so the
      * full scanned frame reads clearly. The input is not recycled (caller owns it).
      */
     fun enhanceForDisplay(
         bitmap: Bitmap,
-        maxDimension: Int = 1600,
-        maxPixels: Int = 1_500_000,
+        maxDimension: Int = 2200,
+        maxPixels: Int = 2_500_000,
     ): Bitmap {
         val scaled = downscaleForDisplay(bitmap, maxDimension, maxPixels)
         return enhanceVinImage(scaled).also { enhanced ->
