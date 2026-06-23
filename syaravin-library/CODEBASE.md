@@ -1035,7 +1035,9 @@ LaunchedEffect(state.detectedVin) in ScannerScreen fires
         │
         ▼
 VinScannerActivity.returnResult(vinNumber)
-  └── setResult(RESULT_OK, Intent().putExtra(EXTRA_VIN_RESULT, vinNumber))
+  ├── persist bounded cache image through FileProvider
+  ├── parcel VinNumber metadata + croppedImageUri (never bitmap bytes)
+  └── setResult(RESULT_OK, resultIntent)
   └── finish()
         │
         ▼
@@ -1047,5 +1049,5 @@ HOST APP lambda receives VinScanResult.Success
   └── result.vinNumber.value     → "1HGBH41JXMN109186"
   └── result.vinNumber.confidence → 0.87
   └── result.vinNumber.isValid   → true
-  └── result.vinNumber.croppedImage → Bitmap of the VIN plate
+  └── result.vinNumber.croppedImageUri → bounded cache-backed VIN image
 ```

@@ -16,6 +16,7 @@ import com.google.mlkit.vision.text.TextRecognizer
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import com.syarah.vinscanner.domain.model.BoundingBox
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -66,6 +67,7 @@ internal class TextExtractorImpl(
     override suspend fun extractText(bitmap: Bitmap, boundingBox: BoundingBox): String? =
         withContext(Dispatchers.Default) {
             val recognizer = getRecognizerOrNull() ?: return@withContext null
+            var cropped: Bitmap? = null
             try {
                 val cropRect = toPixelRect(bitmap, boundingBox)
                 if (cropRect.width() <= 0 || cropRect.height() <= 0) return@withContext null
@@ -77,7 +79,7 @@ internal class TextExtractorImpl(
                     SLog.d(TAG, "Expanded box from ${cropRect.width()}x${cropRect.height()} to ${expandedRect.width()}x${expandedRect.height()}")
                 }
 
-                var cropped = Bitmap.createBitmap(
+                cropped = Bitmap.createBitmap(
                     bitmap,
                     expandedRect.left,
                     expandedRect.top,
@@ -104,9 +106,13 @@ internal class TextExtractorImpl(
                 val image = InputImage.fromBitmap(cropped, 0)
                 val result = recognizer.process(image).await()
                 result.text.takeIf { it.isNotBlank() }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
             } catch (e: Exception) {
                 SLog.e(TAG, "Error extracting text from region", e)
                 null
+            } finally {
+                cropped?.takeUnless(Bitmap::isRecycled)?.recycle()
             }
         }
 
@@ -123,6 +129,8 @@ internal class TextExtractorImpl(
             result.textBlocks.flatMap { block ->
                 block.lines.map { it.text }
             }
+        } catch (cancelled: CancellationException) {
+            throw cancelled
         } catch (e: Exception) {
             SLog.e(TAG, "Error extracting text from image", e)
             emptyList()
@@ -154,6 +162,8 @@ internal class TextExtractorImpl(
                     }
                 }
             }
+        } catch (cancelled: CancellationException) {
+            throw cancelled
         } catch (e: Exception) {
             SLog.e(TAG, "Error extracting text with bounds from image", e)
             emptyList()
@@ -219,6 +229,8 @@ internal class TextExtractorImpl(
                 if (isGooglePlayServicesReady() && mlKitPresent) {
                     skipOcrForSession = false
                 }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
             } catch (t: Throwable) {
                 SLog.w(TAG, "ML Kit OCR module install request failed", t)
                 warmupRequested.set(false)

@@ -8,8 +8,6 @@ import android.graphics.Matrix
 import com.syarah.vinscanner.util.SLog
 import com.syarah.vinscanner.data.model.DetectionResult
 import com.syarah.vinscanner.domain.model.BoundingBox
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import org.tensorflow.lite.Interpreter
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -24,7 +22,7 @@ private const val ENABLE_DETAILED_LOGS = false
  * Implementation of VinDetector using TensorFlow Lite
  */
 internal class VinDetectorImpl(
-    private val interpreter: Interpreter
+    private val runtime: LiteRtRuntime,
 ) : VinDetector {
 
     companion object {
@@ -45,12 +43,34 @@ internal class VinDetectorImpl(
     }
     private val intValues = IntArray(MODEL_INPUT_SIZE * MODEL_INPUT_SIZE)
     private val warmupDone = AtomicBoolean(false)
+    private val coldDetectionWarningLogged = AtomicBoolean(false)
     @Volatile private var cachedOutputDimA = -1
     @Volatile private var cachedOutputDimB = -1
     @Volatile private var cachedOutputDynamic: Array<Array<FloatArray>>? = null
 
+    override suspend fun warmUp() {
+        runtime.run { interpreter ->
+            if (warmupDone.get()) return@run
+            val startNs = System.nanoTime()
+            repeat(3) {
+                imgData.rewind()
+                val outShape = interpreter.getOutputTensor(0).shape()
+                val warmupOutput = getOrCreateOutputBuffer(outShape[1], outShape[2])
+                interpreter.runForMultipleInputsOutputs(
+                    arrayOf(imgData),
+                    mapOf(0 to warmupOutput),
+                )
+            }
+            warmupDone.set(true)
+            SLog.w(
+                TAG,
+                "LiteRT startup warmup completed in ${(System.nanoTime() - startNs) / 1_000_000}ms",
+            )
+        }
+    }
+
     override suspend fun detect(bitmap: Bitmap, confidenceThreshold: Float): DetectionResult =
-        withContext(Dispatchers.Default) {
+        runtime.run { interpreter ->
             val startTime = System.currentTimeMillis()
 
             if (ENABLE_DETAILED_LOGS) {
@@ -60,7 +80,9 @@ internal class VinDetectorImpl(
             }
 
             try {
-                maybeWarmupInterpreter()
+                if (!warmupDone.get() && coldDetectionWarningLogged.compareAndSet(false, true)) {
+                    SLog.w(TAG, "VIN detection invoked before startup warmup; running one cold inference")
+                }
                 // Compute letterbox parameters (to later unmap predictions)
                 val scaleFactor = min(
                     MODEL_INPUT_SIZE.toFloat() / bitmap.width,
@@ -264,19 +286,6 @@ internal class VinDetectorImpl(
                 )
             }
         }
-
-    private fun maybeWarmupInterpreter() {
-        if (warmupDone.compareAndSet(false, true)) {
-            repeat(3) {
-                imgData.rewind()
-                val outShape = interpreter.getOutputTensor(0).shape()
-                val dimA = outShape[1]
-                val dimB = outShape[2]
-                val warmupOutput = getOrCreateOutputBuffer(dimA, dimB)
-                interpreter.runForMultipleInputsOutputs(arrayOf(imgData), mapOf(0 to warmupOutput))
-            }
-        }
-    }
 
     private fun getOrCreateOutputBuffer(dimA: Int, dimB: Int): Array<Array<FloatArray>> {
         val cached = cachedOutputDynamic

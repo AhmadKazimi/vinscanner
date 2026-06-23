@@ -45,7 +45,7 @@ sealed class VinScanResult {
 }
 ```
 
-`vinNumber.croppedImage` is a `Bitmap?` of the enhanced VIN plate region. May be non-null even when `vinNumber.value` is empty (manual entry button tap).
+`vinNumber.croppedImageUri` is a cache-backed `content://` URI for the enhanced VIN plate region. It may be non-null even when `vinNumber.value` is empty (manual entry button tap). Consume or copy it promptly because cache files may be evicted.
 
 ## `VinScannerActivity` (internal) — `VinScannerActivity.kt`
 
@@ -67,6 +67,7 @@ The primary result payload. Parcelable.
 | `value` | 17-char VIN; empty string for manual-entry taps |
 | `confidence` | TFLite detection confidence (0–1) |
 | `isValid` | passed `VinValidatorImpl` checks |
-| `croppedImage` | cropped + enhanced bitmap of VIN plate (may be null) |
+| `croppedImage` | in-process scanner bitmap; omitted from Activity result parcels |
+| `croppedImageUri` | bounded cache-backed `content://` result image URI |
 
 Constants: `VIN_LENGTH=17`, `INVALID_CHARACTERS={I,O,Q,i,o,q}`, `VALID_PATTERN=Regex("[A-HJ-NPR-Z0-9]{17}", IGNORE_CASE)`.

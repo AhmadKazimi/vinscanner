@@ -1,6 +1,7 @@
 package com.syarah.vinscanner
 
 import android.app.Activity
+import android.content.ClipData
 import android.content.Intent
 import android.os.Bundle
 import android.os.SystemClock
@@ -11,12 +12,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.lifecycleScope
 import com.syarah.vinscanner.di.VinScannerDependencies
 import com.syarah.vinscanner.domain.model.VinNumber
 import com.syarah.vinscanner.presentation.scanner.ScannerScreen
 import com.syarah.vinscanner.ui.theme.SyaravinTheme
 import com.syarah.vinscanner.util.LogTags
 import com.syarah.vinscanner.util.SLog
+import com.syarah.vinscanner.util.VinResultImageStore
+import java.util.concurrent.atomic.AtomicBoolean
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.launch
 
 private const val TAG = LogTags.LIBRARY
 
@@ -25,6 +31,8 @@ private const val TAG = LogTags.LIBRARY
  * Launched via VinScannerContract.
  */
 internal class VinScannerActivity : ComponentActivity() {
+    private val isReturningResult = AtomicBoolean(false)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         val startMs = SystemClock.elapsedRealtime()
         super.onCreate(savedInstanceState)
@@ -72,12 +80,27 @@ internal class VinScannerActivity : ComponentActivity() {
     }
 
     private fun returnResult(vinNumber: VinNumber) {
-        val resultIntent =
-            Intent().apply {
-                putExtra(EXTRA_VIN_RESULT, vinNumber)
+        if (!isReturningResult.compareAndSet(false, true)) return
+        lifecycleScope.launch {
+            val imageUri = try {
+                vinNumber.croppedImage?.let { VinResultImageStore.save(applicationContext, it) }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                SLog.w(TAG, "Failed to persist VIN result image", error)
+                null
             }
-        setResult(Activity.RESULT_OK, resultIntent)
-        finish()
+            val resultVin = vinNumber.copy(croppedImage = null, croppedImageUri = imageUri)
+            val resultIntent = Intent().apply {
+                putExtra(EXTRA_VIN_RESULT, resultVin)
+                if (imageUri != null) {
+                    clipData = ClipData.newRawUri("VIN image", imageUri)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+            }
+            setResult(Activity.RESULT_OK, resultIntent)
+            finish()
+        }
     }
 
     companion object {

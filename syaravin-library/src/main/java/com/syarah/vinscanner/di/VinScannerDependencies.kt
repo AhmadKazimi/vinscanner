@@ -5,13 +5,17 @@ import android.os.SystemClock
 import android.view.Surface
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.ImageCapture
 import androidx.camera.core.Preview
+import androidx.camera.core.resolutionselector.AspectRatioStrategy
 import androidx.camera.core.resolutionselector.ResolutionSelector
+import androidx.camera.core.resolutionselector.ResolutionFilter
 import androidx.camera.core.resolutionselector.ResolutionStrategy
 import com.syarah.vinscanner.data.datasource.camera.CameraDataSource
 import com.syarah.vinscanner.data.datasource.camera.CameraDataSourceImpl
 import com.syarah.vinscanner.data.datasource.ml.TextExtractor
 import com.syarah.vinscanner.data.datasource.ml.TextExtractorImpl
+import com.syarah.vinscanner.data.datasource.ml.LiteRtRuntime
 import com.syarah.vinscanner.data.datasource.ml.VinDetector
 import com.syarah.vinscanner.data.datasource.ml.VinDetectorImpl
 import com.syarah.vinscanner.data.datasource.validator.VinValidator
@@ -27,14 +31,6 @@ import com.syarah.vinscanner.util.LogTags
 import com.syarah.vinscanner.util.SLog
 import com.syarah.vinscanner.util.ScannerPerfConfig
 import com.syarah.vinscanner.util.VinDecoder
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import org.tensorflow.lite.Interpreter
-import org.tensorflow.lite.gpu.CompatibilityList
-import org.tensorflow.lite.gpu.GpuDelegate
-import org.tensorflow.lite.nnapi.NnApiDelegate
-import java.io.FileInputStream
-import java.nio.channels.FileChannel
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -108,76 +104,8 @@ internal object VinScannerDependencies {
     ) {
         // ==================== Singletons (Lazy-Initialized) ====================
 
-        /**
-         * TensorFlow Lite Interpreter for VIN detection.
-         * Expensive to create, so we cache it for the app lifetime.
-         * Uses GPU delegate if available for better performance.
-         */
-        val interpreter: Interpreter by lazy {
-            SLog.d(TAG, "Creating TensorFlow Lite Interpreter...")
-            val modelPath = "best_float32.tflite"
-
-            // Load model from assets
-            val assetFileDescriptor = appContext.assets.openFd(modelPath)
-            val modelBuffer =
-                FileInputStream(assetFileDescriptor.fileDescriptor).use { inputStream ->
-                    val fileChannel = inputStream.channel
-                    val startOffset = assetFileDescriptor.startOffset
-                    val declaredLength = assetFileDescriptor.declaredLength
-                    fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength)
-                }
-            SLog.d(TAG, "TFLite model loaded from assets: $modelPath")
-
-            // Configure interpreter options
-            val options =
-                Interpreter.Options().apply {
-                    setNumThreads(ScannerPerfConfig.interpreterThreads)
-                    setUseXNNPACK(ScannerPerfConfig.useXnnpack)
-
-                    when (ScannerPerfConfig.delegateMode) {
-                        "cpu", "xnnpack" -> {
-                            SLog.w(
-                                TAG,
-                                "TFLite delegate mode=${ScannerPerfConfig.delegateMode}, xnnpack=${ScannerPerfConfig.useXnnpack}, threads=${ScannerPerfConfig.interpreterThreads}",
-                            )
-                        }
-
-                        "nnapi" -> {
-                            addDelegate(NnApiDelegate())
-                            SLog.w(
-                                TAG,
-                                "TFLite delegate mode=nnapi, threads=${ScannerPerfConfig.interpreterThreads}",
-                            )
-                        }
-
-                        "gpu" -> {
-                            val compatibilityList = CompatibilityList()
-                            if (compatibilityList.isDelegateSupportedOnThisDevice) {
-                                val delegateOptions = compatibilityList.bestOptionsForThisDevice
-                                addDelegate(GpuDelegate(delegateOptions))
-                                SLog.w(
-                                    TAG,
-                                    "TFLite delegate mode=gpu, threads=${ScannerPerfConfig.interpreterThreads}",
-                                )
-                            } else {
-                                SLog.w(TAG, "GPU delegate not supported, falling back to CPU/XNNPACK")
-                            }
-                        }
-
-                        else -> {
-                            SLog.w(
-                                TAG,
-                                "Unknown delegate mode=${ScannerPerfConfig.delegateMode}, using CPU/XNNPACK",
-                            )
-                        }
-                    }
-                }
-
-            val interpreter = Interpreter(modelBuffer, options)
-            interpreter.allocateTensors()
-            SLog.d(TAG, "TensorFlow Lite Interpreter created successfully")
-            interpreter
-        }
+        private val liteRtRuntimeDelegate = lazy { LiteRtRuntime(appContext) }
+        private val liteRtRuntime: LiteRtRuntime get() = liteRtRuntimeDelegate.value
 
         /**
          * VIN Detector that uses TFLite model for real-time detection.
@@ -185,7 +113,7 @@ internal object VinScannerDependencies {
          */
         val vinDetector: VinDetector by lazy {
             SLog.d(TAG, "Creating VinDetector...")
-            VinDetectorImpl(interpreter)
+            VinDetectorImpl(liteRtRuntime)
         }
 
         /**
@@ -248,8 +176,8 @@ internal object VinScannerDependencies {
          * Create an ImageAnalysis instance for frame processing.
          * Configured for portrait mode (540x960) with latest frame strategy.
          */
-        fun createImageAnalysis(): ImageAnalysis =
-            ImageAnalysis
+        fun createImageAnalysis(): ImageAnalysis {
+            val builder = ImageAnalysis
                 .Builder()
                 .setTargetRotation(Surface.ROTATION_0)
                 .setResolutionSelector(
@@ -265,7 +193,46 @@ internal object VinScannerDependencies {
                             ),
                         ).build(),
                 ).setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                .build()
+
+            return builder.build()
+        }
+
+        /**
+         * Create a 720p ImageCapture use case for grabbing a sharp still on manual capture.
+         * Uses Zero-Shutter-Lag so the returned frame is the one closest to the
+         * capture instant (minimal lag on a moving camera). Forced to a 16:9 sensor aspect
+         * ratio so it rotates to the same 9:16 portrait frame as ImageAnalysis.
+         */
+        fun createImageCapture(): ImageCapture =
+            ImageCapture
+                .Builder()
+                .setCaptureMode(ImageCapture.CAPTURE_MODE_ZERO_SHUTTER_LAG)
+                .setTargetRotation(Surface.ROTATION_0)
+                .setResolutionSelector(
+                    ResolutionSelector
+                        .Builder()
+                        .setAspectRatioStrategy(AspectRatioStrategy.RATIO_16_9_FALLBACK_AUTO_STRATEGY)
+                        .setResolutionStrategy(
+                            ResolutionStrategy(
+                                android.util.Size(1280, 720),
+                                ResolutionStrategy.FALLBACK_RULE_CLOSEST_LOWER_THEN_HIGHER,
+                            ),
+                        )
+                        .setResolutionFilter(
+                            ResolutionFilter { supportedSizes, _ ->
+                                val bounded = supportedSizes.filter { size ->
+                                    maxOf(size.width, size.height) <= 1280 &&
+                                        minOf(size.width, size.height) <= 720
+                                }
+                                bounded.ifEmpty {
+                                    listOf(supportedSizes.minBy { size ->
+                                        size.width.toLong() * size.height
+                                    })
+                                }
+                            },
+                        )
+                        .build(),
+                ).build()
 
         /**
          * Create a VinScannerRepository that coordinates all data sources.
@@ -315,18 +282,21 @@ internal object VinScannerDependencies {
          * Warm up expensive scanner dependencies in the background before first frame processing.
          * This avoids first-run jank when lazy singletons are created on demand.
          */
-        suspend fun warmUpScannerDependencies() =
-            withContext(Dispatchers.Default) {
-                vinDetector
-                textExtractor
-                vinValidator
-                cameraDataSource
-            }
+        suspend fun warmUpScannerDependencies() {
+            vinDetector.warmUp()
+            textExtractor
+            vinValidator
+            cameraDataSource
+        }
 
         /**
          * Release heavyweight singleton resources.
          */
         fun release() {
+            if (liteRtRuntimeDelegate.isInitialized()) {
+                runCatching { liteRtRuntime.close() }
+                    .onFailure { SLog.w(TAG, "Failed to close LiteRT runtime", it) }
+            }
             runCatching {
                 (textExtractor as? java.io.Closeable)?.close()
             }.onFailure { SLog.w(TAG, "Failed to close text extractor", it) }

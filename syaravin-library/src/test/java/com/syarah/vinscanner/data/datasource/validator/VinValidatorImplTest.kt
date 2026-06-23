@@ -1,5 +1,6 @@
 package com.syarah.vinscanner.data.datasource.validator
 
+import com.syarah.vinscanner.R
 import com.syarah.vinscanner.domain.model.VinNumber
 import org.junit.Assert.*
 import org.junit.Before
@@ -15,7 +16,19 @@ class VinValidatorImplTest {
 
     @Before
     fun setup() {
-        validator = VinValidatorImpl()
+        validator = VinValidatorImpl { id, formatArgs ->
+            val value = when (id) {
+                R.string.validation_invalid_chars_or_no_valid_vin ->
+                    "Invalid characters found in middle of VIN or no valid 17-character VIN found."
+                R.string.validation_wrong_length -> "VIN must be 17 characters long, but was %1\$d"
+                R.string.validation_contains_invalid_chars ->
+                    "VIN contains invalid characters (I, O, or Q)"
+                R.string.validation_insufficient_digits -> "VIN likely invalid (insufficient digits)"
+                R.string.validation_checksum_accepted -> "Invalid VIN checksum (accepted)"
+                else -> error("Unexpected string resource: $id")
+            }
+            value.format(*formatArgs)
+        }
     }
 
     // ==================== VIN Format Validation Tests ====================
@@ -305,12 +318,10 @@ class VinValidatorImplTest {
     }
 
     @Test
-    fun `cleanVin returns empty for text with space in middle`() {
-        // With strict trimming, space in middle causes rejection
-        // "1HGBH41JXMN109186 1FAFP40432F172825" has a space in the middle
+    fun `cleanVin extracts first VIN when text contains multiple VINs`() {
         val cleaned = validator.cleanVin("1HGBH41JXMN109186 1FAFP40432F172825")
 
-        assertEquals("Should be empty due to space in middle", "", cleaned)
+        assertEquals("Should return the first detected VIN", "1HGBH41JXMN109186", cleaned)
     }
 
     // ==================== Ambiguous Character Permutation Tests ====================
@@ -469,14 +480,12 @@ class VinValidatorImplTest {
     // ==================== Performance and Boundary Tests ====================
 
     @Test
-    fun `validate rejects input with text after VIN (strict mode)`() {
-        // VIN with trailing text containing space in middle is rejected (strict mode)
+    fun `validate extracts VIN from input with trailing text`() {
         val inputWithText = "VIN: 1HGBH41JXMN109186 (found on vehicle)"
         val result = validator.validate(inputWithText)
 
-        // The space between VIN and trailing text causes rejection in strict mode
-        assertFalse("VIN with text after should be rejected (space in middle)", result.isValid)
-        assertFalse("Format should be invalid", result.formatValid)
+        assertTrue("VIN should be extracted from trailing text", result.isValid)
+        assertTrue("Format should be valid", result.formatValid)
     }
 
     @Test
@@ -567,12 +576,11 @@ class VinValidatorImplTest {
     }
 
     @Test
-    fun `validate rejects VIN with middle space`() {
-        // VIN with space in the middle should be rejected
+    fun `validate accepts OCR inserted space inside VIN`() {
         val result = validator.validate("ERAPPSN 234439G161")
 
-        assertFalse("VIN with middle space should be rejected", result.isValid)
-        assertFalse("Format should be invalid", result.formatValid)
+        assertTrue("OCR-inserted whitespace should be collapsed", result.isValid)
+        assertTrue("Format should be valid", result.formatValid)
     }
 
     @Test

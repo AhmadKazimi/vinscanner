@@ -5,17 +5,20 @@ import com.syarah.vinscanner.util.LogTags
 import android.Manifest
 import com.syarah.vinscanner.util.SLog
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Matrix
 import android.os.SystemClock
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
@@ -45,6 +48,7 @@ import com.syarah.vinscanner.di.VinScannerDependencies
 import com.syarah.vinscanner.domain.model.VinNumber
 import com.syarah.vinscanner.presentation.components.BoundingBoxOverlay
 import com.syarah.vinscanner.presentation.components.CameraPreview
+import com.syarah.vinscanner.presentation.components.CaptureButton
 import com.syarah.vinscanner.presentation.components.RoiOverlay
 import com.syarah.vinscanner.ui.theme.RoiInvalidBorder
 import com.syarah.vinscanner.ui.theme.RoiNeutralBorder
@@ -52,6 +56,8 @@ import com.syarah.vinscanner.ui.theme.RoiValidBorder
 import com.syarah.vinscanner.util.ImagePreprocessor
 import com.syarah.vinscanner.util.RoiConfig
 import com.syarah.vinscanner.util.ScannerPerfConfig
+import com.syarah.vinscanner.util.ThermalManager
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.TimeUnit
@@ -59,11 +65,44 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlin.math.abs
 
 private const val TAG = LogTags.LIBRARY
+
+// Auto-accept geometry gates for the detected VIN box (normalized 0..1 within the analyzed frame).
+// Reject otherwise-valid reads when the VIN is clipped at an edge, off-center, or too far away,
+// so a clean, centered, close capture is required before auto-confirming.
+private const val VIN_BOX_EDGE_MARGIN = 0.02f        // box must sit this far inside every edge
+private const val VIN_BOX_MAX_CENTER_OFFSET = 0.30f  // box center within this of frame center (x & y)
+private const val VIN_BOX_MIN_WIDTH = 0.50f          // box at least this wide => camera close enough
+
+private fun isVinBoxWellPositioned(box: com.syarah.vinscanner.domain.model.BoundingBox): Boolean {
+    // Fully inside the frame (not clipped at an edge).
+    if (box.left < VIN_BOX_EDGE_MARGIN || box.top < VIN_BOX_EDGE_MARGIN ||
+        box.right > 1f - VIN_BOX_EDGE_MARGIN || box.bottom > 1f - VIN_BOX_EDGE_MARGIN
+    ) {
+        return false
+    }
+    // Centered (or close to center).
+    val centerX = (box.left + box.right) / 2f
+    val centerY = (box.top + box.bottom) / 2f
+    if (abs(centerX - 0.5f) > VIN_BOX_MAX_CENTER_OFFSET ||
+        abs(centerY - 0.5f) > VIN_BOX_MAX_CENTER_OFFSET
+    ) {
+        return false
+    }
+    // Close enough (box fills a decent fraction of the frame width).
+    return (box.right - box.left) >= VIN_BOX_MIN_WIDTH
+}
 
 /**
  * Main scanner screen for VIN detection
@@ -84,16 +123,24 @@ internal fun ScannerScreen(
     )
 
     val state by viewModel.state.collectAsStateWithLifecycle()
-    LocalContext.current
+    val context = LocalContext.current
 
     // Get dependencies via remember to avoid recreating on recomposition
     val dependencies = remember { VinScannerDependencies.get() }
     var isWarmupComplete by remember { mutableStateOf(false) }
+    val thermalManager = remember(context) { ThermalManager(context) }
+    var thermalStatus by remember { mutableIntStateOf(thermalManager.currentStatus) }
+
+    DisposableEffect(thermalManager) {
+        thermalManager.start { status -> thermalStatus = status }
+        onDispose(thermalManager::stop)
+    }
 
     // Factory-created instances (per-screen lifecycle)
     val cameraSelector = remember { dependencies.createCameraSelector() }
     val preview = remember { dependencies.createPreview() }
     val imageAnalysis = remember { dependencies.createImageAnalysis() }
+    val imageCapture = remember { dependencies.createImageCapture() }
     val executor = remember { dependencies.createExecutor() }
 
     // Defer heavy singleton creation until first frame processing on background thread.
@@ -151,45 +198,55 @@ internal fun ScannerScreen(
     }
 
     val isProcessingFrame = remember { AtomicBoolean(false) }
+    val isManualCaptureRequested = remember { AtomicBoolean(false) }
+    val analysisMutex = remember { Mutex() }
+    var isManualCaptureBusy by remember { mutableStateOf(false) }
     val lastProcessTime = remember { AtomicLong(0L) }
     val roiFrameCounter = remember { AtomicLong(0L) }
 
     // Set up image analysis
-    DisposableEffect(state.isScanning, isWarmupComplete) {
+    DisposableEffect(state.isScanning, isWarmupComplete, thermalStatus) {
         if (state.isScanning && isWarmupComplete) {
             imageAnalysis.setAnalyzer(executor) { imageProxy ->
                 val currentTime = System.currentTimeMillis()
                 val previousTime = lastProcessTime.get()
 
-                if (currentTime - previousTime >= ScannerPerfConfig.inferenceIntervalMs &&
+                if (!isManualCaptureRequested.get() &&
+                    currentTime - previousTime >= ThermalManager.inferenceIntervalMs(
+                        ScannerPerfConfig.inferenceIntervalMs,
+                        thermalStatus,
+                    ) &&
                     isProcessingFrame.compareAndSet(false, true)
                 ) {
                     lastProcessTime.set(currentTime)
                     val frameReceivedNs = System.nanoTime()
                     processingScope.launch {
                         try {
-                            processImage(
-                                frameReceivedNs = frameReceivedNs,
-                                imageProxy = imageProxy,
-                                cameraDataSource = cameraDataSourceLazy.value,
-                                vinDetector = vinDetectorLazy.value,
-                                textExtractor = textExtractorLazy.value,
-                                vinValidator = vinValidatorLazy.value,
-                                roiFrameCounter = roiFrameCounter,
-                                onVinDetected = { vin, confidence, croppedBitmap ->
-                                    viewModel.onVinDetected(vin, confidence, croppedBitmap)
-                                },
-                                onBoxesDetected = { boxes ->
-                                    viewModel.onDetectionBoxesUpdated(boxes)
-                                },
-                                onRoiBorderStateChange = { state ->
-                                    viewModel.onEvent(ScannerEvent.UpdateRoiBorderState(state))
-                                },
-                                onRoiBitmapCaptured = { roiBitmap ->
-                                    viewModel.onRoiCroppedBitmapUpdated(roiBitmap)
-                                }
-                            )
+                            analysisMutex.withLock {
+                                processImage(
+                                    frameReceivedNs = frameReceivedNs,
+                                    imageProxy = imageProxy,
+                                    cameraDataSource = cameraDataSourceLazy.value,
+                                    vinDetector = vinDetectorLazy.value,
+                                    textExtractor = textExtractorLazy.value,
+                                    vinValidator = vinValidatorLazy.value,
+                                    roiFrameCounter = roiFrameCounter,
+                                    onVinDetected = { vin, confidence, croppedBitmap ->
+                                        if (isManualCaptureRequested.get()) {
+                                            croppedBitmap?.recycle()
+                                        } else {
+                                            viewModel.onVinDetected(vin, confidence, croppedBitmap)
+                                        }
+                                    },
+                                    onBoxesDetected = viewModel::onDetectionBoxesUpdated,
+                                    onRoiBorderStateChange = { roiState ->
+                                        viewModel.onEvent(ScannerEvent.UpdateRoiBorderState(roiState))
+                                    },
+                                    onRoiBitmapCaptured = viewModel::onRoiCroppedBitmapUpdated
+                                )
+                            }
                         } catch (cancelled: CancellationException) {
+                            throw cancelled
                         } finally {
                             isProcessingFrame.set(false)
                         }
@@ -224,10 +281,13 @@ internal fun ScannerScreen(
         if (state.hasPermission && state.isScanning) {
             // Camera preview
             CameraPreview(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(20.dp)),
                 cameraSelector = cameraSelector,
                 preview = preview,
                 imageAnalyzer = imageAnalysis,
+                imageCapture = imageCapture,
             )
 
             if (!isWarmupComplete) {
@@ -265,6 +325,24 @@ internal fun ScannerScreen(
                 roiBox = RoiConfig.roi,
                 borderColor = roiBorderColor
             )
+
+            // Guidance: keep VIN inside the box, centered, and close.
+            if (isWarmupComplete) {
+                Text(
+                    text = stringResource(R.string.scanner_guidance),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = 140.dp, start = 24.dp, end = 24.dp)
+                        .background(
+                            color = Color.Black.copy(alpha = 0.45f),
+                            shape = RoundedCornerShape(12.dp),
+                        )
+                        .padding(horizontal = 16.dp, vertical = 10.dp),
+                )
+            }
 
             // Bounding box overlay
             BoundingBoxOverlay(
@@ -354,45 +432,45 @@ internal fun ScannerScreen(
 
         // Enter manually button at bottom (camera shutter style)
         if (state.hasPermission && state.isScanning) {
-            Box(
+            CaptureButton(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(bottom = 32.dp)
-                    .size(64.dp)
-                    .clip(CircleShape)
-                    .background(Color.White)
-                    .clickable {
-                        SLog.d(TAG, "Enter manually button clicked")
-
-                        // Get latest ROI-cropped bitmap from state
-                        val roiBitmap = state.latestRoiCroppedBitmap
-
-                        if (roiBitmap != null) {
-                            SLog.d(
-                                TAG,
-                                "Passing empty VIN with ROI bitmap (${roiBitmap.width}x${roiBitmap.height})"
-                            )
-
-                            // Create VinNumber with empty string and ROI bitmap
-                            val manualEntryVin = VinNumber(
-                                value = "",
-                                confidence = 0f,
-                                isValid = false,
-                                croppedImage = roiBitmap
-                            )
-
-                            // Invoke callback with bitmap
-                            onVinConfirmed(manualEntryVin)
-                        } else {
-                            SLog.w(TAG, "No ROI bitmap available, passing empty VIN without image")
-
-                            // Fallback: pass empty VIN without bitmap
-                            onVinConfirmed(VinNumber(value = "", confidence = 0f, isValid = false))
+                    .padding(bottom = 32.dp),
+                enabled = !isManualCaptureBusy,
+                capturing = isManualCaptureBusy,
+                onTap = {
+                    if (!isManualCaptureRequested.compareAndSet(false, true)) return@CaptureButton
+                    isManualCaptureBusy = true
+                    val fallbackRoiBitmap = state.latestRoiCroppedBitmap
+                        ?.takeUnless(Bitmap::isRecycled)
+                        ?.copy(Bitmap.Config.ARGB_8888, false)
+                    SLog.d(TAG, "Enter manually button clicked")
+                    processingScope.launch {
+                        try {
+                            val result = analysisMutex.withLock {
+                                analyzeManualCapture(
+                                    imageCapture = imageCapture,
+                                    captureExecutor = executor,
+                                    fallbackRoiBitmap = fallbackRoiBitmap,
+                                    vinDetector = vinDetectorLazy.value,
+                                    textExtractor = textExtractorLazy.value,
+                                    vinValidator = vinValidatorLazy.value,
+                                )
+                            }
+                            withContext(Dispatchers.Main) { onVinConfirmed(result) }
+                        } catch (cancelled: CancellationException) {
+                            throw cancelled
+                        } catch (e: Exception) {
+                            SLog.e(TAG, "Manual capture analysis failed", e)
+                            withContext(Dispatchers.Main) {
+                                onVinConfirmed(VinNumber(value = "", confidence = 0f, isValid = false))
+                            }
+                        } finally {
+                            isManualCaptureRequested.set(false)
+                            withContext(Dispatchers.Main) { isManualCaptureBusy = false }
                         }
                     }
-                    .semantics {
-                        contentDescription = "vin_scanner_capture_button"
-                    },
+                },
             )
         }
 
@@ -419,6 +497,149 @@ internal fun ScannerScreen(
 
 private val scanFrameCounter = AtomicLong(0)
 
+private suspend fun analyzeManualCapture(
+    imageCapture: ImageCapture,
+    captureExecutor: ExecutorService,
+    fallbackRoiBitmap: Bitmap?,
+    vinDetector: VinDetector,
+    textExtractor: TextExtractor,
+    vinValidator: VinValidator,
+): VinNumber {
+    val capturedBitmap = try {
+        captureStillBitmap(imageCapture, captureExecutor)
+    } catch (cancelled: CancellationException) {
+        throw cancelled
+    } catch (e: Exception) {
+        SLog.w(TAG, "Still capture failed; analyzing latest ROI frame", e)
+        null
+    }
+
+    val analysisBitmap = if (capturedBitmap != null) {
+        val roi = RoiConfig.roi
+        try {
+            Bitmap.createBitmap(
+                capturedBitmap,
+                (roi.left * capturedBitmap.width).toInt().coerceIn(0, capturedBitmap.width - 1),
+                (roi.top * capturedBitmap.height).toInt().coerceIn(0, capturedBitmap.height - 1),
+                ((roi.right - roi.left) * capturedBitmap.width).toInt().coerceAtLeast(1),
+                ((roi.bottom - roi.top) * capturedBitmap.height).toInt().coerceAtLeast(1),
+            )
+        } finally {
+            capturedBitmap.recycle()
+            fallbackRoiBitmap?.recycle()
+        }
+    } else {
+        fallbackRoiBitmap
+    } ?: return VinNumber(value = "", confidence = 0f, isValid = false)
+
+    try {
+        val boxes = vinDetector.detect(analysisBitmap).boundingBoxes
+            .sortedByDescending { it.confidence }
+            .take(3)
+        val extractedCandidates = coroutineScope {
+            boxes.map { box ->
+                async { box to textExtractor.extractText(analysisBitmap, box) }
+            }.awaitAll()
+        }
+
+        for ((box, rawText) in extractedCandidates) {
+            if (rawText.isNullOrBlank()) continue
+            val candidate = vinValidator.cleanVin(rawText)
+            val validation = vinValidator.validate(candidate)
+            if (!validation.isValid) continue
+
+            // Keep the full captured frame as the result image (no VIN-box crop),
+            // sharpened with boosted contrast for clarity.
+            return VinNumber(
+                value = validation.correctedVin ?: candidate,
+                confidence = box.confidence,
+                isValid = true,
+                croppedImage = ImagePreprocessor.enhanceForDisplay(analysisBitmap),
+            )
+        }
+
+        return VinNumber(
+            value = "",
+            confidence = 0f,
+            isValid = false,
+            croppedImage = ImagePreprocessor.enhanceForDisplay(analysisBitmap),
+        )
+    } finally {
+        if (!analysisBitmap.isRecycled) analysisBitmap.recycle()
+    }
+}
+
+private suspend fun captureStillBitmap(
+    imageCapture: ImageCapture,
+    executor: ExecutorService,
+): Bitmap = suspendCancellableCoroutine { cont ->
+    imageCapture.takePicture(executor, object : ImageCapture.OnImageCapturedCallback() {
+        override fun onCaptureSuccess(image: ImageProxy) {
+            try {
+                val bmp = imageProxyJpegToBitmap(image)
+                if (cont.isActive) cont.resumeWith(Result.success(bmp))
+            } catch (t: Throwable) {
+                if (cont.isActive) cont.resumeWith(Result.failure(t))
+            } finally {
+                image.close()
+            }
+        }
+
+        override fun onError(exception: ImageCaptureException) {
+            if (cont.isActive) cont.resumeWith(Result.failure(exception))
+        }
+    })
+}
+
+private fun imageProxyJpegToBitmap(image: ImageProxy): Bitmap {
+    val buffer = image.planes[0].buffer
+    val bytes = ByteArray(buffer.remaining())
+    buffer.get(bytes)
+    val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+    BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+    val decodeOptions = BitmapFactory.Options().apply {
+        inSampleSize = captureDecodeSampleSize(bounds.outWidth, bounds.outHeight)
+    }
+    val decodedSource = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, decodeOptions)
+        ?: throw IllegalStateException("Failed to decode captured JPEG")
+    val decoded = boundCapturedBitmap(decodedSource)
+    val rotation = image.imageInfo.rotationDegrees
+    if (rotation == 0) return decoded
+    val matrix = Matrix().apply { postRotate(rotation.toFloat()) }
+    val rotated = Bitmap.createBitmap(decoded, 0, 0, decoded.width, decoded.height, matrix, true)
+    if (rotated !== decoded && !decoded.isRecycled) decoded.recycle()
+    return rotated
+}
+
+internal fun captureDecodeSampleSize(width: Int, height: Int): Int {
+    if (width <= 0 || height <= 0) return 1
+    var sampleSize = 1
+    while (
+        maxOf(width / (sampleSize * 2), height / (sampleSize * 2)) > 1280 ||
+        minOf(width / (sampleSize * 2), height / (sampleSize * 2)) > 720
+    ) {
+        sampleSize *= 2
+    }
+    return sampleSize
+}
+
+private fun boundCapturedBitmap(bitmap: Bitmap): Bitmap {
+    val scale = minOf(
+        1f,
+        1280f / maxOf(bitmap.width, bitmap.height),
+        720f / minOf(bitmap.width, bitmap.height),
+    )
+    if (scale >= 1f) return bitmap
+    return Bitmap.createScaledBitmap(
+        bitmap,
+        (bitmap.width * scale).toInt().coerceAtLeast(1),
+        (bitmap.height * scale).toInt().coerceAtLeast(1),
+        true,
+    ).also { scaled ->
+        if (scaled !== bitmap) bitmap.recycle()
+    }
+}
+
 private suspend fun processImage(
     frameReceivedNs: Long,
     imageProxy: ImageProxy,
@@ -438,48 +659,27 @@ private suspend fun processImage(
     var stageTextNs = 0L
     var stagePostNs = 0L
     try {
-        // Convert ImageProxy to Bitmap
+        // Convert only the rotation-aware ROI from YUV to RGB.
         val imageToBitmapStartNs = System.nanoTime()
-        val bitmap = cameraDataSource.imageToBitmap(imageProxy)
+        val roi = RoiConfig.roi
+        val bitmap = cameraDataSource.imageToBitmap(imageProxy, roi)
         stageImageToBitmapNs = System.nanoTime() - imageToBitmapStartNs
 
         try {
-            // Crop to ROI first to reduce noise and improve accuracy
+            // The camera data source already returned the ROI; retain full-frame mapping metadata.
             val roiCropStartNs = System.nanoTime()
-            val roi = RoiConfig.roi
-            val leftPx = (roi.left * bitmap.width).toInt().coerceIn(0, bitmap.width - 1)
-            val topPx = (roi.top * bitmap.height).toInt().coerceIn(0, bitmap.height - 1)
-            val rightPx = (roi.right * bitmap.width).toInt().coerceIn(leftPx + 1, bitmap.width)
-            val bottomPx = (roi.bottom * bitmap.height).toInt().coerceIn(topPx + 1, bitmap.height)
-            val roiWidth = rightPx - leftPx
-            val roiHeight = bottomPx - topPx
-            val shouldCrop = roiWidth > 0 && roiHeight > 0
-
-            val processedBitmap: Bitmap = try {
-                if (shouldCrop) {
-                    val cropped = Bitmap.createBitmap(bitmap, leftPx, topPx, roiWidth, roiHeight)
-
-                    // Store a copy for manual entry; throttled to 1-in-5 frames to reduce allocation pressure
-                    if (roiFrameCounter.incrementAndGet() % 5L == 1L) {
-                        try {
-                            val roiCopy = cropped.copy(Bitmap.Config.ARGB_8888, false)
-                            val safeRoiCopy = ImagePreprocessor.downscaleForDisplay(roiCopy)
-                            if (safeRoiCopy !== roiCopy && !roiCopy.isRecycled) {
-                                roiCopy.recycle()
-                            }
-                            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
-                                onRoiBitmapCaptured(safeRoiCopy)
-                            }
-                        } catch (e: Exception) {
-                            SLog.e(TAG, "Failed to create ROI bitmap copy", e)
-                        }
-                    }
-
-                    cropped
-                } else bitmap
-            } catch (e: Exception) {
-                SLog.e(TAG, "Failed to crop to ROI, falling back to full image", e)
-                bitmap
+            val shouldCrop = true
+            val processedBitmap = bitmap
+            // Store a copy for manual-entry fallback; throttled to reduce allocation pressure.
+            if (roiFrameCounter.incrementAndGet() % 5L == 1L) {
+                try {
+                    val roiCopy = bitmap.copy(Bitmap.Config.ARGB_8888, false)
+                    val safeRoiCopy = ImagePreprocessor.downscaleForDisplay(roiCopy)
+                    if (safeRoiCopy !== roiCopy && !roiCopy.isRecycled) roiCopy.recycle()
+                    withContext(Dispatchers.Main) { onRoiBitmapCaptured(safeRoiCopy) }
+                } catch (e: Exception) {
+                    SLog.e(TAG, "Failed to create ROI bitmap copy", e)
+                }
             }
             stageRoiCropNs = System.nanoTime() - roiCropStartNs
 
@@ -536,22 +736,26 @@ private suspend fun processImage(
                     val reason = validation.errorMessage ?: if (validation.checksumValid) "checksum_ok" else "soft_accept"
                     SLog.w(TAG, "VIN_CANDIDATE frame=$frame box=$boxTag conf=${"%.3f".format(box.confidence)} $boxCoords ocr=\"${textInBox.take(40)}\" clean=\"$candidate\" $outcome reason=\"$reason\"")
                     if (validation.isValid) {
+                        if (!isVinBoxWellPositioned(box)) {
+                            val cx = (box.left + box.right) / 2f
+                            val cy = (box.top + box.bottom) / 2f
+                            SLog.w(
+                                TAG,
+                                "VIN_REJECT_POSITION frame=$frame box=$boxTag $boxCoords " +
+                                    "center=(${"%.2f".format(cx)},${"%.2f".format(cy)}) w=${"%.2f".format(box.right - box.left)}",
+                            )
+                            continue
+                        }
                         bestVin = validation.correctedVin ?: candidate
                         bestConfidence = box.confidence
 
-                        // Crop and enhance the bitmap using the AI detection box
-                        try {
-                            val enhancedVinBitmap = ImagePreprocessor.cropAndEnhance(
-                                processedBitmap,
-                                box.left,
-                                box.top,
-                                box.right,
-                                box.bottom,
-                                paddingPercent = 0.15f
-                            )
-                            croppedVinBitmap = enhancedVinBitmap
+                        // Keep the full scanned analysis frame as the result image (no VIN-box
+                        // crop), sharpened with boosted contrast for clarity.
+                        croppedVinBitmap = try {
+                            ImagePreprocessor.enhanceForDisplay(processedBitmap)
                         } catch (e: Exception) {
-                            SLog.e(TAG, "Failed to crop and enhance VIN bitmap", e)
+                            SLog.e(TAG, "Failed to prepare VIN frame bitmap", e)
+                            null
                         }
                         break
                     }

@@ -2,6 +2,7 @@ package com.syarah.vinscanner.data.datasource.camera
 
 import android.graphics.Bitmap
 import androidx.camera.core.ImageProxy
+import com.syarah.vinscanner.domain.model.BoundingBox
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -22,7 +23,8 @@ internal interface CameraDataSource {
     /**
      * Converts ImageProxy to Bitmap
      * @param imageProxy The image from camera
-     * @return Bitmap representation of the image
+     * @param cropRegion optional normalized crop in the rotation-corrected output space
+     * @return rotation-corrected bitmap containing only [cropRegion], when supplied
      */
-    fun imageToBitmap(imageProxy: ImageProxy): Bitmap
+    fun imageToBitmap(imageProxy: ImageProxy, cropRegion: BoundingBox? = null): Bitmap
 }

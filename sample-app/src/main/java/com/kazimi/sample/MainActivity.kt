@@ -1,23 +1,39 @@
 package com.kazimi.sample
 
 import android.os.Bundle
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.syarah.vinscanner.VinScanResult
 import com.syarah.vinscanner.VinScanner
 import com.syarah.vinscanner.domain.model.VinNumber
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels()
@@ -58,11 +74,57 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
+private fun FullScreenImageDialog(
+    image: ImageBitmap,
+    onDismiss: () -> Unit,
+) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+    ) {
+        Box(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .background(Color.Black)
+                    .clickable(onClick = onDismiss),
+            contentAlignment = Alignment.Center,
+        ) {
+            Image(
+                bitmap = image,
+                contentDescription = "Full screen VIN Image",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Fit,
+            )
+        }
+    }
+}
+
+@Composable
 fun SampleAppScreen(
     scannedVin: VinNumber?,
     resultMessage: String?,
     onScanClick: () -> Unit,
 ) {
+    val context = LocalContext.current
+    val resultBitmap by produceState<Bitmap?>(
+        initialValue = scannedVin?.croppedImage,
+        key1 = scannedVin?.croppedImageUri,
+    ) {
+        // Re-resolve on every new result; produceState retains the previous value
+        // across key changes, so do not guard on `value == null`.
+        value = scannedVin?.croppedImage ?: scannedVin?.croppedImageUri?.let { uri ->
+            withContext(Dispatchers.IO) {
+                context.contentResolver.openInputStream(uri)?.use(BitmapFactory::decodeStream)
+            }
+        }
+    }
+    var fullScreenImage by remember { mutableStateOf<ImageBitmap?>(null) }
+
+    fullScreenImage?.let { image ->
+        FullScreenImageDialog(image = image, onDismiss = { fullScreenImage = null })
+    }
+
     Column(
         modifier =
             Modifier
@@ -112,14 +174,16 @@ fun SampleAppScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 if (scannedVin != null) {
-                    scannedVin.croppedImage?.let { bitmap ->
+                    resultBitmap?.let { bitmap ->
+                        val imageBitmap = bitmap.asImageBitmap()
                         Image(
-                            bitmap = bitmap.asImageBitmap(),
+                            bitmap = imageBitmap,
                             contentDescription = "Captured VIN Image",
                             modifier =
                                 Modifier
                                     .fillMaxWidth()
-                                    .height(120.dp),
+                                    .height(120.dp)
+                                    .clickable { fullScreenImage = imageBitmap },
                             contentScale = ContentScale.Fit,
                         )
                         Spacer(modifier = Modifier.height(12.dp))

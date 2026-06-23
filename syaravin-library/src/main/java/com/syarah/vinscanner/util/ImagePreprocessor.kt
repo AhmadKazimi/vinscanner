@@ -11,19 +11,32 @@ import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
 internal object ImagePreprocessor {
+    // Crops at or above this width are already sharp (high-res capture). Running the sharpen
+    // kernel on them only adds halos and per-pixel cost, so we skip it and just boost contrast.
+    private const val SHARPEN_MAX_WIDTH = 800
+
     fun enhanceVinImage(bitmap: Bitmap): Bitmap =
         try {
-            val sharpened = sharpenBitmap(bitmap)
-            applyContrast(sharpened).also {
-                if (it !== sharpened) sharpened.recycle()
+            if (bitmap.width >= SHARPEN_MAX_WIDTH) {
+                // High-res source: skip sharpening, contrast only.
+                applyContrast(bitmap)
+            } else {
+                val sharpened = sharpenBitmap(bitmap)
+                applyContrast(sharpened).also {
+                    if (it !== sharpened) sharpened.recycle()
+                }
             }
         } catch (_: Exception) {
             bitmap
         }
 
+    // Unsharp strength. Cross kernel center = 1 + 4*amount, cardinal neighbors = -amount.
+    // 1.0 == old aggressive kernel (center 5 / neighbor -1); keep this low for a subtle boost.
+    private const val SHARPEN_AMOUNT = 0.15f
+
     /**
-     * Cross kernel (center=5, 4 cardinal neighbors=-1, corners=0).
-     * Subtle edge boost; less aggressive than the full 8-neighbor kernel.
+     * Cross kernel (center = 1 + 4*amount, 4 cardinal neighbors = -amount, corners=0; sum=1).
+     * Subtle edge boost scaled by [SHARPEN_AMOUNT].
      */
     private fun sharpenBitmap(src: Bitmap): Bitmap {
         val w = src.width
@@ -31,7 +44,10 @@ internal object ImagePreprocessor {
         val pixels = IntArray(w * h)
         src.getPixels(pixels, 0, w, 0, 0, w, h)
 
-        // Cross kernel: center=5, 4 cardinal neighbors=-1, corners ignored (sum=1, subtle edge boost)
+        val a = SHARPEN_AMOUNT
+        fun mix(c: Int, t: Int, b: Int, l: Int, r: Int): Int =
+            (c + a * (4 * c - t - b - l - r)).roundToInt().coerceIn(0, 255)
+
         val out = IntArray(w * h)
         for (y in 0 until h) {
             for (x in 0 until w) {
@@ -43,22 +59,9 @@ internal object ImagePreprocessor {
                 out[y * w + x] =
                     Color.argb(
                         c ushr 24,
-                        (5 * Color.red(c) - Color.red(t) - Color.red(b2) - Color.red(l) - Color.red(r2)).coerceIn(
-                            0,
-                            255,
-                        ),
-                        (
-                            5 * Color.green(c) - Color.green(t) - Color.green(b2) - Color.green(l) -
-                                Color.green(
-                                    r2,
-                                )
-                        ).coerceIn(0, 255),
-                        (
-                            5 * Color.blue(c) - Color.blue(t) - Color.blue(b2) - Color.blue(l) -
-                                Color.blue(
-                                    r2,
-                                )
-                        ).coerceIn(0, 255),
+                        mix(Color.red(c), Color.red(t), Color.red(b2), Color.red(l), Color.red(r2)),
+                        mix(Color.green(c), Color.green(t), Color.green(b2), Color.green(l), Color.green(r2)),
+                        mix(Color.blue(c), Color.blue(t), Color.blue(b2), Color.blue(l), Color.blue(r2)),
                     )
             }
         }
@@ -77,21 +80,21 @@ internal object ImagePreprocessor {
                     ColorMatrix().apply {
                         set(
                             floatArrayOf(
-                                1.2f,
+                                1.4f,
                                 0f,
                                 0f,
                                 0f,
-                                5f,
+                                -25f,
                                 0f,
-                                1.2f,
-                                0f,
-                                0f,
-                                5f,
+                                1.4f,
                                 0f,
                                 0f,
-                                1.2f,
+                                -25f,
                                 0f,
-                                5f,
+                                0f,
+                                1.4f,
+                                0f,
+                                -25f,
                                 0f,
                                 0f,
                                 0f,
@@ -137,6 +140,21 @@ internal object ImagePreprocessor {
             }
         } catch (_: Exception) {
             null
+        }
+    }
+
+    /**
+     * Downscale for display, then sharpen + boost contrast. Used for the result image so the
+     * full scanned frame reads clearly. The input is not recycled (caller owns it).
+     */
+    fun enhanceForDisplay(
+        bitmap: Bitmap,
+        maxDimension: Int = 1600,
+        maxPixels: Int = 1_500_000,
+    ): Bitmap {
+        val scaled = downscaleForDisplay(bitmap, maxDimension, maxPixels)
+        return enhanceVinImage(scaled).also { enhanced ->
+            if (enhanced !== scaled && scaled !== bitmap) scaled.recycle()
         }
     }
 

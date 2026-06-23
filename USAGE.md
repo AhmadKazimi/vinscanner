@@ -210,21 +210,22 @@ private val vinLauncher = registerForActivityResult(VinScanner.Contract()) { res
         // Save VIN value to database
         saveVinToDatabase(vin.value, vin.confidence, vin.isValid)
 
-        // Save cropped image if available
-        vin.croppedImage?.let { bitmap ->
-            val imageFile = saveVinImage(bitmap, vin.value)
+        // Copy the cache-backed image if long-term storage is needed.
+        vin.croppedImageUri?.let { uri ->
+            val imageFile = saveVinImage(contentResolver, uri, vin.value)
             attachImageToRecord(vin.value, imageFile)
             Log.d("VIN", "Image saved: ${imageFile.absolutePath}")
         }
     }
 }
 
-private fun saveVinImage(bitmap: Bitmap, vinValue: String): File {
+private fun saveVinImage(contentResolver: ContentResolver, uri: Uri, vinValue: String): File {
     val filename = "vin_${vinValue}_${System.currentTimeMillis()}.jpg"
     val file = File(getExternalFilesDir(null), filename)
 
     file.outputStream().use { out ->
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 95, out)
+        contentResolver.openInputStream(uri)?.use { input -> input.copyTo(out) }
+            ?: error("Unable to open VIN image URI")
     }
 
     return file
@@ -300,7 +301,7 @@ fun VinInputScreen(viewModel: VinViewModel = viewModel()) {
                     vin = state.vinNumber.value,
                     confidence = state.vinNumber.confidence,
                     isValid = state.vinNumber.isValid,
-                    image = state.vinNumber.croppedImage
+                    imageUri = state.vinNumber.croppedImageUri
                 )
             }
             is VinState.Cancelled -> {
@@ -361,7 +362,7 @@ class VehicleInspectionActivity : ComponentActivity() {
         if (result is VinScanResult.Success) {
             inspectionData["vin"] = result.vinNumber.value
             inspectionData["vin_confidence"] = result.vinNumber.confidence
-            inspectionData["vin_image"] = result.vinNumber.croppedImage
+            inspectionData["vin_image_uri"] = result.vinNumber.croppedImageUri
 
             // Move to next step in inspection
             proceedToNextInspectionStep()

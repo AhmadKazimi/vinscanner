@@ -13,8 +13,12 @@ private const val TAG = LogTags.LIBRARY
  * Implementation of VinValidator with standard VIN validation rules
  */
 internal class VinValidatorImpl(
-    private val context: Context
+    private val getString: (Int, Array<out Any>) -> String,
 ) : VinValidator {
+
+    constructor(context: Context) : this(
+        getString = { resourceId, formatArgs -> context.getString(resourceId, *formatArgs) },
+    )
 
     companion object {
         // Character to value mapping for VIN checksum calculation
@@ -77,7 +81,7 @@ internal class VinValidatorImpl(
         if (extractedVin == null) {
             val result = VinValidationResult(
                 isValid = false,
-                errorMessage = context.getString(R.string.validation_invalid_chars_or_no_valid_vin),
+                errorMessage = getString(R.string.validation_invalid_chars_or_no_valid_vin, emptyArray()),
                 formatValid = false,
                 wasTrimmed = wasTrimmed
             )
@@ -92,7 +96,10 @@ internal class VinValidatorImpl(
         if (extractedVin.length != VinNumber.VIN_LENGTH) {
             val result = VinValidationResult(
                 isValid = false,
-                errorMessage = context.getString(R.string.validation_wrong_length, extractedVin.length),
+                errorMessage = getString(
+                    R.string.validation_wrong_length,
+                    arrayOf(extractedVin.length),
+                ),
                 formatValid = false,
                 wasTrimmed = wasTrimmed
             )
@@ -105,7 +112,7 @@ internal class VinValidatorImpl(
         if (hasInvalidChars) {
             val result = VinValidationResult(
                 isValid = false,
-                errorMessage = context.getString(R.string.validation_contains_invalid_chars),
+                errorMessage = getString(R.string.validation_contains_invalid_chars, emptyArray()),
                 formatValid = false,
                 wasTrimmed = wasTrimmed
             )
@@ -118,7 +125,7 @@ internal class VinValidatorImpl(
         if (digitCount < 5) {
             val result = VinValidationResult(
                 isValid = false,
-                errorMessage = context.getString(R.string.validation_insufficient_digits),
+                errorMessage = getString(R.string.validation_insufficient_digits, emptyArray()),
                 formatValid = false,
                 wasTrimmed = wasTrimmed
             )
@@ -146,7 +153,7 @@ internal class VinValidatorImpl(
         SLog.w(TAG, "Checksum validation failed for '$extractedVin', but accepting as valid format.")
         val result = VinValidationResult(
             isValid = true, // Relaxed validation: Accept even if checksum fails
-            errorMessage = context.getString(R.string.validation_checksum_accepted),
+            errorMessage = getString(R.string.validation_checksum_accepted, emptyArray()),
             checksumValid = false,
             formatValid = true,
             wasTrimmed = wasTrimmed
@@ -190,7 +197,7 @@ internal class VinValidatorImpl(
         // Try again with whitespace collapsed — handles OCR-inserted spaces inside the VIN
         // e.g. "1FMSKBBB0MGC2 1557" → "1FMSKBBB0MGC21557"
         val noWhitespace = trimmedBoth.filter { !it.isWhitespace() }
-        if (noWhitespace.length >= 17) {
+        if (noWhitespace.length == VinNumber.VIN_LENGTH) {
             val matchNoWs = VIN_PATTERN.find(noWhitespace)
             if (matchNoWs != null) {
                 return Pair(matchNoWs.value, true)

@@ -7,6 +7,9 @@ import com.syarah.vinscanner.data.model.DetectionResult
  * Interface for VIN detection using ML model
  */
 internal interface VinDetector {
+    /** Initializes the interpreter and runs delegate warmup on its inference thread. */
+    suspend fun warmUp()
+
     /**
      * Detects VIN regions in an image
      * @param bitmap The image to analyze

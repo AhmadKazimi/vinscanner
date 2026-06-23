@@ -8,7 +8,7 @@ import com.syarah.vinscanner.domain.model.VinNumber
 sealed class VinScanResult {
     /**
      * VIN was successfully detected and validated.
-     * @property vinNumber The detected VIN with confidence, validation status, and cropped image
+     * @property vinNumber The detected VIN; croppedImageUri references its bounded cached image.
      */
     data class Success(
         val vinNumber: VinNumber,

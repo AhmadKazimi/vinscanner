@@ -90,8 +90,8 @@ class MainActivity : ComponentActivity() {
                 Log.d("VIN", "Confidence: ${vin.confidence}")
                 Log.d("VIN", "Valid: ${vin.isValid}")
 
-                // Get cropped VIN image
-                val croppedImage: Bitmap? = vin.croppedImage
+                // Cache-backed image; copy it promptly if long-term storage is needed.
+                val croppedImageUri: Uri? = vin.croppedImageUri
             }
 
             is VinScanResult.Cancelled -> {
@@ -211,7 +211,8 @@ data class VinNumber(
     val value: String,           // The 17-character VIN
     val confidence: Float,       // Detection confidence (0.0 to 1.0)
     val isValid: Boolean,        // Whether VIN passes ISO 3779 validation
-    val croppedImage: Bitmap?    // Cropped bitmap of detected VIN region
+    val croppedImage: Bitmap?,   // In-process scanner image; not parceled
+    val croppedImageUri: Uri?    // Bounded cache-backed Activity result image
 ) : Parcelable
 ```
 
@@ -250,10 +251,11 @@ vinScannerLauncher = registerForActivityResult(VinScanner.Contract()) { result -
                 }
             }
 
-            // Save or display cropped image
-            vin.croppedImage?.let { bitmap ->
-                // Save to file, display in ImageView, etc.
-                saveVinImage(bitmap, vin.value)
+            // Save or display the cache-backed cropped image.
+            vin.croppedImageUri?.let { uri ->
+                contentResolver.openInputStream(uri)?.use { input ->
+                    saveVinImage(input, vin.value)
+                }
             }
         }
 
