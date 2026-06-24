@@ -13,6 +13,7 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -121,10 +122,10 @@ internal fun CaptureButton(
                 .border(ring, Color.White, CircleShape),
         )
 
-        // Inner fill - dips on capture.
+        // Inner fill - dips on capture, shrinks while busy so the spinner reads clearly.
         Box(
             modifier = Modifier
-                .size(inner)
+                .size(if (capturing) inner * 0.55f else inner)
                 .graphicsLayer {
                     scaleX = innerPunch.value
                     scaleY = innerPunch.value
@@ -132,5 +133,14 @@ internal fun CaptureButton(
                 .clip(CircleShape)
                 .background(Color.White),
         )
+
+        // Indeterminate ring while busy, so the ~0.5s wait feels active, not stuck.
+        if (capturing) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(outer - ring),
+                color = Color.White,
+                strokeWidth = ring,
+            )
+        }
     }
 }

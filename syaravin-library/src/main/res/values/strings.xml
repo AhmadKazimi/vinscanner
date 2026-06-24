@@ -8,6 +8,8 @@
     <string name="vin_scanner_title">VIN Scanner</string>
     <string name="start">Start</string>
     <string name="stop">Stop</string>
+    <string name="torch_on">Turn on flashlight</string>
+    <string name="torch_off">Turn off flashlight</string>
     <string name="dismiss">Dismiss</string>
     <string name="vin_enter_placeholder">Enter VIN Number</string>
     <string name="vin_paste">Paste VIN</string>

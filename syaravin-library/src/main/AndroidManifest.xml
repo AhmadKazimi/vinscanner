@@ -4,6 +4,9 @@
     <!-- Camera Permission -->
     <uses-permission android:name="android.permission.CAMERA" />
 
+    <!-- Haptic feedback on successful auto-scan -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+
     <!-- Camera Features -->
     <uses-feature
         android:name="android.hardware.camera"

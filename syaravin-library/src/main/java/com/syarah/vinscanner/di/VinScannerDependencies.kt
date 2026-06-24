@@ -1,8 +1,14 @@
 package com.syarah.vinscanner.di
 
 import android.content.Context
+import android.hardware.camera2.CameraCaptureSession
+import android.hardware.camera2.CaptureRequest
+import android.hardware.camera2.CaptureResult
+import android.hardware.camera2.TotalCaptureResult
 import android.os.SystemClock
 import android.view.Surface
+import androidx.camera.camera2.interop.Camera2Interop
+import androidx.camera.camera2.interop.ExperimentalCamera2Interop
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageCapture
@@ -11,6 +17,7 @@ import androidx.camera.core.resolutionselector.AspectRatioStrategy
 import androidx.camera.core.resolutionselector.ResolutionSelector
 import androidx.camera.core.resolutionselector.ResolutionFilter
 import androidx.camera.core.resolutionselector.ResolutionStrategy
+import com.syarah.vinscanner.util.FocusState
 import com.syarah.vinscanner.data.datasource.camera.CameraDataSource
 import com.syarah.vinscanner.data.datasource.camera.CameraDataSourceImpl
 import com.syarah.vinscanner.data.datasource.ml.TextExtractor
@@ -175,7 +182,10 @@ internal object VinScannerDependencies {
         /**
          * Create an ImageAnalysis instance for frame processing.
          * Configured for portrait mode (540x960) with latest frame strategy.
+         * A Camera2 capture callback feeds the autofocus state into [FocusState] so auto-detect
+         * can wait for focus to settle.
          */
+        @OptIn(ExperimentalCamera2Interop::class)
         fun createImageAnalysis(): ImageAnalysis {
             val builder = ImageAnalysis
                 .Builder()
@@ -194,14 +204,26 @@ internal object VinScannerDependencies {
                         ).build(),
                 ).setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
 
+            Camera2Interop.Extender(builder).setSessionCaptureCallback(
+                object : CameraCaptureSession.CaptureCallback() {
+                    override fun onCaptureCompleted(
+                        session: CameraCaptureSession,
+                        request: CaptureRequest,
+                        result: TotalCaptureResult,
+                    ) {
+                        FocusState.update(result.get(CaptureResult.CONTROL_AF_STATE))
+                    }
+                },
+            )
+
             return builder.build()
         }
 
         /**
          * Create a 1080p ImageCapture use case for grabbing a sharp still on manual capture.
-         * Uses Zero-Shutter-Lag so the returned frame is the one closest to the
-         * capture instant (minimal lag on a moving camera). Forced to a 16:9 sensor aspect
-         * ratio so it rotates to the same 9:16 portrait frame as ImageAnalysis.
+         * Uses Zero-Shutter-Lag so the returned frame is the one closest to the capture instant
+         * (minimal lag on a moving camera). Forced to a 16:9 sensor aspect ratio so it rotates to
+         * the same 9:16 portrait frame as ImageAnalysis.
          */
         fun createImageCapture(): ImageCapture =
             ImageCapture

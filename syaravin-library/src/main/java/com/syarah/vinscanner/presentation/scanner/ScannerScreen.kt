@@ -8,19 +8,29 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.os.SystemClock
+import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.FlashOff
+import androidx.compose.material.icons.filled.FlashOn
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -48,11 +58,13 @@ import com.syarah.vinscanner.presentation.components.BoundingBoxOverlay
 import com.syarah.vinscanner.presentation.components.CameraPreview
 import com.syarah.vinscanner.presentation.components.CaptureButton
 import com.syarah.vinscanner.presentation.components.RoiOverlay
+import com.syarah.vinscanner.ui.theme.RoiDetectedBorder
 import com.syarah.vinscanner.ui.theme.RoiInvalidBorder
-import com.syarah.vinscanner.ui.theme.RoiNeutralBorder
 import com.syarah.vinscanner.ui.theme.RoiValidBorder
 import com.syarah.vinscanner.util.ImagePreprocessor
+import com.syarah.vinscanner.util.FocusState
 import com.syarah.vinscanner.util.RoiConfig
+import com.syarah.vinscanner.util.ScanFeedback
 import com.syarah.vinscanner.util.ScannerPerfConfig
 import com.syarah.vinscanner.util.ThermalManager
 import java.util.concurrent.ExecutorService
@@ -77,25 +89,21 @@ import kotlin.math.abs
 private const val TAG = LogTags.LIBRARY
 
 // Auto-accept geometry gates for the detected VIN box (normalized 0..1 within the analyzed frame).
-// Reject otherwise-valid reads when the VIN is clipped at an edge, off-center, or too far away,
-// so a clean, centered, close capture is required before auto-confirming.
-private const val VIN_BOX_EDGE_MARGIN = 0.02f        // box must sit this far inside every edge
-private const val VIN_BOX_MAX_CENTER_OFFSET = 0.30f  // box center within this of frame center (x & y)
-private const val VIN_BOX_MIN_WIDTH = 0.50f          // box at least this wide => camera close enough
+// The analyzed frame IS the tight ROI band, so a well-placed VIN fills its width (left~0,
+// right~1) — we therefore only gate vertically (not clipped top/bottom, roughly vertically
+// centered) and require the box to fill a decent fraction of the width (camera close enough).
+private const val VIN_BOX_VERTICAL_MARGIN = 0.01f      // box top/bottom must sit this far inside
+private const val VIN_BOX_MAX_CENTER_OFFSET_Y = 0.35f  // box vertical center within this of mid
+private const val VIN_BOX_MIN_WIDTH = 0.55f            // box at least this wide => camera close enough
 
 private fun isVinBoxWellPositioned(box: com.syarah.vinscanner.domain.model.BoundingBox): Boolean {
-    // Fully inside the frame (not clipped at an edge).
-    if (box.left < VIN_BOX_EDGE_MARGIN || box.top < VIN_BOX_EDGE_MARGIN ||
-        box.right > 1f - VIN_BOX_EDGE_MARGIN || box.bottom > 1f - VIN_BOX_EDGE_MARGIN
-    ) {
+    // Not clipped vertically (the VIN band spans the ROI width by design, so don't gate L/R).
+    if (box.top < VIN_BOX_VERTICAL_MARGIN || box.bottom > 1f - VIN_BOX_VERTICAL_MARGIN) {
         return false
     }
-    // Centered (or close to center).
-    val centerX = (box.left + box.right) / 2f
+    // Roughly vertically centered.
     val centerY = (box.top + box.bottom) / 2f
-    if (abs(centerX - 0.5f) > VIN_BOX_MAX_CENTER_OFFSET ||
-        abs(centerY - 0.5f) > VIN_BOX_MAX_CENTER_OFFSET
-    ) {
+    if (abs(centerY - 0.5f) > VIN_BOX_MAX_CENTER_OFFSET_Y) {
         return false
     }
     // Close enough (box fills a decent fraction of the frame width).
@@ -129,6 +137,21 @@ internal fun ScannerScreen(
     val thermalManager = remember(context) { ThermalManager(context) }
     var thermalStatus by remember { mutableIntStateOf(thermalManager.currentStatus) }
 
+    // Torch / flashlight — bound camera is hoisted up from CameraPreview so we can drive it.
+    var camera by remember { mutableStateOf<Camera?>(null) }
+    var torchEnabled by remember { mutableStateOf(false) }
+    val hasFlashUnit = camera?.cameraInfo?.hasFlashUnit() == true
+
+    // Apply torch state whenever it changes or the camera rebinds. Reset to off on unbind.
+    LaunchedEffect(camera, torchEnabled) {
+        val activeCamera = camera
+        if (activeCamera == null) {
+            torchEnabled = false
+        } else if (activeCamera.cameraInfo.hasFlashUnit()) {
+            activeCamera.cameraControl.enableTorch(torchEnabled)
+        }
+    }
+
     DisposableEffect(thermalManager) {
         thermalManager.start { status -> thermalStatus = status }
         onDispose(thermalManager::stop)
@@ -146,6 +169,12 @@ internal fun ScannerScreen(
     val vinDetectorLazy = remember { lazy { dependencies.vinDetector } }
     val textExtractorLazy = remember { lazy { dependencies.textExtractor } }
     val vinValidatorLazy = remember { lazy { dependencies.vinValidator } }
+
+    // Success chime + slight vibration on auto-detect.
+    val scanFeedback = remember(context) { ScanFeedback(context) }
+    DisposableEffect(scanFeedback) {
+        onDispose { scanFeedback.release() }
+    }
 
     // Clean up executor on dispose
     val processingScope = remember { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
@@ -240,7 +269,8 @@ internal fun ScannerScreen(
                                     onRoiBorderStateChange = { roiState ->
                                         viewModel.onEvent(ScannerEvent.UpdateRoiBorderState(roiState))
                                     },
-                                    onRoiBitmapCaptured = viewModel::onRoiCroppedBitmapUpdated
+                                    onRoiBitmapCaptured = viewModel::onRoiCroppedBitmapUpdated,
+                                    onCandidateScanned = viewModel::onCandidateScanned
                                 )
                             }
                         } catch (cancelled: CancellationException) {
@@ -264,7 +294,8 @@ internal fun ScannerScreen(
     // Auto-confirm VIN immediately without showing bottom sheet
     LaunchedEffect(state.detectedVin) {
         state.detectedVin?.let { vinNumber ->
-            // Invoke callback immediately when VIN is detected
+            // Success chime + slight vibration, then invoke callback.
+            scanFeedback.success()
             onVinConfirmed(vinNumber)
         }
     }
@@ -286,31 +317,15 @@ internal fun ScannerScreen(
                 preview = preview,
                 imageAnalyzer = imageAnalysis,
                 imageCapture = imageCapture,
+                onCameraBound = { camera = it },
             )
 
-            if (!isWarmupComplete) {
-                Column(
-                    modifier = Modifier.align(Alignment.Center),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    CircularProgressIndicator(
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        text = stringResource(R.string.scanner_preparing),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.White,
-                        textAlign = TextAlign.Center
-                    )
-                }
-            }
 
             // ROI overlay border target color. RoiOverlay animates this internally and reads it
             // only in its draw phase, so the transition does not recompose this screen.
             val roiBorderTarget = when (state.roiBorderState) {
                 RoiBorderState.VALID_VIN_DETECTED -> RoiValidBorder
-                RoiBorderState.NEUTRAL -> RoiValidBorder
+                RoiBorderState.NEUTRAL -> RoiDetectedBorder
                 RoiBorderState.NO_DETECTION -> RoiInvalidBorder
             }
 
@@ -323,23 +338,24 @@ internal fun ScannerScreen(
                 borderColor = roiBorderTarget
             )
 
-            // Guidance: keep VIN inside the box, centered, and close.
-            if (isWarmupComplete) {
-                Text(
-                    text = stringResource(R.string.scanner_guidance),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .padding(top = 140.dp, start = 24.dp, end = 24.dp)
-                        .background(
-                            color = Color.Black.copy(alpha = 0.45f),
-                            shape = RoundedCornerShape(12.dp),
-                        )
-                        .padding(horizontal = 16.dp, vertical = 10.dp),
-                )
-            }
+            // Top banner: while warming up show the "preparing" notice; afterwards show the
+            // guidance (keep VIN inside the box, centered, and close).
+            Text(
+                text = stringResource(
+                    if (isWarmupComplete) R.string.scanner_guidance else R.string.scanner_preparing
+                ),
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.White,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 140.dp, start = 24.dp, end = 24.dp)
+                    .background(
+                        color = Color.Black.copy(alpha = 0.45f),
+                        shape = RoundedCornerShape(12.dp),
+                    )
+                    .padding(horizontal = 16.dp, vertical = 10.dp),
+            )
 
             // Bounding box overlay
             BoundingBoxOverlay(
@@ -350,13 +366,6 @@ internal fun ScannerScreen(
                 boundingBoxes = state.detectionBoxes
             )
 
-            // Scanning indicator
-            if (state.isProcessing) {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center),
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
         } else if (!state.hasPermission) {
             // Permission denied message
             Column(
@@ -402,6 +411,22 @@ internal fun ScannerScreen(
                     containerColor = Color.Black.copy(alpha = 0.5f), titleContentColor = Color.White
                 ),
                 actions = {
+                    if (hasFlashUnit) {
+                        IconButton(
+                            onClick = { torchEnabled = !torchEnabled },
+                            modifier = Modifier.semantics {
+                                contentDescription = "vin_scanner_toggle_torch"
+                            },
+                        ) {
+                            Icon(
+                                imageVector = if (torchEnabled) Icons.Filled.FlashOn else Icons.Filled.FlashOff,
+                                contentDescription = stringResource(
+                                    if (torchEnabled) R.string.torch_off else R.string.torch_on
+                                ),
+                                tint = if (torchEnabled) Color(0xFFFFC107) else Color.White,
+                            )
+                        }
+                    }
                     IconButton(
                         onClick = {
                             if (state.isScanning) {
@@ -416,7 +441,7 @@ internal fun ScannerScreen(
                     ) {
                         Icon(
                             imageVector = if (state.isScanning) {
-                                Icons.Filled.Info
+                                Icons.Filled.Stop
                             } else {
                                 Icons.Filled.PlayArrow
                             },
@@ -429,12 +454,15 @@ internal fun ScannerScreen(
 
         // Enter manually button at bottom (camera shutter style)
         if (state.hasPermission && state.isScanning) {
+            // Lock the capture button once a manual capture is running or a VIN was auto-detected,
+            // so the user can't double-trigger while the result is being prepared (~0.5s).
+            val captureLocked = isManualCaptureBusy || state.detectedVin != null
             CaptureButton(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(bottom = 32.dp),
-                enabled = !isManualCaptureBusy,
-                capturing = isManualCaptureBusy,
+                enabled = !captureLocked,
+                capturing = captureLocked,
                 onTap = {
                     if (!isManualCaptureRequested.compareAndSet(false, true)) return@CaptureButton
                     isManualCaptureBusy = true
@@ -469,6 +497,21 @@ internal fun ScannerScreen(
                     }
                 },
             )
+
+            // Live "possible VIN" feedback, shown just above the capture button.
+            AnimatedVisibility(
+                visible = state.scannedCandidate != null,
+                enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 }),
+                exit = fadeOut() + slideOutVertically(targetOffsetY = { it / 2 }),
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 120.dp),
+            ) {
+                val candidate = state.scannedCandidate
+                if (candidate != null) {
+                    ScannedCandidateCard(candidate)
+                }
+            }
         }
 
         // Error snackbar
@@ -489,6 +532,36 @@ internal fun ScannerScreen(
                 Text(error)
             }
         }
+    }
+}
+
+@Composable
+private fun ScannedCandidateCard(candidate: ScannedCandidate) {
+    // Light, near-opaque pill so the dark text reads clearly over the camera feed.
+    // Green when valid, red when not.
+    val fill = if (candidate.isValid) Color(0xFFC8E6C9) else Color(0xFFFFCDD2)
+    val textColor = if (candidate.isValid) Color(0xFF1B5E20) else Color(0xFFB71C1C)
+    Row(
+        modifier = Modifier
+            .background(fill.copy(alpha = 0.92f), RoundedCornerShape(16.dp))
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        AnimatedContent(targetState = candidate.value, label = "candidate_vin") { value ->
+            Text(
+                text = value,
+                color = textColor,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+            )
+        }
+        Spacer(modifier = Modifier.width(12.dp))
+        Text(
+            text = "${(candidate.confidence * 100).toInt()}%",
+            color = textColor.copy(alpha = 0.85f),
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.SemiBold,
+        )
     }
 }
 
@@ -648,7 +721,8 @@ private suspend fun processImage(
     onVinDetected: (String, Float, Bitmap?) -> Unit,
     onBoxesDetected: (List<com.syarah.vinscanner.domain.model.BoundingBox>) -> Unit,
     onRoiBorderStateChange: (RoiBorderState) -> Unit,
-    onRoiBitmapCaptured: (Bitmap) -> Unit
+    onRoiBitmapCaptured: (Bitmap) -> Unit,
+    onCandidateScanned: (String?, Float, Boolean) -> Unit
 ) {
     var stageImageToBitmapNs = 0L
     var stageRoiCropNs = 0L
@@ -683,6 +757,8 @@ private suspend fun processImage(
             var bestVin: String? = null
             var bestConfidence = 0f
             var croppedVinBitmap: Bitmap? = null
+            // First plausible read this frame, surfaced as the live "possible VIN".
+            var frameCandidate: Triple<String, Float, Boolean>? = null
 
             try {
                 // Run object detection to get bounding boxes on ROI image
@@ -732,6 +808,9 @@ private suspend fun processImage(
                     val outcome = if (validation.isValid) "ACCEPTED" else "REJECTED"
                     val reason = validation.errorMessage ?: if (validation.checksumValid) "checksum_ok" else "soft_accept"
                     SLog.w(TAG, "VIN_CANDIDATE frame=$frame box=$boxTag conf=${"%.3f".format(box.confidence)} $boxCoords ocr=\"${textInBox.take(40)}\" clean=\"$candidate\" $outcome reason=\"$reason\"")
+                    if (frameCandidate == null && candidate.length >= 11) {
+                        frameCandidate = Triple(validation.correctedVin ?: candidate, box.confidence, validation.isValid)
+                    }
                     if (validation.isValid) {
                         if (!isVinBoxWellPositioned(box)) {
                             val cx = (box.left + box.right) / 2f
@@ -741,6 +820,11 @@ private suspend fun processImage(
                                 "VIN_REJECT_POSITION frame=$frame box=$boxTag $boxCoords " +
                                     "center=(${"%.2f".format(cx)},${"%.2f".format(cy)}) w=${"%.2f".format(box.right - box.left)}",
                             )
+                            continue
+                        }
+                        // Wait for focus to settle before accepting.
+                        if (!FocusState.isStable) {
+                            SLog.w(TAG, "VIN_REJECT_FOCUS frame=$frame box=$boxTag (focus not stable)")
                             continue
                         }
                         bestVin = validation.correctedVin ?: candidate
@@ -757,6 +841,11 @@ private suspend fun processImage(
                         break
                     }
                 }
+                onCandidateScanned(
+                    frameCandidate?.first,
+                    frameCandidate?.second ?: 0f,
+                    frameCandidate?.third ?: false,
+                )
                 if (sortedBoxes.isNotEmpty()) {
                     SLog.w(TAG, "VIN_RESULT frame=$frame result=${bestVin ?: "none"}")
                 }

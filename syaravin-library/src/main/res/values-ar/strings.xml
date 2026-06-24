@@ -8,6 +8,8 @@
     <string name="vin_scanner_title">ماسح رقم الهيكل</string>
     <string name="start">بدء</string>
     <string name="stop">إيقاف</string>
+    <string name="torch_on">تشغيل الفلاش</string>
+    <string name="torch_off">إيقاف الفلاش</string>
     <string name="dismiss">إغلاق</string>
     <string name="vin_enter_placeholder">أدخل رقم الهيكل</string>
     <string name="vin_paste">لصق رقم الهيكل</string>

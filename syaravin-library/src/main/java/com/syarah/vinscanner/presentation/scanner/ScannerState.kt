@@ -14,6 +14,15 @@ internal enum class RoiBorderState {
 }
 
 /**
+ * A possible VIN currently being read live (before auto-confirm), shown for user feedback.
+ */
+internal data class ScannedCandidate(
+    val value: String,
+    val confidence: Float,
+    val isValid: Boolean,
+)
+
+/**
  * Represents the state of the scanner screen
  */
 internal data class ScannerState(
@@ -26,7 +35,8 @@ internal data class ScannerState(
     val showVinResult: Boolean = false,
     val scanHistory: List<VinNumber> = emptyList(),
     val roiBorderState: RoiBorderState = RoiBorderState.NO_DETECTION,  // Start with RED
-    val latestRoiCroppedBitmap: Bitmap? = null  // ROI-cropped bitmap for manual entry
+    val latestRoiCroppedBitmap: Bitmap? = null,  // ROI-cropped bitmap for manual entry
+    val scannedCandidate: ScannedCandidate? = null  // Live "possible VIN" for feedback
 ) {
     /**
      * Whether the scanner is actively processing

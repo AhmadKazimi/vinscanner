@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.concurrent.atomic.AtomicBoolean
 
 private const val TAG = LogTags.LIBRARY
 
@@ -27,6 +28,9 @@ internal class ScannerViewModel(
 
     private val _state = MutableStateFlow(ScannerState())
     val state: StateFlow<ScannerState> = _state.asStateFlow()
+
+    // Set once a VIN is auto-detected, so repeat detections from later frames are ignored.
+    private val vinCaptured = AtomicBoolean(false)
 
     fun onEvent(event: ScannerEvent) {
         when (event) {
@@ -120,6 +124,14 @@ internal class ScannerViewModel(
 
 
     fun onVinDetected(vin: String, confidence: Float, croppedBitmap: Bitmap?) {
+        // One-shot: ignore further detections once a VIN is captured, otherwise later analysis
+        // frames re-trigger the result (and the success chime) before the screen closes.
+        // Synchronous (atomic) guard — detection updates state asynchronously, so checking the
+        // state here would race between two rapid frames.
+        if (!vinCaptured.compareAndSet(false, true)) {
+            croppedBitmap?.takeUnless(Bitmap::isRecycled)?.recycle()
+            return
+        }
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
 
@@ -161,6 +173,19 @@ internal class ScannerViewModel(
 
     fun onDetectionBoxesUpdated(boxes: List<com.syarah.vinscanner.domain.model.BoundingBox>) {
         _state.update { it.copy(detectionBoxes = boxes) }
+    }
+
+    /**
+     * Updates the live "possible VIN" candidate shown for feedback. Pass null to clear.
+     */
+    fun onCandidateScanned(value: String?, confidence: Float, isValid: Boolean) {
+        _state.update {
+            it.copy(
+                scannedCandidate = value
+                    ?.takeIf { v -> v.isNotBlank() }
+                    ?.let { v -> ScannedCandidate(v, confidence, isValid) }
+            )
+        }
     }
 
     /**

@@ -4,6 +4,7 @@ import com.syarah.vinscanner.util.LogTags
 
 import com.syarah.vinscanner.util.SLog
 import android.view.ViewGroup
+import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.FocusMeteringAction
 import androidx.camera.core.ImageAnalysis
@@ -35,6 +36,7 @@ internal fun CameraPreview(
     preview: Preview,
     imageAnalyzer: ImageAnalysis,
     imageCapture: ImageCapture? = null,
+    onCameraBound: (Camera?) -> Unit = {},
     lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
 ) {
     val context = LocalContext.current
@@ -72,10 +74,12 @@ internal fun CameraPreview(
             preview = preview,
             imageAnalyzer = imageAnalyzer,
             imageCapture = imageCapture,
+            onCameraBound = onCameraBound,
         )
 
         onDispose {
             SLog.w(TAG, "Camera preview disposing")
+            onCameraBound(null)
             releaseCameraUseCases(
                 context = appContext,
                 previewView = previewView,
@@ -98,6 +102,7 @@ private fun bindCameraUseCases(
     preview: Preview,
     imageAnalyzer: ImageAnalysis,
     imageCapture: ImageCapture?,
+    onCameraBound: (Camera?) -> Unit,
 ) {
     val appContext = context.applicationContext
     val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
@@ -166,8 +171,10 @@ private fun bindCameraUseCases(
                 true
             }
 
+            onCameraBound(camera)
             SLog.w(TAG, "Camera use cases bound")
         } catch (e: Exception) {
+            onCameraBound(null)
             SLog.e(TAG, "Error binding camera use cases", e)
         }
     }, ContextCompat.getMainExecutor(appContext))
