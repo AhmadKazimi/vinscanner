@@ -137,7 +137,7 @@ internal class TextExtractorImpl(
                 val image = InputImage.fromBitmap(bitmap, rotationDegrees)
                 val result = recognizer.process(image).await()
                 result.textBlocks.flatMap { block ->
-                    block.lines.map { it.text }
+                    block.lines.map { it.text }.filterNot(::isNoiseLine)
                 }
             } catch (cancelled: CancellationException) {
                 throw cancelled
@@ -159,7 +159,7 @@ internal class TextExtractorImpl(
                 val image = InputImage.fromBitmap(bitmap, rotationDegrees)
                 val result = recognizer.process(image).await()
                 result.textBlocks.flatMap { block ->
-                    block.lines.mapNotNull { line ->
+                    block.lines.filterNot { isNoiseLine(it.text) }.mapNotNull { line ->
                         line.boundingBox?.let { rect ->
                             // Convert pixel coordinates to normalized coordinates
                             val normalizedBox =
@@ -357,3 +357,13 @@ internal class TextExtractorImpl(
             .onFailure { SLog.w(TAG, "Failed to close ML Kit recognizer", it) }
     }
 }
+
+// Patterns that identify non-VIN label text on compliance stickers.
+// Matched case-insensitively against each OCR line before it reaches the VIN pipeline.
+private val NOISE_PATTERNS = listOf(
+    Regex("""(?i)type\s*:"""),           // TYPE: PASSENGER CAR, TYPE: MPV, etc.
+    Regex("""(?i)passenger\s+car"""),
+    Regex("""(?i)made\s+in\s+\w+"""),    // MADE IN CHINA, MADE IN INDONESIA, etc.
+)
+
+private fun isNoiseLine(text: String): Boolean = NOISE_PATTERNS.any { it.containsMatchIn(text) }

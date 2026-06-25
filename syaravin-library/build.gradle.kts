@@ -7,7 +7,7 @@ plugins {
 }
 
 val publicationGroup = providers.gradleProperty("group").orElse("com.kazimi")
-val publicationVersion = providers.gradleProperty("version").orElse("1.5.1")
+val publicationVersion = providers.gradleProperty("version").orElse("1.5.3")
 
 android {
     namespace = "com.kazimi.syaravin"

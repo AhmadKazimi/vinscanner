@@ -15,6 +15,7 @@ private const val MAX_RESULT_BYTES = 3 * 1024 * 1024
 private const val MAX_RESULT_PIXELS = 2_500_000
 private const val MAX_RESULT_DIMENSION = 2200
 private const val RESULT_MAX_AGE_MS = 24 * 60 * 60 * 1000L
+private const val RESULT_JPEG_QUALITY = 95
 
 internal object VinResultImageStore {
     suspend fun save(
@@ -33,6 +34,7 @@ internal object VinResultImageStore {
             file.outputStream().buffered().use { output ->
                 output.write(encodeBounded(bitmap))
             }
+
             FileProvider.getUriForFile(
                 context,
                 "${context.packageName}.syaravin.fileprovider",
@@ -40,27 +42,20 @@ internal object VinResultImageStore {
             )
         }
 
-    private fun encodeBounded(source: Bitmap): ByteArray {
+    private fun encodeBounded(src: Bitmap): ByteArray {
         var working =
             ImagePreprocessor.downscaleForDisplay(
-                source,
+                src,
                 maxDimension = MAX_RESULT_DIMENSION,
                 maxPixels = MAX_RESULT_PIXELS,
             )
-        var ownsWorking = working !== source
-        try {
-            repeat(5) {
-                for (quality in intArrayOf(90, 80, 70, 60, 50)) {
-                    val bytes =
-                        ByteArrayOutputStream().use { output ->
-                            check(working.compress(Bitmap.CompressFormat.JPEG, quality, output)) {
-                                "Failed to encode VIN result image"
-                            }
-                            output.toByteArray()
-                        }
-                    if (bytes.size <= MAX_RESULT_BYTES) return bytes
-                }
+        var ownsWorking = working !== src
 
+        try {
+            val fastBytes = encodeJpeg(working, RESULT_JPEG_QUALITY)
+            if (fastBytes.size <= MAX_RESULT_BYTES) return fastBytes
+
+            repeat(5) {
                 val scaled =
                     Bitmap.createScaledBitmap(
                         working,
@@ -71,10 +66,25 @@ internal object VinResultImageStore {
                 if (ownsWorking) working.recycle()
                 working = scaled
                 ownsWorking = true
+
+                val bytes = encodeJpeg(working, RESULT_JPEG_QUALITY)
+                if (bytes.size <= MAX_RESULT_BYTES) return bytes
             }
+
             error("Unable to bound VIN result image below $MAX_RESULT_BYTES bytes")
         } finally {
             if (ownsWorking && !working.isRecycled) working.recycle()
         }
     }
+
+    private fun encodeJpeg(
+        bitmap: Bitmap,
+        quality: Int,
+    ): ByteArray =
+        ByteArrayOutputStream().use { output ->
+            check(bitmap.compress(Bitmap.CompressFormat.JPEG, quality, output)) {
+                "Failed to encode VIN result image"
+            }
+            output.toByteArray()
+        }
 }

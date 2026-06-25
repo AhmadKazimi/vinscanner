@@ -9,11 +9,11 @@ import com.kazimi.syaravin.domain.model.BoundingBox
  * Coordinates are normalized (0f..1f) relative to the analyzed image.
  */
 internal object RoiConfig {
-    // The app runs in portrait mode with ~9:16 aspect ratio (640×1136)
-    const val analyzedImageAspectRatio: Float = 9f / 16f
+    // Match the ImageAnalysis stream's portrait 3:4 frame, so manual and autoscan ROI crops align.
+    const val analyzedImageAspectRatio: Float = 3f / 4f
 
     // Wide centered band sized to a ~4.3:1 crop (matches a typical VIN label strip). Width is
-    // near-max (0.92); the analysis frame is ~3:4, so height 0.16 yields ≈4.3:1.
+    // near-max (0.92); the analysis frame is 3:4, so height 0.16 yields ≈4.3:1.
     // RoiOverlay draws from this same box, so the visual guide tracks the crop.
     val roi: BoundingBox =
         BoundingBox(

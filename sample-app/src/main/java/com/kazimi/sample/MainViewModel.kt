@@ -1,29 +1,24 @@
 package com.kazimi.sample
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import com.kazimi.syaravin.domain.model.VinNumber
 
+data class ScanHistoryEntry(
+    val vin: VinNumber? = null,
+    val message: String? = null,
+)
+
 class MainViewModel : ViewModel() {
-    var scannedVin by mutableStateOf<VinNumber?>(null)
-        private set
-    var resultMessage by mutableStateOf<String?>(null)
-        private set
+    private val _history = mutableStateListOf<ScanHistoryEntry>()
+    val history: List<ScanHistoryEntry> get() = _history
 
-    fun onScanSuccess(vinNumber: VinNumber) {
-        scannedVin = vinNumber
-        resultMessage = null
+    private fun push(entry: ScanHistoryEntry) {
+        _history.add(0, entry)
+        if (_history.size > 10) _history.removeAt(_history.lastIndex)
     }
 
-    fun onScanCancelled() {
-        scannedVin = null
-        resultMessage = "Scan cancelled by user"
-    }
-
-    fun onScanError(message: String) {
-        scannedVin = null
-        resultMessage = "Error: $message"
-    }
+    fun onScanSuccess(vinNumber: VinNumber) = push(ScanHistoryEntry(vin = vinNumber))
+    fun onScanCancelled() = push(ScanHistoryEntry(message = "Scan cancelled"))
+    fun onScanError(message: String) = push(ScanHistoryEntry(message = "Error: $message"))
 }

@@ -123,8 +123,8 @@ internal class VinValidatorImpl(
                 '6' to 'G',
             )
 
-        private val VIN_LABEL_PREFIX = Regex("""(?i)^\s*VIN(?:\s*(?:NUMBER|NO|#))?\s*[:#=–—\-]?\s*""")
-        private val VIN_BODY_PREFIX = Regex("""^VIN\s*[:#=–—\-]?\s*""")
+        private val VIN_LABEL_PREFIX = Regex("""(?i)^\s*V[I1]N\s*:\s+""")
+        private val VIN_BODY_PREFIX = Regex("""(?i)^V[I1]N\s*:\s+""")
         private val VIN_PATTERN = Regex("""[A-HJ-NPR-Z0-9]{17}""")
     }
 

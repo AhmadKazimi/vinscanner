@@ -400,7 +400,7 @@ internal fun ScannerScreen(
                 modifier =
                     Modifier
                         .fillMaxWidth()
-                        .aspectRatio(9f / 16f)
+                        .aspectRatio(RoiConfig.analyzedImageAspectRatio)
                         .align(Alignment.Center),
                 roiBox = RoiConfig.roi,
                 borderColor = roiBorderTarget,
@@ -431,7 +431,7 @@ internal fun ScannerScreen(
                 modifier =
                     Modifier
                         .fillMaxWidth()
-                        .aspectRatio(9f / 16f)
+                        .aspectRatio(RoiConfig.analyzedImageAspectRatio)
                         .align(Alignment.Center),
                 boundingBoxes = state.detectionBoxes,
             )
