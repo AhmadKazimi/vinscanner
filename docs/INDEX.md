@@ -44,7 +44,7 @@ Then read only the files whose topic matches your current task — do not read e
 ## Package map
 
 ```
-com.syarah.vinscanner
+com.kazimi.syaravin
 ├── VinScanner / VinScannerActivity / VinScannerContract / VinScanResult   ← public API
 ├── domain.model          BoundingBox, VinNumber
 ├── domain.repository     VinScannerRepository (interface)

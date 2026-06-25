@@ -51,7 +51,7 @@ In your app's `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation("com.github.AhmadKazimi:vinscanner:v1.0.3")
+    implementation("com.github.AhmadKazimi:vinscanner:1.5.0")
 }
 ```
 
@@ -70,9 +70,9 @@ That's it! No credentials, no complex setup. 🎉
 ### Basic Usage
 
 ```kotlin
-import com.syarah.vinscanner.VinScanner
-import com.syarah.vinscanner.VinScanResult
-import com.syarah.vinscanner.domain.model.VinNumber
+import com.kazimi.syaravin.VinScanner
+import com.kazimi.syaravin.VinScanResult
+import com.kazimi.syaravin.domain.model.VinNumber
 
 class MainActivity : ComponentActivity() {
 
@@ -117,8 +117,8 @@ class MainActivity : ComponentActivity() {
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.activity.compose.rememberLauncherForActivityResult
-import com.syarah.vinscanner.VinScanner
-import com.syarah.vinscanner.VinScanResult
+import com.kazimi.syaravin.VinScanner
+import com.kazimi.syaravin.VinScanResult
 
 @Composable
 fun VinScannerScreen() {
@@ -273,7 +273,7 @@ vinScannerLauncher = registerForActivityResult(VinScanner.Contract()) { result -
 ### Using VIN Decoder
 
 ```kotlin
-import com.syarah.vinscanner.util.VinDecoder
+import com.kazimi.syaravin.util.VinDecoder
 import org.koin.android.ext.android.inject
 
 class VinDetailsActivity : AppCompatActivity() {

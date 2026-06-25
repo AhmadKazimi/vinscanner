@@ -72,7 +72,7 @@ In `app/build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation("com.kazimi:syaravin-scanner:1.0.0")
+    implementation("com.github.AhmadKazimi:vinscanner:1.5.0")
 
     // Your other dependencies...
 }

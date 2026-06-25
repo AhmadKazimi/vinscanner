@@ -1,7 +1,7 @@
 <resources>
-    <string name="app_name">Syaravin</string>
     <string name="scanner_preparing">Preparing scanner (first launch may take a few seconds)</string>
     <string name="scanner_guidance">Keep the VIN inside the box and centered, and hold the camera close.</string>
+    <string name="scanner_auto_scan_label">Auto</string>
     <string name="camera_permission_required_title">Camera Permission Required</string>
     <string name="camera_permission_required_message">Please grant camera permission to scan VIN numbers</string>
     <string name="grant_permission">Grant Permission</string>

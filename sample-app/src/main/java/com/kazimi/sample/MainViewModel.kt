@@ -4,7 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import com.syarah.vinscanner.domain.model.VinNumber
+import com.kazimi.syaravin.domain.model.VinNumber
 
 class MainViewModel : ViewModel() {
     var scannedVin by mutableStateOf<VinNumber?>(null)

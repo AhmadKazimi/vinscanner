@@ -1,7 +1,7 @@
 <resources>
-    <string name="app_name">ماسح رقم الهيكل</string>
     <string name="scanner_preparing">جاري تجهيز الماسح (قد يستغرق التشغيل الأول بضع ثوانٍ)</string>
     <string name="scanner_guidance">أبقِ رقم الهيكل داخل الإطار وفي منتصفه، وقرّب الكاميرا منه.</string>
+    <string name="scanner_auto_scan_label">تلقائي</string>
     <string name="camera_permission_required_title">إذن الكاميرا مطلوب</string>
     <string name="camera_permission_required_message">يرجى منح إذن الكاميرا لمسح رقم الهيكل</string>
     <string name="grant_permission">منح الإذن</string>

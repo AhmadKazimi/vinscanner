@@ -6,40 +6,40 @@
 # ==========================================
 
 # Main entry point - VinScanner object
--keep,allowshrinking class com.syarah.vinscanner.VinScanner {
+-keep,allowshrinking class com.kazimi.syaravin.VinScanner {
     public *;
 }
 
 # ActivityResultContract for launching scanner
--keep,allowshrinking class com.syarah.vinscanner.VinScannerContract {
+-keep,allowshrinking class com.kazimi.syaravin.VinScannerContract {
     public *;
 }
 
 # Sealed class - VinScanResult and ALL nested classes
--keep,allowshrinking class com.syarah.vinscanner.VinScanResult {
+-keep,allowshrinking class com.kazimi.syaravin.VinScanResult {
     *;
 }
 
 # IMPORTANT: Explicitly keep nested classes (they're obfuscated separately!)
--keep,allowshrinking class com.syarah.vinscanner.VinScanResult$Success {
+-keep,allowshrinking class com.kazimi.syaravin.VinScanResult$Success {
     *;
 }
 
--keep,allowshrinking class com.syarah.vinscanner.VinScanResult$Error {
+-keep,allowshrinking class com.kazimi.syaravin.VinScanResult$Error {
     *;
 }
 
--keep,allowshrinking class com.syarah.vinscanner.VinScanResult$Cancelled {
+-keep,allowshrinking class com.kazimi.syaravin.VinScanResult$Cancelled {
     *;
 }
 
 # VinNumber data class with ALL properties
--keep,allowshrinking class com.syarah.vinscanner.domain.model.VinNumber {
+-keep,allowshrinking class com.kazimi.syaravin.domain.model.VinNumber {
     *;
 }
 
 # Keep VinNumber companion object constants (VIN_LENGTH, INVALID_CHARACTERS, VALID_PATTERN)
--keep,allowshrinking class com.syarah.vinscanner.domain.model.VinNumber$Companion {
+-keep,allowshrinking class com.kazimi.syaravin.domain.model.VinNumber$Companion {
     *;
 }
 
@@ -48,12 +48,12 @@
 # ==========================================
 
 # Keep Parcelable CREATOR fields
--keepclassmembers class com.syarah.vinscanner.domain.model.VinNumber {
+-keepclassmembers class com.kazimi.syaravin.domain.model.VinNumber {
     public static final ** CREATOR;
 }
 
 # Keep data class methods (component1, component2, copy, etc.)
--keepclassmembers class com.syarah.vinscanner.domain.model.VinNumber {
+-keepclassmembers class com.kazimi.syaravin.domain.model.VinNumber {
     *** component1();
     *** component2();
     *** component3();
@@ -62,7 +62,7 @@
 }
 
 # Keep sealed class subclasses
--keepclassmembers class com.syarah.vinscanner.VinScanResult {
+-keepclassmembers class com.kazimi.syaravin.VinScanResult {
     public ** Companion;
 }
 
@@ -87,7 +87,7 @@
 # ==========================================
 
 # Keep all public methods in public API package
--keepclassmembers class com.syarah.vinscanner.** {
+-keepclassmembers class com.kazimi.syaravin.** {
     public <methods>;
     public <fields>;
 }
@@ -129,15 +129,15 @@
 -dontwarn androidx.compose.**
 
 # Keep model classes and data classes
--keep class com.syarah.vinscanner.data.model.** { *; }
--keepclassmembers class com.syarah.vinscanner.data.model.** {
+-keep class com.kazimi.syaravin.data.model.** { *; }
+-keepclassmembers class com.kazimi.syaravin.data.model.** {
     <fields>;
     <methods>;
 }
 
 # Prevent obfuscation of internal library classes that use reflection
--keep class com.syarah.vinscanner.util.VinDecoder { *; }
--keep class com.syarah.vinscanner.data.datasource.validator.VinValidatorImpl { *; }
+-keep class com.kazimi.syaravin.util.VinDecoder { *; }
+-keep class com.kazimi.syaravin.data.datasource.validator.VinValidatorImpl { *; }
 
 # Asset files
 -keepclassmembers class * {

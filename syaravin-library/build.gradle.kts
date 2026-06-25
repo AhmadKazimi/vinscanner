@@ -6,8 +6,11 @@ plugins {
     id("kotlin-parcelize")
 }
 
+val publicationGroup = providers.gradleProperty("group").orElse("com.kazimi")
+val publicationVersion = providers.gradleProperty("version").orElse("1.5.1")
+
 android {
-    namespace = "com.syarah.vinscanner"
+    namespace = "com.kazimi.syaravin"
     compileSdk = 36
 
     defaultConfig {
@@ -116,9 +119,9 @@ afterEvaluate {
             create<MavenPublication>("release") {
                 from(components["release"])
 
-                groupId = "com.syarah"
+                groupId = publicationGroup.get()
                 artifactId = "vinscanner"
-                version = "1.5.0"
+                version = publicationVersion.get()
 
                 pom {
                     name.set("Syarah VIN Scanner")

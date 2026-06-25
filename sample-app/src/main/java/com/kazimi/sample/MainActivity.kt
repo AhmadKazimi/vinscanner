@@ -38,9 +38,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.syarah.vinscanner.VinScanResult
-import com.syarah.vinscanner.VinScanner
-import com.syarah.vinscanner.domain.model.VinNumber
+import com.kazimi.syaravin.VinScanResult
+import com.kazimi.syaravin.VinScanner
+import com.kazimi.syaravin.domain.model.VinNumber
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
