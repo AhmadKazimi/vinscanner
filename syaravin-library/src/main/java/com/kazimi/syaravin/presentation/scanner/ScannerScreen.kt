@@ -83,7 +83,10 @@ internal fun ScannerScreen(
 ) {
     val screenStartMs = remember { SystemClock.elapsedRealtime() }
     LaunchedEffect(Unit) {
-        SLog.w(TAG, "ScannerScreen first composition reached after ${SystemClock.elapsedRealtime() - screenStartMs}ms")
+        SLog.w(
+            TAG,
+            "ScannerScreen first composition reached after ${SystemClock.elapsedRealtime() - screenStartMs}ms",
+        )
     }
 
     // Create ViewModel with custom factory
@@ -171,15 +174,18 @@ internal fun ScannerScreen(
 
     // Camera permission
     val cameraPermissionState =
-        rememberPermissionState(permission = Manifest.permission.CAMERA, onPermissionResult = { granted ->
-            if (granted) {
-                SLog.d(TAG, "Camera permission granted.")
-                viewModel.onEvent(ScannerEvent.PermissionGranted)
-            } else {
-                SLog.w(TAG, "Camera permission denied.")
-                viewModel.onEvent(ScannerEvent.PermissionDenied)
-            }
-        })
+        rememberPermissionState(
+            permission = Manifest.permission.CAMERA,
+            onPermissionResult = { granted ->
+                if (granted) {
+                    SLog.d(TAG, "Camera permission granted.")
+                    viewModel.onEvent(ScannerEvent.PermissionGranted)
+                } else {
+                    SLog.w(TAG, "Camera permission denied.")
+                    viewModel.onEvent(ScannerEvent.PermissionDenied)
+                }
+            },
+        )
 
     // Warm up heavy dependencies in background to reduce first-run frame drops.
     LaunchedEffect(Unit) {
@@ -189,7 +195,10 @@ internal fun ScannerScreen(
             dependencies.warmUpScannerDependencies()
         }
         isWarmupComplete = true
-        SLog.d(TAG, "Scanner dependency warmup completed in ${System.currentTimeMillis() - warmupStart}ms")
+        SLog.d(
+            TAG,
+            "Scanner dependency warmup completed in ${System.currentTimeMillis() - warmupStart}ms",
+        )
     }
 
     // Request permission on first launch
@@ -400,7 +409,8 @@ internal fun ScannerScreen(
         if (state.hasPermission && state.isScanning) {
             // Lock the capture button once a manual capture is running or a VIN was auto-detected,
             // so the user can't double-trigger while the result is being prepared (~0.5s).
-            val captureLocked = isManualCaptureBusy || state.detectedVin != null || manualChoices != null
+            val captureLocked =
+                isManualCaptureBusy || state.detectedVin != null || manualChoices != null
             if (showCaptureButton) {
                 CaptureButton(
                     modifier =
@@ -411,7 +421,13 @@ internal fun ScannerScreen(
                     enabled = !captureLocked,
                     capturing = captureLocked,
                     onTap = {
-                        if (!isManualCaptureRequested.compareAndSet(false, true)) return@CaptureButton
+                        if (!isManualCaptureRequested.compareAndSet(
+                                false,
+                                true,
+                            )
+                        ) {
+                            return@CaptureButton
+                        }
                         isManualCaptureBusy = true
                         val fallbackRoiBitmap =
                             state.latestRoiCroppedBitmap
@@ -460,7 +476,13 @@ internal fun ScannerScreen(
                             } catch (e: Exception) {
                                 SLog.e(TAG, "Manual capture analysis failed", e)
                                 withContext(Dispatchers.Main) {
-                                    onVinConfirmed(VinNumber(value = "", confidence = 0f, isValid = false))
+                                    onVinConfirmed(
+                                        VinNumber(
+                                            value = "",
+                                            confidence = 0f,
+                                            isValid = false,
+                                        ),
+                                    )
                                 }
                             } finally {
                                 isManualCaptureRequested.set(false)
@@ -477,14 +499,39 @@ internal fun ScannerScreen(
 
         // Error snackbar
         state.errorMessage?.let { error ->
-            ScannerErrorSnackbar(message = error, onDismiss = { viewModel.onEvent(ScannerEvent.DismissError) })
+            ScannerErrorSnackbar(
+                message = error,
+                onDismiss = { viewModel.onEvent(ScannerEvent.DismissError) },
+            )
         }
 
         // Ambiguous-VIN selection (manual capture). Common characters render normal; the characters
         // that differ between candidates are highlighted so the user can spot what to verify.
         manualChoices?.let { choices ->
+            val liveCandidates =
+                remember(choices) {
+                    val candidate = state.scannedCandidate ?: return@remember emptyList()
+                    when {
+                        candidate.checksumValid -> {
+                            listOf(candidate.value)
+                        }
+
+                        candidate.isValid -> {
+                            checksumValidAmbiguousCandidates(
+                                base = candidate.value,
+                                vinValidator = vinValidatorLazy.value,
+                            )
+                        }
+
+                        else -> {
+                            emptyList()
+                        }
+                    }
+                }
             VinSelectionDialog(
                 candidates = choices.candidates,
+                liveCandidates = liveCandidates,
+                capturedImage = choices.image,
                 onSelect = { selected ->
                     choicesOpen.set(false)
                     manualChoices = null

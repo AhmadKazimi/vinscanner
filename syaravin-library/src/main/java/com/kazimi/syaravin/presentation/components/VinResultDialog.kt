@@ -26,7 +26,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,11 +45,7 @@ import com.kazimi.syaravin.data.datasource.validator.VinValidator
 import com.kazimi.syaravin.di.VinScannerDependencies
 import com.kazimi.syaravin.domain.model.VinNumber
 import com.kazimi.syaravin.util.ImagePreprocessor
-import com.kazimi.syaravin.util.LogTags
-import com.kazimi.syaravin.util.SLog
 import com.kazimi.syaravin.util.VinDecoder
-
-private const val TAG = LogTags.LIBRARY
 
 /**
  * Dialog to display VIN detection results
@@ -85,16 +80,15 @@ internal fun VinResultSheetContent(
 ) {
     var vin by remember(vinNumber) { mutableStateOf(vinNumber.value) }
 
-    val vinInfo by remember(vin) {
-        derivedStateOf {
+    val vinInfo =
+        remember(vin, vinDecoder) {
             vinDecoder.decode(vin)
         }
-    }
 
-    // Reflect true validity using checksum rules when editable VIN changes
-    val isCurrentVinValid by remember(vin) {
-        mutableStateOf(vinValidator.validate(vin).isValid)
-    }
+    val isCurrentVinValid =
+        remember(vin, vinValidator) {
+            vinValidator.validate(vin).isValid
+        }
 
     Column(
         modifier =
@@ -171,7 +165,6 @@ internal fun VinResultSheetContent(
                     remember(bitmap) {
                         ImagePreprocessor.downscaleForDisplay(bitmap)
                     }
-                SLog.d(TAG, "Displaying cropped image: ${displayBitmap.width}x${displayBitmap.height}")
 
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -207,8 +200,6 @@ internal fun VinResultSheetContent(
                         )
                     }
                 }
-            } ?: run {
-                SLog.d(TAG, "No cropped image available")
             }
 
             // Car Information Card

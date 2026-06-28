@@ -108,9 +108,10 @@ internal fun SampleAppScreen(
         ) {
             Button(
                 onClick = onScanClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors =
                     ButtonDefaults.buttonColors(
@@ -157,7 +158,9 @@ private fun VinHistoryCard(
             vin.croppedImage
                 ?: vin.croppedImageUri?.let { uri ->
                     withContext(Dispatchers.IO) {
-                        context.contentResolver.openInputStream(uri)?.use(BitmapFactory::decodeStream)
+                        context.contentResolver
+                            .openInputStream(uri)
+                            ?.use(BitmapFactory::decodeStream)
                     }
                 }
     }
@@ -196,7 +199,10 @@ private fun VinHistoryCard(
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f).padding(end = 12.dp),
+                    modifier =
+                        Modifier
+                            .weight(1f)
+                            .padding(end = 12.dp),
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     if (vin.confidence > 0f) {
@@ -294,7 +300,10 @@ private fun FullScreenImageDialog(
     var offset by remember { mutableStateOf(Offset.Zero) }
     var boxSize by remember { mutableStateOf(IntSize.Zero) }
 
-    fun clamp(raw: Offset, currentScale: Float): Offset {
+    fun clamp(
+        raw: Offset,
+        currentScale: Float,
+    ): Offset {
         if (currentScale <= 1f) return Offset.Zero
         val maxX = (boxSize.width * (currentScale - 1f) / 2f).coerceAtLeast(0f)
         val maxY = (boxSize.height * (currentScale - 1f) / 2f).coerceAtLeast(0f)

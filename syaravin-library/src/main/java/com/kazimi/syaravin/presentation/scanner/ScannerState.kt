@@ -34,6 +34,7 @@ internal data class ScannedCandidate(
     val value: String,
     val confidence: Float,
     val isValid: Boolean,
+    val checksumValid: Boolean,
 )
 
 /**

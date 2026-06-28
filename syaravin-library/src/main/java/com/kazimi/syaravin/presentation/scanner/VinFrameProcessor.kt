@@ -31,6 +31,13 @@ private const val VIN_BOX_MIN_WIDTH = 0.20f // box at least this wide => camera 
 
 private val scanFrameCounter = AtomicLong(0)
 
+private data class FrameCandidate(
+    val value: String,
+    val confidence: Float,
+    val isValid: Boolean,
+    val checksumValid: Boolean,
+)
+
 private fun isVinBoxWellPositioned(box: com.kazimi.syaravin.domain.model.BoundingBox): Boolean {
     // Not clipped vertically (the VIN band spans the ROI width by design, so don't gate L/R).
     if (box.top < VIN_BOX_VERTICAL_MARGIN || box.bottom > 1f - VIN_BOX_VERTICAL_MARGIN) {
@@ -81,7 +88,7 @@ internal suspend fun processImage(
     onBoxesDetected: (List<com.kazimi.syaravin.domain.model.BoundingBox>) -> Unit,
     onRoiBorderStateChange: (RoiBorderState) -> Unit,
     onRoiBitmapCaptured: (Bitmap) -> Unit,
-    onCandidateScanned: (String?, Float, Boolean) -> Unit,
+    onCandidateScanned: (String?, Float, Boolean, Boolean) -> Unit,
     onScanGuidance: (ScanGuidance) -> Unit,
 ) {
     var stageImageToBitmapNs = 0L
@@ -117,7 +124,7 @@ internal suspend fun processImage(
             var bestConfidence = 0f
             var croppedVinBitmap: Bitmap? = null
             // First plausible read this frame, surfaced as the live "possible VIN".
-            var frameCandidate: Triple<String, Float, Boolean>? = null
+            var frameCandidate: FrameCandidate? = null
 
             try {
                 val frame = scanFrameCounter.incrementAndGet()
@@ -209,7 +216,13 @@ internal suspend fun processImage(
                         )} $boxCoords ocr=\"${textInBox.take(40)}\" clean=\"$candidate\" $outcome reason=\"$reason\"",
                     )
                     if (frameCandidate == null && candidate.length >= 11) {
-                        frameCandidate = Triple(validation.correctedVin ?: candidate, box.confidence, validation.isValid)
+                        frameCandidate =
+                            FrameCandidate(
+                                value = validation.correctedVin ?: candidate,
+                                confidence = box.confidence,
+                                isValid = validation.isValid,
+                                checksumValid = validation.checksumValid,
+                            )
                     }
                     // Auto-accept ONLY checksum-valid reads. Soft-accept (format-valid but
                     // checksum-failed) is shown as a live candidate but never auto-confirmed —
@@ -300,9 +313,10 @@ internal suspend fun processImage(
                     }
                 }
                 onCandidateScanned(
-                    frameCandidate?.first,
-                    frameCandidate?.second ?: 0f,
-                    frameCandidate?.third ?: false,
+                    frameCandidate?.value,
+                    frameCandidate?.confidence ?: 0f,
+                    frameCandidate?.isValid ?: false,
+                    frameCandidate?.checksumValid ?: false,
                 )
                 // Surface context-sensitive guidance (aim / closer / center / focus / hold steady).
                 onScanGuidance(

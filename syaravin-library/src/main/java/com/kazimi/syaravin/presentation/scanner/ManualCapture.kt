@@ -129,16 +129,10 @@ internal suspend fun analyzeManualCapture(
         // Manual-only: explore ambiguous-character swaps and surface every checksum-valid VIN so the
         // user can pick the right one. Falls back to the single base read when none are valid.
         val checksumValid =
-            if (resolvedBase.length == VinNumber.VIN_LENGTH) {
-                ambiguousCandidates(resolvedBase)
-                    .filter { vinValidator.validate(it).checksumValid }
-                    .distinct()
-                    // Show the candidates closest to the read first (fewest swapped chars).
-                    .sortedBy { cand -> cand.indices.count { cand[it] != resolvedBase[it] } }
-                    .take(MAX_VIN_CANDIDATES)
-            } else {
-                emptyList()
-            }
+            checksumValidAmbiguousCandidates(
+                base = resolvedBase,
+                vinValidator = vinValidator,
+            )
         SLog.w(TAG, "MANUAL_CAPTURE checksum_valid=${checksumValid.size} -> $checksumValid")
 
         // Ambiguous clarification is used ONLY to populate the picker when more than one
@@ -211,6 +205,20 @@ private val AMBIGUOUS_CHARS: Map<Char, List<Char>> =
  * [AMBIGUOUS_CHARS]), changing AT MOST [MAX_AMBIGUOUS_CHANGES] characters per candidate. Includes
  * [base] itself (0 changes). Bounded by [MAX_AMBIGUOUS_COMBOS] as a safety cap.
  */
+internal fun checksumValidAmbiguousCandidates(
+    base: String,
+    vinValidator: VinValidator,
+    maxCandidates: Int = MAX_VIN_CANDIDATES,
+): List<String> {
+    val resolvedBase = expandMergedLj(base, vinValidator)
+    if (resolvedBase.length != VinNumber.VIN_LENGTH) return emptyList()
+    return ambiguousCandidates(resolvedBase)
+        .filter { vinValidator.validate(it).checksumValid }
+        .distinct()
+        .sortedBy { cand -> cand.indices.count { cand[it] != resolvedBase[it] } }
+        .take(maxCandidates)
+}
+
 private fun ambiguousCandidates(base: String): List<String> {
     // Positions that have at least one ambiguous alternative, with their alternative characters.
     val positions = base.indices.mapNotNull { i -> AMBIGUOUS_CHARS[base[i]]?.let { i to it } }

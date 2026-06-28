@@ -203,13 +203,14 @@ internal class ScannerViewModel(
         value: String?,
         confidence: Float,
         isValid: Boolean,
+        checksumValid: Boolean,
     ) {
         _state.update {
             it.copy(
                 scannedCandidate =
                     value
                         ?.takeIf { v -> v.isNotBlank() }
-                        ?.let { v -> ScannedCandidate(v, confidence, isValid) },
+                        ?.let { v -> ScannedCandidate(v, confidence, isValid, checksumValid) },
             )
         }
     }

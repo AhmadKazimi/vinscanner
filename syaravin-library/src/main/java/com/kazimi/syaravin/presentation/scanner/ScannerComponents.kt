@@ -17,13 +17,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FlashOff
@@ -36,13 +33,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Snackbar
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -50,15 +45,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import com.kazimi.syaravin.R
 
 /**
@@ -187,7 +177,13 @@ internal fun BoxScope.ScannerTopBar(
                 Icon(
                     imageVector = if (isScanning) Icons.Filled.Stop else Icons.Filled.PlayArrow,
                     contentDescription =
-                        if (isScanning) stringResource(R.string.stop) else stringResource(R.string.start),
+                        if (isScanning) {
+                            stringResource(R.string.stop)
+                        } else {
+                            stringResource(
+                                R.string.start,
+                            )
+                        },
                     tint = Color.White,
                 )
             }
@@ -199,10 +195,7 @@ internal fun BoxScope.ScannerTopBar(
 @Composable
 internal fun PermissionDeniedContent(onGrantPermission: () -> Unit) {
     Column(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .padding(32.dp),
+        modifier = Modifier.fillMaxSize().padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
@@ -252,9 +245,18 @@ internal fun BoxScope.LiveCandidate(candidate: ScannedCandidate?) {
 @Composable
 private fun ScannedCandidateCard(candidate: ScannedCandidate) {
     // Light, near-opaque pill so the dark text reads clearly over the camera feed.
-    // Green when valid, red when not.
-    val fill = if (candidate.isValid) Color(0xFFC8E6C9) else Color(0xFFFFCDD2)
-    val textColor = if (candidate.isValid) Color(0xFF1B5E20) else Color(0xFFB71C1C)
+    val fill =
+        when {
+            candidate.checksumValid -> Color(0xFFC8E6C9)
+            candidate.isValid -> Color(0xFFFFECB3)
+            else -> Color(0xFFFFCDD2)
+        }
+    val textColor =
+        when {
+            candidate.checksumValid -> Color(0xFF1B5E20)
+            candidate.isValid -> Color(0xFF8A5A00)
+            else -> Color(0xFFB71C1C)
+        }
     Row(
         modifier =
             Modifier
@@ -262,7 +264,10 @@ private fun ScannedCandidateCard(candidate: ScannedCandidate) {
                 .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        AnimatedContent(targetState = candidate.value, label = "candidate_vin") { value ->
+        AnimatedContent(
+            targetState = candidate.value,
+            label = "candidate_vin",
+        ) { value ->
             Text(
                 text = value,
                 color = textColor,
@@ -270,88 +275,6 @@ private fun ScannedCandidateCard(candidate: ScannedCandidate) {
                 fontFamily = FontFamily.Monospace,
                 fontWeight = FontWeight.Bold,
             )
-        }
-        Spacer(modifier = Modifier.width(12.dp))
-        Text(
-            text = "${(candidate.confidence * 100).toInt()}%",
-            color = textColor.copy(alpha = 0.85f),
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.SemiBold,
-        )
-    }
-}
-
-/**
- * Lets the user pick among ambiguous-VIN candidates (manual capture). Characters shared by every
- * candidate render in normal black; characters that differ are highlighted bold + accent so the
- * user can immediately see which positions are uncertain.
- */
-@Composable
-internal fun VinSelectionDialog(
-    candidates: List<String>,
-    onSelect: (String) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    val length = candidates.firstOrNull()?.length ?: 0
-    val ambiguousIndices =
-        remember(candidates) {
-            (0 until length)
-                .filter { i -> candidates.map { it.getOrNull(i) }.distinct().size > 1 }
-                .toSet()
-        }
-
-    Dialog(onDismissRequest = onDismiss) {
-        Surface(shape = RoundedCornerShape(20.dp), color = Color(0xFFFAFAFA)) {
-            Column(
-                modifier = Modifier.fillMaxWidth().padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                Text(
-                    text = stringResource(R.string.scanner_select_vin),
-                    color = Color(0xFF212121),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                )
-                Column(
-                    modifier =
-                        Modifier
-                            .heightIn(max = 360.dp)
-                            .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    candidates.forEach { vin ->
-                        Surface(
-                            onClick = { onSelect(vin) },
-                            shape = RoundedCornerShape(12.dp),
-                            color = Color.White,
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Text(
-                                text =
-                                    buildAnnotatedString {
-                                        vin.forEachIndexed { i, ch ->
-                                            if (i in ambiguousIndices) {
-                                                withStyle(
-                                                    SpanStyle(
-                                                        color = Color(0xFFEC6234),
-                                                        fontWeight = FontWeight.Bold,
-                                                    ),
-                                                ) { append(ch) }
-                                            } else {
-                                                append(ch)
-                                            }
-                                        }
-                                    },
-                                color = Color(0xFF212121),
-                                fontFamily = FontFamily.Monospace,
-                                letterSpacing = 2.sp,
-                                style = MaterialTheme.typography.titleMedium,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
-                            )
-                        }
-                    }
-                }
-            }
         }
     }
 }
@@ -363,10 +286,7 @@ internal fun BoxScope.ScannerErrorSnackbar(
     onDismiss: () -> Unit,
 ) {
     Snackbar(
-        modifier =
-            Modifier
-                .align(Alignment.BottomCenter)
-                .padding(16.dp),
+        modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp),
         action = {
             TextButton(
                 onClick = onDismiss,

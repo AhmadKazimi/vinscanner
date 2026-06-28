@@ -6,6 +6,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -32,17 +33,19 @@ internal fun BoundingBoxOverlay(
     val density = LocalDensity.current
     val strokeWidthPx = with(density) { strokeWidth.dp.toPx() }
     val color = if (boxColor == Color.Unspecified) MaterialTheme.colorScheme.primary else boxColor
+    val textPaint =
+        remember {
+            android.graphics.Paint().apply {
+                textSize = 40f
+                isAntiAlias = true
+            }
+        }
+    textPaint.color = color.toArgb()
 
     Canvas(
         modifier = modifier.fillMaxSize(),
     ) {
         val renderStartNs = System.nanoTime()
-        val textPaint =
-            android.graphics.Paint().apply {
-                this.color = color.toArgb()
-                textSize = 40f
-                isAntiAlias = true
-            }
         boundingBoxes.forEach { box ->
             // Draw bounding box
             drawRect(
