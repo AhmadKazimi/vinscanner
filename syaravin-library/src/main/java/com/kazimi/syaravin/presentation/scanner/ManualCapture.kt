@@ -27,6 +27,19 @@ import kotlin.math.floor
 
 private const val TAG = LogTags.LIBRARY
 
+/**
+ * Result of a manual capture. [candidates] holds the possible 17-char VINs: a single entry when the
+ * read is unambiguous (or only a best-effort guess), or several when ambiguous-character
+ * clarification yields multiple checksum-valid VINs for the user to choose from. [areChecksumValid]
+ * is true when the candidates are checksum-valid (vs. a best-effort conjured guess).
+ */
+internal class ManualCaptureResult(
+    val candidates: List<String>,
+    val confidence: Float,
+    val areChecksumValid: Boolean,
+    val image: Bitmap?,
+)
+
 internal suspend fun analyzeManualCapture(
     imageCapture: ImageCapture,
     captureExecutor: ExecutorService,
@@ -34,7 +47,7 @@ internal suspend fun analyzeManualCapture(
     vinDetector: VinDetector,
     textExtractor: TextExtractor,
     vinValidator: VinValidator,
-): VinNumber {
+): ManualCaptureResult {
     SLog.w(TAG, "MANUAL_CAPTURE analysis started")
     val capturedBitmap =
         try {
@@ -46,93 +59,220 @@ internal suspend fun analyzeManualCapture(
             null
         }
 
-    // OCR runs on the FULL portrait frame (no ROI-band or aspect crop) so the VIN's edge characters
-    // aren't clipped on any side. The displayed result image is still the ROI band.
+    // Scan ONLY the ROI band (matches the on-screen overlay) — keeps OCR focused on the VIN line
+    // and avoids picking up surrounding sticker text. Same bitmap is used for the result image.
     val ocrBitmap: Bitmap
-    val displayBitmap: Bitmap
     if (capturedBitmap != null) {
         val portrait = rotateLandscapeCaptureToPortrait(capturedBitmap)
-        // ROI band for display is cut from the analyzed-aspect crop (matches the on-screen overlay).
         val overlayFrame = centerCropToAspectRatio(portrait, RoiConfig.analyzedImageAspectRatio)
-        displayBitmap = cropToRoiBand(overlayFrame)
-        if (overlayFrame !== portrait && !overlayFrame.isRecycled) overlayFrame.recycle()
-        if (capturedBitmap !== portrait && !capturedBitmap.isRecycled) capturedBitmap.recycle()
+        ocrBitmap = cropToRoiBand(overlayFrame) // fresh bitmap, independent of the inputs below
+        listOf(portrait, overlayFrame, capturedBitmap).distinct().forEach {
+            if (!it.isRecycled) it.recycle()
+        }
         fallbackRoiBitmap?.recycle()
-        ocrBitmap = portrait
     } else {
-        ocrBitmap = fallbackRoiBitmap ?: return VinNumber(value = "", confidence = 0f, isValid = false)
-        displayBitmap = ocrBitmap
+        ocrBitmap = fallbackRoiBitmap ?: return ManualCaptureResult(emptyList(), 0f, false, null)
     }
-    SLog.w(TAG, "MANUAL_CAPTURE ocr=${ocrBitmap.width}x${ocrBitmap.height} display=${displayBitmap.width}x${displayBitmap.height}")
+    val displayBitmap = ocrBitmap
+
+    // Upscale + sharpen the band before OCR (manual only) so thin/touching glyphs separate.
+    val ocrInput = ImagePreprocessor.enhanceForOcr(ocrBitmap)
+    SLog.w(TAG, "MANUAL_CAPTURE ocr=${ocrBitmap.width}x${ocrBitmap.height} enhanced=${ocrInput.width}x${ocrInput.height}")
 
     // Manual capture is a high-res still → contrast only, no sharpen (avoids halos on sharp text).
     fun resultImage(): Bitmap? = ImagePreprocessor.enhanceForDisplay(displayBitmap, sharpen = false)
 
     try {
-        // Custom-model path: detect VIN boxes and OCR each. Skipped entirely in Google-OCR mode,
-        // which relies on full-frame text recognition below.
+        // Collect every OCR read (per-box for the custom model, plus the full-frame lines).
+        val rawReads = mutableListOf<Pair<String, Float>>()
+
         if (!ScannerPerfConfig.USE_GOOGLE_OCR_ONLY) {
             val boxes =
                 vinDetector
-                    .detect(ocrBitmap)
+                    .detect(ocrInput)
                     .boundingBoxes
                     .sortedByDescending { it.confidence }
                     .take(3)
-            SLog.w(TAG, "MANUAL_CAPTURE detected_boxes=${boxes.size} bitmap=${ocrBitmap.width}x${ocrBitmap.height}")
-            val extractedCandidates =
-                coroutineScope {
-                    boxes
-                        .map { box ->
-                            async { box to textExtractor.extractText(ocrBitmap, box) }
-                        }.awaitAll()
-                }
+            SLog.w(TAG, "MANUAL_CAPTURE detected_boxes=${boxes.size} bitmap=${ocrInput.width}x${ocrInput.height}")
+            coroutineScope {
+                boxes.map { box -> async { box to textExtractor.extractText(ocrInput, box) } }.awaitAll()
+            }.forEach { (box, text) -> if (!text.isNullOrBlank()) rawReads += text to box.confidence }
+        }
 
-            for ((box, rawText) in extractedCandidates) {
-                if (rawText.isNullOrBlank()) continue
-                // Manual capture: trust the user's framing. cleanVin already replaces I/O/Q and
-                // extracts the 17-char sequence; accept it on length alone — no checksum gate.
-                val candidate = vinValidator.cleanVin(rawText)
-                if (candidate.length != VinNumber.VIN_LENGTH) continue
+        textExtractor.extractAllText(ocrInput).forEach { line ->
+            if (line.isNotBlank()) rawReads += line to 1f
+        }
+        SLog.w(TAG, "MANUAL_CAPTURE reads=${rawReads.size}")
 
-                return VinNumber(
-                    value = candidate,
-                    confidence = box.confidence,
-                    isValid = true,
-                    croppedImage = resultImage(),
-                )
+        // Pick the base 17-char read: an exact cleanVin if any, else the conjured closest guess.
+        val exact =
+            rawReads.firstNotNullOfOrNull { (raw, conf) ->
+                vinValidator.cleanVin(raw).takeIf { it.length == VinNumber.VIN_LENGTH }?.let { it to conf }
             }
-        }
+        val (baseVin, confidence) =
+            exact ?: run {
+                val best =
+                    rawReads
+                        .map { (raw, conf) -> looseVin(raw) to conf }
+                        .filter { it.first.isNotEmpty() }
+                        .maxByOrNull { vinCloseness(it.first) }
+                val conjured = best?.first?.let { if (it.length > VinNumber.VIN_LENGTH) it.take(VinNumber.VIN_LENGTH) else it } ?: ""
+                conjured to (best?.second ?: 0f)
+            }
+        SLog.w(TAG, "MANUAL_CAPTURE base=\"$baseVin\" len=${baseVin.length}")
 
-        val fullImageText = textExtractor.extractAllText(ocrBitmap)
-        SLog.w(TAG, "MANUAL_CAPTURE fallback_ocr_lines=${fullImageText.size}")
-        for (rawText in fullImageText) {
-            if (rawText.isBlank()) continue
-            val candidate = vinValidator.cleanVin(rawText)
-            SLog.w(
-                TAG,
-                "MANUAL_CAPTURE fallback_ocr=\"${rawText.take(40)}\" clean=\"$candidate\" len=${candidate.length}",
+        // "LJ" frequently merges into a single "U" under OCR, leaving a 16-char read. Recover the
+        // length by expanding a U back into "LJ"; prefer the expansion whose checksum is valid.
+        val resolvedBase = expandMergedLj(baseVin, vinValidator)
+        if (resolvedBase != baseVin) SLog.w(TAG, "MANUAL_CAPTURE expanded U->LJ \"$baseVin\" -> \"$resolvedBase\"")
+
+        // Manual-only: explore ambiguous-character swaps and surface every checksum-valid VIN so the
+        // user can pick the right one. Falls back to the single base read when none are valid.
+        val checksumValid =
+            if (resolvedBase.length == VinNumber.VIN_LENGTH) {
+                ambiguousCandidates(resolvedBase)
+                    .filter { vinValidator.validate(it).checksumValid }
+                    .distinct()
+                    // Show the candidates closest to the read first (fewest swapped chars).
+                    .sortedBy { cand -> cand.indices.count { cand[it] != resolvedBase[it] } }
+                    .take(MAX_VIN_CANDIDATES)
+            } else {
+                emptyList()
+            }
+        SLog.w(TAG, "MANUAL_CAPTURE checksum_valid=${checksumValid.size} -> $checksumValid")
+
+        // Ambiguous clarification is used ONLY to populate the picker when more than one
+        // checksum-valid VIN exists. Otherwise return the resolved base read.
+        return if (checksumValid.size >= 2) {
+            ManualCaptureResult(checksumValid, confidence, areChecksumValid = true, image = resultImage())
+        } else {
+            val baseChecksumValid =
+                resolvedBase.length == VinNumber.VIN_LENGTH && vinValidator.validate(resolvedBase).checksumValid
+            ManualCaptureResult(
+                candidates = if (resolvedBase.isNotBlank()) listOf(resolvedBase) else emptyList(),
+                confidence = confidence,
+                areChecksumValid = baseChecksumValid,
+                image = resultImage(),
             )
-            if (candidate.length != VinNumber.VIN_LENGTH) continue
-
-            return VinNumber(
-                value = candidate,
-                confidence = 1f,
-                isValid = true,
-                croppedImage = resultImage(),
-            )
         }
-
-        return VinNumber(
-            value = "",
-            confidence = 0f,
-            isValid = false,
-            croppedImage = resultImage(),
-        )
     } finally {
+        if (!ocrInput.isRecycled) ocrInput.recycle()
         if (displayBitmap !== ocrBitmap && !displayBitmap.isRecycled) displayBitmap.recycle()
         if (!ocrBitmap.isRecycled) ocrBitmap.recycle()
     }
 }
+
+/**
+ * Best-effort VIN-charset reduction of an OCR read: uppercases, maps the VIN-illegal I/O/Q (and
+ * common confusions) to their digit look-alikes, then keeps only valid VIN characters. Used to
+ * "conjure" a closest-guess VIN when no exact 17-char read is found.
+ */
+// Max ambiguous candidates surfaced to the user, the max characters allowed to differ from the
+// base read per candidate, and a hard safety cap on the number of combinations explored.
+private const val MAX_VIN_CANDIDATES = 4
+private const val MAX_AMBIGUOUS_CHANGES = 3
+private const val MAX_AMBIGUOUS_COMBOS = 4096
+
+// OCR-confusable VIN characters (both directions). Used only in manual capture to enumerate
+// alternative VINs and keep the checksum-valid ones for the user to choose from.
+// Symmetric OCR confusion classes among VIN-valid characters (I/O/Q are already normalized away
+// before this stage). Keep this tight: every extra pair widens the search and risks surfacing
+// spurious checksum-valid look-alikes. Letter↔letter pairs that explode combinatorially with low
+// payoff (M/N/H/W) are deliberately excluded.
+private val AMBIGUOUS_CHARS: Map<Char, List<Char>> =
+    mapOf(
+        // digit ↔ letter look-alikes
+        '0' to listOf('D'),
+        'D' to listOf('0'),
+        '5' to listOf('S'),
+        'S' to listOf('5'),
+        '8' to listOf('B'),
+        'B' to listOf('8'),
+        '2' to listOf('Z'),
+        'Z' to listOf('2', '7'),
+        '6' to listOf('G'),
+        'G' to listOf('6', 'C'),
+        'C' to listOf('G'),
+        '4' to listOf('A'),
+        'A' to listOf('4'),
+        // 1 / 7 / J / T cluster (vertical strokes)
+        '1' to listOf('J', '7', 'T'),
+        'J' to listOf('1'),
+        '7' to listOf('1', 'T', 'Z'),
+        'T' to listOf('1', '7'),
+        // U / V / Y cluster
+        'U' to listOf('V'),
+        'V' to listOf('U', 'Y'),
+        'Y' to listOf('V'),
+    )
+
+/**
+ * Enumerates VIN strings reachable from [base] by swapping OCR-ambiguous characters (see
+ * [AMBIGUOUS_CHARS]), changing AT MOST [MAX_AMBIGUOUS_CHANGES] characters per candidate. Includes
+ * [base] itself (0 changes). Bounded by [MAX_AMBIGUOUS_COMBOS] as a safety cap.
+ */
+private fun ambiguousCandidates(base: String): List<String> {
+    // Positions that have at least one ambiguous alternative, with their alternative characters.
+    val positions = base.indices.mapNotNull { i -> AMBIGUOUS_CHARS[base[i]]?.let { i to it } }
+    val results = LinkedHashSet<String>()
+    results += base
+    val working = base.toCharArray()
+
+    // Pick up to MAX_AMBIGUOUS_CHANGES positions (in increasing order) and one alternative each.
+    fun recurse(
+        startPos: Int,
+        changesLeft: Int,
+    ) {
+        if (changesLeft == 0 || results.size >= MAX_AMBIGUOUS_COMBOS) return
+        for (p in startPos until positions.size) {
+            val (idx, alts) = positions[p]
+            val original = working[idx]
+            for (alt in alts) {
+                working[idx] = alt
+                results += String(working)
+                if (results.size >= MAX_AMBIGUOUS_COMBOS) {
+                    working[idx] = original
+                    return
+                }
+                recurse(p + 1, changesLeft - 1)
+            }
+            working[idx] = original
+        }
+    }
+    recurse(0, MAX_AMBIGUOUS_CHANGES)
+    return results.toList()
+}
+
+/**
+ * Recovers a 16-char read that lost a character to the common "LJ"→"U" OCR merge: expands a U back
+ * into "LJ" to reach 17 chars. Tries each U position and prefers the expansion that is
+ * checksum-valid; otherwise expands the first U. Returns [vin] unchanged when it isn't a 16-char
+ * read containing a U.
+ */
+private fun expandMergedLj(
+    vin: String,
+    validator: VinValidator,
+): String {
+    if (vin.length != VinNumber.VIN_LENGTH - 1 || 'U' !in vin) return vin
+    val expansions =
+        vin.indices
+            .filter { vin[it] == 'U' }
+            .map { i -> vin.substring(0, i) + "LJ" + vin.substring(i + 1) }
+    return expansions.firstOrNull { validator.validate(it).checksumValid } ?: expansions.first()
+}
+
+private fun looseVin(raw: String): String =
+    raw
+        .uppercase()
+        .replace('I', '1')
+        .replace('O', '0')
+        .replace('Q', '0')
+        .replace('|', '1')
+        .replace('!', '1')
+        .filter { it in '0'..'9' || (it in 'A'..'Z' && it != 'I' && it != 'O' && it != 'Q') }
+
+/** Higher is better: rewards being close to 17 chars, then more digits (VINs are digit-heavy). */
+private fun vinCloseness(s: String): Int = 100 - abs(VinNumber.VIN_LENGTH - s.length) * 5 + s.count { it.isDigit() }
 
 /** Crops the ROI band out of a full [overlayFrame] for display. Does not recycle [overlayFrame]. */
 private fun cropToRoiBand(overlayFrame: Bitmap): Bitmap {

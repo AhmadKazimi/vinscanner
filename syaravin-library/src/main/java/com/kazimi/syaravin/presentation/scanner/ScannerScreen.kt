@@ -34,7 +34,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
-import com.kazimi.syaravin.R
 import com.kazimi.syaravin.di.VinScannerDependencies
 import com.kazimi.syaravin.domain.model.VinNumber
 import com.kazimi.syaravin.presentation.components.BoundingBoxOverlay
@@ -55,6 +54,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -66,6 +66,9 @@ import java.util.concurrent.atomic.AtomicLong
 private const val TAG = LogTags.LIBRARY
 
 private const val PREF_AUTO_SCAN_ENABLED = "auto_scan_enabled"
+
+// Delay before the manual capture button appears while auto-scan is enabled.
+private const val CAPTURE_BUTTON_AUTO_SCAN_DELAY_MS = 800L
 
 /**
  * Main scanner screen for VIN detection. Hosts camera/analysis lifecycle and state; the visual
@@ -207,6 +210,11 @@ internal fun ScannerScreen(
     val lastProcessTime = remember { AtomicLong(0L) }
     val roiFrameCounter = remember { AtomicLong(0L) }
 
+    // Manual-capture ambiguous-VIN choices awaiting user selection. While set, the selection dialog
+    // is shown and auto-scan results are suppressed (choicesOpen) so they can't close it.
+    var manualChoices by remember { mutableStateOf<ManualCaptureResult?>(null) }
+    val choicesOpen = remember { AtomicBoolean(false) }
+
     // Auto-scan toggle, persisted across sessions. When off, frames are not analyzed continuously;
     // scanning happens only on manual capture.
     val scannerPrefs =
@@ -215,6 +223,19 @@ internal fun ScannerScreen(
         }
     var autoScanEnabled by remember {
         mutableStateOf(scannerPrefs.getBoolean(PREF_AUTO_SCAN_ENABLED, true))
+    }
+
+    // When auto-scan is on, hold the manual capture button back briefly so auto-detection gets a
+    // chance first; show it immediately when auto-scan is off.
+    var showCaptureButton by remember { mutableStateOf(!autoScanEnabled) }
+    LaunchedEffect(autoScanEnabled) {
+        if (autoScanEnabled) {
+            showCaptureButton = false
+            delay(CAPTURE_BUTTON_AUTO_SCAN_DELAY_MS)
+            showCaptureButton = true
+        } else {
+            showCaptureButton = true
+        }
     }
 
     // Set up image analysis — always attach the analyzer so it's initialized every session.
@@ -249,7 +270,7 @@ internal fun ScannerScreen(
                                     roiFrameCounter = roiFrameCounter,
                                     acceptGate = acceptGate,
                                     onVinDetected = { vin, confidence, croppedBitmap ->
-                                        if (isManualCaptureRequested.get()) {
+                                        if (isManualCaptureRequested.get() || choicesOpen.get()) {
                                             croppedBitmap?.recycle()
                                         } else {
                                             viewModel.onVinDetected(vin, confidence, croppedBitmap)
@@ -379,61 +400,76 @@ internal fun ScannerScreen(
         if (state.hasPermission && state.isScanning) {
             // Lock the capture button once a manual capture is running or a VIN was auto-detected,
             // so the user can't double-trigger while the result is being prepared (~0.5s).
-            val captureLocked = isManualCaptureBusy || state.detectedVin != null
-            CaptureButton(
-                modifier =
-                    Modifier
-                        .align(Alignment.BottomCenter)
-                        .navigationBarsPadding()
-                        .padding(bottom = 32.dp),
-                enabled = !captureLocked,
-                capturing = captureLocked,
-                onTap = {
-                    if (!isManualCaptureRequested.compareAndSet(false, true)) return@CaptureButton
-                    isManualCaptureBusy = true
-                    val fallbackRoiBitmap =
-                        state.latestRoiCroppedBitmap
-                            ?.takeUnless(Bitmap::isRecycled)
-                            ?.copy(Bitmap.Config.ARGB_8888, false)
-                    SLog.d(TAG, "Enter manually button clicked")
-                    processingScope.launch {
-                        try {
-                            val result =
-                                analysisMutex.withLock {
-                                    // Drop any pending soft auto-accept candidate; manual capture wins.
-                                    acceptGate.reset()
-                                    analyzeManualCapture(
-                                        imageCapture = imageCapture,
-                                        captureExecutor = executor,
-                                        fallbackRoiBitmap = fallbackRoiBitmap,
-                                        vinDetector = vinDetectorLazy.value,
-                                        textExtractor = textExtractorLazy.value,
-                                        vinValidator = vinValidatorLazy.value,
-                                    )
+            val captureLocked = isManualCaptureBusy || state.detectedVin != null || manualChoices != null
+            if (showCaptureButton) {
+                CaptureButton(
+                    modifier =
+                        Modifier
+                            .align(Alignment.BottomCenter)
+                            .navigationBarsPadding()
+                            .padding(bottom = 32.dp),
+                    enabled = !captureLocked,
+                    capturing = captureLocked,
+                    onTap = {
+                        if (!isManualCaptureRequested.compareAndSet(false, true)) return@CaptureButton
+                        isManualCaptureBusy = true
+                        val fallbackRoiBitmap =
+                            state.latestRoiCroppedBitmap
+                                ?.takeUnless(Bitmap::isRecycled)
+                                ?.copy(Bitmap.Config.ARGB_8888, false)
+                        SLog.d(TAG, "Enter manually button clicked")
+                        processingScope.launch {
+                            try {
+                                val result =
+                                    analysisMutex.withLock {
+                                        // Drop any pending soft auto-accept candidate; manual capture wins.
+                                        acceptGate.reset()
+                                        analyzeManualCapture(
+                                            imageCapture = imageCapture,
+                                            captureExecutor = executor,
+                                            fallbackRoiBitmap = fallbackRoiBitmap,
+                                            vinDetector = vinDetectorLazy.value,
+                                            textExtractor = textExtractorLazy.value,
+                                            vinValidator = vinValidatorLazy.value,
+                                        )
+                                    }
+                                withContext(Dispatchers.Main) {
+                                    val vins = result.candidates
+                                    when {
+                                        // Several checksum-valid VINs from ambiguous chars → let the user pick.
+                                        vins.size > 1 -> {
+                                            choicesOpen.set(true)
+                                            manualChoices = result
+                                        }
+
+                                        // One candidate (exact, single valid, or best-effort) → confirm + close.
+                                        else -> {
+                                            onVinConfirmed(
+                                                VinNumber(
+                                                    value = vins.firstOrNull() ?: "",
+                                                    confidence = result.confidence,
+                                                    isValid = result.areChecksumValid,
+                                                    croppedImage = result.image,
+                                                ),
+                                            )
+                                        }
+                                    }
                                 }
-                            withContext(Dispatchers.Main) {
-                                // Only close the scanner when a 17-char VIN was actually read;
-                                // otherwise keep the camera open so the user can retry.
-                                if (result.value.isNotBlank()) {
-                                    onVinConfirmed(result)
-                                } else {
-                                    viewModel.showError(context.getString(R.string.scanner_no_vin_detected))
+                            } catch (cancelled: CancellationException) {
+                                throw cancelled
+                            } catch (e: Exception) {
+                                SLog.e(TAG, "Manual capture analysis failed", e)
+                                withContext(Dispatchers.Main) {
+                                    onVinConfirmed(VinNumber(value = "", confidence = 0f, isValid = false))
                                 }
+                            } finally {
+                                isManualCaptureRequested.set(false)
+                                withContext(Dispatchers.Main) { isManualCaptureBusy = false }
                             }
-                        } catch (cancelled: CancellationException) {
-                            throw cancelled
-                        } catch (e: Exception) {
-                            SLog.e(TAG, "Manual capture analysis failed", e)
-                            withContext(Dispatchers.Main) {
-                                viewModel.showError(context.getString(R.string.scanner_no_vin_detected))
-                            }
-                        } finally {
-                            isManualCaptureRequested.set(false)
-                            withContext(Dispatchers.Main) { isManualCaptureBusy = false }
                         }
-                    }
-                },
-            )
+                    },
+                )
+            }
 
             // Live "possible VIN" feedback, shown just above the capture button.
             LiveCandidate(state.scannedCandidate)
@@ -442,6 +478,31 @@ internal fun ScannerScreen(
         // Error snackbar
         state.errorMessage?.let { error ->
             ScannerErrorSnackbar(message = error, onDismiss = { viewModel.onEvent(ScannerEvent.DismissError) })
+        }
+
+        // Ambiguous-VIN selection (manual capture). Common characters render normal; the characters
+        // that differ between candidates are highlighted so the user can spot what to verify.
+        manualChoices?.let { choices ->
+            VinSelectionDialog(
+                candidates = choices.candidates,
+                onSelect = { selected ->
+                    choicesOpen.set(false)
+                    manualChoices = null
+                    onVinConfirmed(
+                        VinNumber(
+                            value = selected,
+                            confidence = choices.confidence,
+                            isValid = true,
+                            croppedImage = choices.image,
+                        ),
+                    )
+                },
+                onDismiss = {
+                    choices.image?.takeUnless(Bitmap::isRecycled)?.recycle()
+                    choicesOpen.set(false)
+                    manualChoices = null
+                },
+            )
         }
     }
 }

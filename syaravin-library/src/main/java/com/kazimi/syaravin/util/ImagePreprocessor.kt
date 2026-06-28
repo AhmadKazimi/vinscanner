@@ -95,6 +95,30 @@ internal object ImagePreprocessor {
         return result
     }
 
+    /**
+     * Upscale + unsharp a crop before OCR so thin/touching glyphs separate (e.g. "LJ" merging into
+     * a single "U"). Returns a NEW bitmap distinct from [bitmap]; the caller owns and must recycle
+     * it. The input is left untouched.
+     */
+    fun enhanceForOcr(
+        bitmap: Bitmap,
+        scale: Float = 2f,
+    ): Bitmap {
+        val w = (bitmap.width * scale).roundToInt().coerceAtLeast(1)
+        val h = (bitmap.height * scale).roundToInt().coerceAtLeast(1)
+        val upscaled =
+            try {
+                Bitmap.createScaledBitmap(bitmap, w, h, true)
+            } catch (_: Throwable) {
+                bitmap.copy(Bitmap.Config.ARGB_8888, false)
+            }
+        return try {
+            sharpenBitmap(upscaled).also { if (it !== upscaled) upscaled.recycle() }
+        } catch (_: Throwable) {
+            upscaled
+        }
+    }
+
     private fun applyContrast(bitmap: Bitmap): Bitmap {
         val enhanced = bitmap.copy(Bitmap.Config.ARGB_8888, true)
         val matrix =

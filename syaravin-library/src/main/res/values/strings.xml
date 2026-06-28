@@ -7,6 +7,7 @@
     <string name="scanner_tap_to_focus">Tap the VIN to focus</string>
     <string name="scanner_close">Close scanner</string>
     <string name="scanner_no_vin_detected">No VIN detected — try again</string>
+    <string name="scanner_select_vin">Select the correct VIN</string>
     <string name="scanner_auto_scan_label">Auto</string>
     <string name="camera_permission_required_title">Camera Permission Required</string>
     <string name="camera_permission_required_message">Please grant camera permission to scan VIN numbers</string>
