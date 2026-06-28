@@ -15,7 +15,12 @@ import androidx.camera.view.PreviewView
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
@@ -24,8 +29,14 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.kazimi.syaravin.util.LogTags
 import com.kazimi.syaravin.util.SLog
+import kotlinx.coroutines.delay
 
 private const val TAG = LogTags.LIBRARY
+
+// Re-run center autofocus on this cadence so the preview keeps refocusing as the phone is moved
+// toward the VIN (a single focus action only locks once). Suppressed briefly after a manual tap.
+private const val AUTO_CENTER_FOCUS_INTERVAL_MS = 2000L
+private const val MANUAL_FOCUS_GRACE_MS = 3000L
 
 /**
  * Composable for displaying camera preview using CameraX
@@ -42,6 +53,10 @@ internal fun CameraPreview(
 ) {
     val context = LocalContext.current
     val appContext = remember(context) { context.applicationContext }
+
+    // Bound camera + last manual-tap timestamp drive the periodic center-autofocus loop below.
+    var boundCamera by remember { mutableStateOf<Camera?>(null) }
+    var lastManualFocusMs by remember { mutableLongStateOf(0L) }
 
     val previewView =
         remember {
@@ -77,17 +92,44 @@ internal fun CameraPreview(
             preview = preview,
             imageAnalyzer = imageAnalyzer,
             imageCapture = imageCapture,
-            onCameraBound = onCameraBound,
+            onCameraBound = { camera ->
+                boundCamera = camera
+                onCameraBound(camera)
+            },
+            onManualFocus = { lastManualFocusMs = System.currentTimeMillis() },
         )
 
         onDispose {
             SLog.w(TAG, "Camera preview disposing")
+            boundCamera = null
             onCameraBound(null)
             releaseCameraUseCases(
                 context = appContext,
                 previewView = previewView,
                 preview = preview,
             )
+        }
+    }
+
+    // Keep refocusing on the frame center automatically, so the user never has to tap. A single
+    // FocusMeteringAction only locks once; re-issuing it tracks focus as the phone is repositioned.
+    // Skipped while a manual tap-to-focus is still within its grace window.
+    LaunchedEffect(boundCamera) {
+        val activeCamera = boundCamera ?: return@LaunchedEffect
+        val centerPoint = SurfaceOrientedMeteringPointFactory(1f, 1f).createPoint(0.5f, 0.5f)
+        val centerAction =
+            FocusMeteringAction
+                .Builder(centerPoint, FocusMeteringAction.FLAG_AF or FocusMeteringAction.FLAG_AE)
+                .build()
+        while (true) {
+            if (System.currentTimeMillis() - lastManualFocusMs >= MANUAL_FOCUS_GRACE_MS) {
+                try {
+                    activeCamera.cameraControl.startFocusAndMetering(centerAction)
+                } catch (e: Exception) {
+                    SLog.w(TAG, "Periodic center autofocus failed", e)
+                }
+            }
+            delay(AUTO_CENTER_FOCUS_INTERVAL_MS)
         }
     }
 
@@ -106,6 +148,7 @@ private fun bindCameraUseCases(
     imageAnalyzer: ImageAnalysis,
     imageCapture: ImageCapture?,
     onCameraBound: (Camera?) -> Unit,
+    onManualFocus: () -> Unit,
 ) {
     val appContext = context.applicationContext
     val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
@@ -157,32 +200,21 @@ private fun bindCameraUseCases(
                     }
                 }
 
-            // Continuous autofocus on the frame center so frames stay sharp without a tap.
-            // No auto-cancel duration => CameraX keeps re-running AF/AE.
-            try {
-                val centerPoint = SurfaceOrientedMeteringPointFactory(1f, 1f).createPoint(0.5f, 0.5f)
-                val continuousAf =
-                    FocusMeteringAction
-                        .Builder(
-                            centerPoint,
-                            FocusMeteringAction.FLAG_AF or FocusMeteringAction.FLAG_AE,
-                        ).build()
-                camera.cameraControl.startFocusAndMetering(continuousAf)
-            } catch (e: Exception) {
-                SLog.w(TAG, "Failed to start continuous autofocus", e)
-            }
+            // Center autofocus is driven by the periodic loop in the composable (so it keeps
+            // refocusing as the phone is repositioned, not just once at bind time).
 
-            // Setup Tap-to-Focus (overrides continuous AF at the tapped point)
+            // Setup Tap-to-Focus (overrides center AF at the tapped point for a grace window).
             previewView.setOnTouchListener { view, event ->
                 if (event.action == android.view.MotionEvent.ACTION_DOWN) {
                     val factory = previewView.meteringPointFactory
                     val point = factory.createPoint(event.x, event.y)
                     val action =
-                        androidx.camera.core.FocusMeteringAction
+                        FocusMeteringAction
                             .Builder(point)
                             .setAutoCancelDuration(3, java.util.concurrent.TimeUnit.SECONDS)
                             .build()
 
+                    onManualFocus()
                     camera.cameraControl.startFocusAndMetering(action)
                     view.performClick()
                 }

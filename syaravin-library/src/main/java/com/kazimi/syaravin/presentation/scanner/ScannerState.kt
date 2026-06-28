@@ -14,6 +14,20 @@ internal enum class RoiBorderState {
 }
 
 /**
+ * Context-sensitive guidance shown to the user in the scanner banner. Highest-need hint wins;
+ * [NONE] hides the banner (everything looks good / actively scanning a well-placed sharp VIN).
+ */
+internal enum class ScanGuidance {
+    NONE, // Hide the banner.
+    PREPARING, // First load — model still warming up.
+    AIM, // No VIN detected yet — generic "keep VIN in the box" guidance.
+    MOVE_CLOSER, // VIN box too small — camera too far.
+    CENTER_VIN, // VIN clipped by / off-center from the box.
+    HOLD_STEADY, // VIN positioned but the frame is soft (motion blur) — gate waiting for sharper.
+    TAP_TO_FOCUS, // VIN positioned but focus is unstable — prompt a tap-to-focus.
+}
+
+/**
  * A possible VIN currently being read live (before auto-confirm), shown for user feedback.
  */
 internal data class ScannedCandidate(
@@ -37,6 +51,7 @@ internal data class ScannerState(
     val roiBorderState: RoiBorderState = RoiBorderState.NO_DETECTION, // Start with RED
     val latestRoiCroppedBitmap: Bitmap? = null, // ROI-cropped bitmap for manual entry
     val scannedCandidate: ScannedCandidate? = null, // Live "possible VIN" for feedback
+    val scanGuidance: ScanGuidance = ScanGuidance.NONE, // Context-sensitive banner hint
 ) {
     /**
      * Whether the scanner is actively processing

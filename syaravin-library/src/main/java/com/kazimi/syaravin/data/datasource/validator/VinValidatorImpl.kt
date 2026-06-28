@@ -104,25 +104,6 @@ internal class VinValidatorImpl(
                 // Note: Special characters like dashes, spaces, dots are filtered by extractVin()
             )
 
-        // Max OCR-ambiguous character swaps explored to recover a checksum-valid VIN.
-        private const val MAX_AMBIGUOUS_CHANGES = 2
-
-        // Ambiguous characters that OCR commonly confuses; permuted (bounded) to recover a
-        // checksum-valid VIN from a near-miss read.
-        private val AMBIGUOUS_CHARS =
-            mapOf(
-                'S' to '5',
-                '5' to 'S',
-                'Z' to '2',
-                '2' to 'Z',
-                'B' to '8',
-                '8' to 'B',
-                'A' to '4',
-                '4' to 'A',
-                'G' to '6',
-                '6' to 'G',
-            )
-
         private val VIN_LABEL_PREFIX = Regex("""(?i)^\s*V[I1]N\s*:\s+""")
         private val VIN_BODY_PREFIX = Regex("""(?i)^V[I1]N\s*:\s+""")
         private val VIN_PATTERN = Regex("""[A-HJ-NPR-Z0-9]{17}""")
@@ -194,17 +175,16 @@ internal class VinValidatorImpl(
             return result
         }
 
-        // 4. Validate checksum, trying bounded ambiguous-character permutations (S↔5, G↔6, B↔8…)
-        // to recover a checksum-valid VIN from a near-miss OCR read.
-        val checksumVin = validateChecksumWithPermutations(extractedVin)
-        if (checksumVin != null) {
+        // 4. Validate checksum on the extracted VIN as-is (ambiguous-character permutation
+        // recovery is disabled to avoid resolving to a VIN that differs from the true plate).
+        if (validateChecksum(extractedVin)) {
             val result =
                 VinValidationResult(
                     isValid = true,
                     checksumValid = true,
                     formatValid = true,
                     wasTrimmed = wasTrimmed,
-                    correctedVin = checksumVin,
+                    correctedVin = extractedVin,
                 )
             SLog.d(TAG, "Validation result for '$vin': $result")
             return result
@@ -295,38 +275,4 @@ internal class VinValidatorImpl(
         return isValid
     }
 
-    /**
-     * Returns a checksum-passing VIN reachable from [vin] by swapping up to [MAX_AMBIGUOUS_CHANGES]
-     * OCR-ambiguous characters (see [AMBIGUOUS_CHARS]), or null. BFS over ambiguous positions.
-     * NOTE: with >1 change this can land on a checksum-valid VIN that differs from the true plate
-     * (multiple near-miss reads may each resolve differently). Trades strictness for recovering
-     * hard reads; callers treat the result as checksum-valid.
-     */
-    private fun validateChecksumWithPermutations(vin: String): String? {
-        data class Node(
-            val value: String,
-            val changes: Int,
-        )
-
-        val seenVins = mutableSetOf(vin)
-        val queue = ArrayDeque<Node>()
-        queue.addLast(Node(vin, 0))
-
-        while (queue.isNotEmpty()) {
-            val node = queue.removeFirst()
-            if (validateChecksum(node.value)) {
-                SLog.i(TAG, "Valid checksum found for permutation: ${node.value}")
-                return node.value
-            }
-            if (node.changes >= MAX_AMBIGUOUS_CHANGES) continue
-            for (i in node.value.indices) {
-                val swapped = AMBIGUOUS_CHARS[node.value[i]] ?: continue
-                val next = node.value.substring(0, i) + swapped + node.value.substring(i + 1)
-                if (seenVins.add(next)) {
-                    queue.addLast(Node(next, node.changes + 1))
-                }
-            }
-        }
-        return null
-    }
 }

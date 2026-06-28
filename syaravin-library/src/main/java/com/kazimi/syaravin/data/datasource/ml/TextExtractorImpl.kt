@@ -28,6 +28,11 @@ import java.util.concurrent.atomic.AtomicBoolean
 private const val TAG = LogTags.LIBRARY
 private const val ML_KIT_MIN_SIZE = 32 // ML Kit requires minimum 32x32 pixels
 
+// Detection boxes hug the VIN tightly and jitter frame-to-frame, so a tight crop clips the
+// first/last glyph (16-char reads). Pad the crop before OCR so edge characters are included.
+private const val OCR_CROP_PAD_X = 0.20f // fraction of box width added to each horizontal side
+private const val OCR_CROP_PAD_Y = 0.25f // fraction of box height added to each vertical side
+
 /**
  * Text extraction implementation powered by ML Kit's on-device text recogniser.
  * This replaces the previous placeholder that attempted to use the same TFLite
@@ -75,8 +80,11 @@ internal class TextExtractorImpl(
                 val cropRect = toPixelRect(bitmap, boundingBox)
                 if (cropRect.width() <= 0 || cropRect.height() <= 0) return@withContext null
 
+                // Pad the crop so tight/jittery detection boxes don't clip edge glyphs.
+                val paddedRect = padForOcr(cropRect, bitmap.width, bitmap.height)
+
                 // Expand bounding box if it's too small for ML Kit (requires 32x32 minimum)
-                val expandedRect = ensureMinimumSize(cropRect, bitmap.width, bitmap.height)
+                val expandedRect = ensureMinimumSize(paddedRect, bitmap.width, bitmap.height)
 
                 if (expandedRect.width() != cropRect.width() || expandedRect.height() != cropRect.height()) {
                     SLog.d(
@@ -340,6 +348,25 @@ internal class TextExtractorImpl(
      * Converts a normalised [BoundingBox] (values in 0..1) to a pixel [Rect]
      * relative to the supplied [bitmap]. Any out-of-bounds values are clamped.
      */
+    /**
+     * Expands [rect] by [OCR_CROP_PAD_X]/[OCR_CROP_PAD_Y] on each side, clamped to the bitmap, so
+     * tight or slightly-misaligned detection boxes don't clip the first/last VIN character.
+     */
+    private fun padForOcr(
+        rect: Rect,
+        bitmapWidth: Int,
+        bitmapHeight: Int,
+    ): Rect {
+        val padX = (rect.width() * OCR_CROP_PAD_X).toInt()
+        val padY = (rect.height() * OCR_CROP_PAD_Y).toInt()
+        return Rect(
+            (rect.left - padX).coerceAtLeast(0),
+            (rect.top - padY).coerceAtLeast(0),
+            (rect.right + padX).coerceAtMost(bitmapWidth),
+            (rect.bottom + padY).coerceAtMost(bitmapHeight),
+        )
+    }
+
     private fun toPixelRect(
         bitmap: Bitmap,
         box: BoundingBox,

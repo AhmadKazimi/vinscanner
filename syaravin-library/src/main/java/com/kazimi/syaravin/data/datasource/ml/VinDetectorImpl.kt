@@ -2,7 +2,10 @@ package com.kazimi.syaravin.data.datasource.ml
 
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Matrix
+import android.graphics.Paint
+import android.graphics.PorterDuff
 import com.kazimi.syaravin.data.model.DetectionResult
 import com.kazimi.syaravin.domain.model.BoundingBox
 import com.kazimi.syaravin.util.LogTags
@@ -31,6 +34,9 @@ internal class VinDetectorImpl(
         // Thresholds
         private const val DEFAULT_CONF_THRESHOLD = 0.25f
         private const val NMS_IOU_THRESHOLD = 0.45f
+
+        // Precomputed 0..255 → 0f..1f normalization table; avoids ~1.2M float divides per frame.
+        private val NORM_LUT = FloatArray(256) { it / 255f }
     }
 
     // Pre-allocated buffers for better performance
@@ -42,6 +48,14 @@ internal class VinDetectorImpl(
                 order(ByteOrder.nativeOrder())
             }
     private val intValues = IntArray(MODEL_INPUT_SIZE * MODEL_INPUT_SIZE)
+
+    // Reusable letterbox target for the hot detect() path. Only touched on the single LiteRT
+    // runtime thread (detect runs inside runtime.run{}), so no synchronization is needed.
+    private val letterboxBitmap = Bitmap.createBitmap(MODEL_INPUT_SIZE, MODEL_INPUT_SIZE, Bitmap.Config.ARGB_8888)
+    private val letterboxCanvas = Canvas(letterboxBitmap)
+    private val letterboxPaint = Paint().apply { isFilterBitmap = true } // bilinear, matches createScaledBitmap(..., true)
+    private val letterboxMatrix = Matrix()
+
     private val warmupDone = AtomicBoolean(false)
     private val coldDetectionWarningLogged = AtomicBoolean(false)
 
@@ -107,13 +121,12 @@ internal class VinDetectorImpl(
                     )
                 }
 
-                // Preprocess (letterbox to 640x640)
-                val preprocessedBitmap = preprocessImage(bitmap)
+                // Preprocess (letterbox to 640x640) into the reusable buffer — no per-frame alloc.
+                val preprocessedBitmap = letterboxInto(bitmap, scaleFactor, padLeft, padTop)
                 if (ENABLE_DETAILED_LOGS) {
                     SLog.d(TAG, "Preprocessed bitmap: ${preprocessedBitmap.width}x${preprocessedBitmap.height}")
                 }
                 convertBitmapToByteBuffer(preprocessedBitmap)
-                preprocessedBitmap.recycle()
 
                 // Reuse output buffer for the configured model output shape.
                 val outShape = interpreter.getOutputTensor(0).shape()
@@ -178,37 +191,20 @@ internal class VinDetectorImpl(
                         null
                     }
 
-                for (i in 0 until numCandidates) {
-                    val cx = getProp(i, 0) * MODEL_INPUT_SIZE
-                    val cy = getProp(i, 1) * MODEL_INPUT_SIZE
-                    val w = getProp(i, 2) * MODEL_INPUT_SIZE
-                    val h = getProp(i, 3) * MODEL_INPUT_SIZE
-                    val obj = if (propertiesCount > 4) getProp(i, 4) else 1f
+                // Decode a candidate (raw 0..1 props) into a content-space box, gated by confidence.
+                fun addCandidate(
+                    rawCx: Float,
+                    rawCy: Float,
+                    rawW: Float,
+                    rawH: Float,
+                    conf: Float,
+                ) {
+                    if (conf < confThresh) return
 
-                    var clsScore = 1f
-                    if (propertiesCount > 5) {
-                        var maxCls = 0f
-                        var idx = 5
-                        while (idx < propertiesCount) {
-                            val s = getProp(i, idx)
-                            if (s > maxCls) maxCls = s
-                            idx++
-                        }
-                        clsScore = maxCls
-                    }
-
-                    val conf = obj * clsScore
-
-                    if (ENABLE_DETAILED_LOGS && topIndices != null) {
-                        if (topIndices.size < 5) {
-                            topIndices.add(i to conf)
-                        } else if (conf > (topIndices.peek()?.second ?: Float.NEGATIVE_INFINITY)) {
-                            topIndices.poll()
-                            topIndices.add(i to conf)
-                        }
-                    }
-
-                    if (conf < confThresh) continue
+                    val cx = rawCx * MODEL_INPUT_SIZE
+                    val cy = rawCy * MODEL_INPUT_SIZE
+                    val w = rawW * MODEL_INPUT_SIZE
+                    val h = rawH * MODEL_INPUT_SIZE
 
                     // Convert to pixel box in model space (640x640)
                     val leftPxModel = cx - w / 2f
@@ -222,9 +218,7 @@ internal class VinDetectorImpl(
                     val rightContent = ((rightPxModel - padLeft) / scaledWidth).coerceIn(0f, 1f)
                     val bottomContent = ((bottomPxModel - padTop) / scaledHeight).coerceIn(0f, 1f)
 
-                    val passesValidation = rightContent > leftContent && bottomContent > topContent
-
-                    if (passesValidation) {
+                    if (rightContent > leftContent && bottomContent > topContent) {
                         rawBoxes.add(
                             BoundingBox(
                                 left = leftContent,
@@ -234,6 +228,67 @@ internal class VinDetectorImpl(
                                 confidence = conf,
                             ),
                         )
+                    }
+                }
+
+                // Hoist the layout branch out of the per-candidate loop. propsFirst=false stores each
+                // candidate's properties contiguously, so grab the row once and index it directly.
+                val plane = outputDynamic[0]
+                if (propsFirst) {
+                    val cxRow = plane[0]
+                    val cyRow = plane[1]
+                    val wRow = plane[2]
+                    val hRow = plane[3]
+                    val objRow = if (propertiesCount > 4) plane[4] else null
+                    for (i in 0 until numCandidates) {
+                        val obj = objRow?.get(i) ?: 1f
+                        var clsScore = 1f
+                        if (propertiesCount > 5) {
+                            var maxCls = 0f
+                            var idx = 5
+                            while (idx < propertiesCount) {
+                                val s = plane[idx][i]
+                                if (s > maxCls) maxCls = s
+                                idx++
+                            }
+                            clsScore = maxCls
+                        }
+                        val conf = obj * clsScore
+                        if (ENABLE_DETAILED_LOGS && topIndices != null) {
+                            if (topIndices.size < 5) {
+                                topIndices.add(i to conf)
+                            } else if (conf > (topIndices.peek()?.second ?: Float.NEGATIVE_INFINITY)) {
+                                topIndices.poll()
+                                topIndices.add(i to conf)
+                            }
+                        }
+                        addCandidate(cxRow[i], cyRow[i], wRow[i], hRow[i], conf)
+                    }
+                } else {
+                    for (i in 0 until numCandidates) {
+                        val row = plane[i]
+                        val obj = if (propertiesCount > 4) row[4] else 1f
+                        var clsScore = 1f
+                        if (propertiesCount > 5) {
+                            var maxCls = 0f
+                            var idx = 5
+                            while (idx < propertiesCount) {
+                                val s = row[idx]
+                                if (s > maxCls) maxCls = s
+                                idx++
+                            }
+                            clsScore = maxCls
+                        }
+                        val conf = obj * clsScore
+                        if (ENABLE_DETAILED_LOGS && topIndices != null) {
+                            if (topIndices.size < 5) {
+                                topIndices.add(i to conf)
+                            } else if (conf > (topIndices.peek()?.second ?: Float.NEGATIVE_INFINITY)) {
+                                topIndices.poll()
+                                topIndices.add(i to conf)
+                            }
+                        }
+                        addCandidate(row[0], row[1], row[2], row[3], conf)
                     }
                 }
 
@@ -319,6 +374,25 @@ internal class VinDetectorImpl(
         return created
     }
 
+    /**
+     * Letterboxes [src] into the reusable [letterboxBitmap] using params already computed by the
+     * caller. Scales + centers in a single Canvas pass (no intermediate scaled bitmap, no alloc).
+     * The pad region is cleared to black (RGB 0), matching the transparent pad of [preprocessImage].
+     * Returns [letterboxBitmap]; the caller MUST NOT recycle it (it is reused across frames).
+     */
+    private fun letterboxInto(
+        src: Bitmap,
+        scaleFactor: Float,
+        padLeft: Float,
+        padTop: Float,
+    ): Bitmap {
+        letterboxCanvas.drawColor(Color.BLACK, PorterDuff.Mode.SRC)
+        letterboxMatrix.setScale(scaleFactor, scaleFactor)
+        letterboxMatrix.postTranslate(padLeft, padTop)
+        letterboxCanvas.drawBitmap(src, letterboxMatrix, letterboxPaint)
+        return letterboxBitmap
+    }
+
     override fun preprocessImage(bitmap: Bitmap): Bitmap {
         SLog.d(TAG, "Original bitmap dimensions: ${bitmap.width}x${bitmap.height}")
         // Create a square bitmap with MODEL_INPUT_SIZE dimensions
@@ -358,14 +432,11 @@ internal class VinDetectorImpl(
 
         bitmap.getPixels(intValues, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
 
-        // Convert the image pixels to floating point values
+        // Convert the image pixels to floating point values (table lookup, no per-pixel divides)
         for (pixel in intValues) {
-            val r = (pixel shr 16 and 0xFF) / 255.0f
-            val g = (pixel shr 8 and 0xFF) / 255.0f
-            val b = (pixel and 0xFF) / 255.0f
-            imgData.putFloat(r)
-            imgData.putFloat(g)
-            imgData.putFloat(b)
+            imgData.putFloat(NORM_LUT[pixel ushr 16 and 0xFF])
+            imgData.putFloat(NORM_LUT[pixel ushr 8 and 0xFF])
+            imgData.putFloat(NORM_LUT[pixel and 0xFF])
         }
     }
 

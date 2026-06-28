@@ -8,6 +8,13 @@ import kotlin.math.max
 private const val TAG = LogTags.LIBRARY
 
 internal object ScannerPerfConfig {
+    /**
+     * Compile-time switch for the scanning strategy:
+     *  - true  → use Google ML Kit's full-frame Latin text recognition directly (no custom model).
+     *  - false → use the custom TFLite VIN detector + per-box ML Kit OCR.
+     */
+    const val USE_GOOGLE_OCR_ONLY = true
+
     private const val DEFAULT_INFERENCE_INTERVAL_MS = 500L
     // 3:4 to match the device's native analysis family (observed 720×960); a 9:16 request gets
     // coerced down. Explicit cap — not HIGHEST — to avoid a device picking a huge sensor size.

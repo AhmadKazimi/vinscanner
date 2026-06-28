@@ -1,6 +1,12 @@
 <resources>
     <string name="scanner_preparing">Preparing scanner (first launch may take a few seconds)</string>
     <string name="scanner_guidance">Keep the VIN inside the box and centered, and hold the camera close.</string>
+    <string name="scanner_hold_steady">Hold steady — getting a sharper shot…</string>
+    <string name="scanner_move_closer">Move closer to the VIN</string>
+    <string name="scanner_center_vin">Center the VIN inside the box</string>
+    <string name="scanner_tap_to_focus">Tap the VIN to focus</string>
+    <string name="scanner_close">Close scanner</string>
+    <string name="scanner_no_vin_detected">No VIN detected — try again</string>
     <string name="scanner_auto_scan_label">Auto</string>
     <string name="camera_permission_required_title">Camera Permission Required</string>
     <string name="camera_permission_required_message">Please grant camera permission to scan VIN numbers</string>

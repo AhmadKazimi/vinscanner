@@ -18,6 +18,9 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 private const val TAG = LogTags.LIBRARY
 
+// Boxes must be absent this long before the ROI border flips to the red "no detection" state.
+private const val NO_DETECTION_DEBOUNCE_MS = 450L
+
 /**
  * ViewModel for the scanner screen
  */
@@ -30,6 +33,9 @@ internal class ScannerViewModel(
 
     // Set once a VIN is auto-detected, so repeat detections from later frames are ignored.
     private val vinCaptured = AtomicBoolean(false)
+
+    // Last time detection boxes were present, for ROI-border hysteresis (anti-thrash).
+    private var lastBoxesSeenMs = 0L
 
     fun onEvent(event: ScannerEvent) {
         when (event) {
@@ -65,6 +71,7 @@ internal class ScannerViewModel(
             it.copy(
                 isScanning = false,
                 isLoading = false,
+                scanGuidance = ScanGuidance.NONE,
                 latestRoiCroppedBitmap = null, // Clear reference
             )
         }
@@ -87,6 +94,11 @@ internal class ScannerViewModel(
         _state.update { it.copy(errorMessage = null) }
     }
 
+    /** Surface a transient error in the scanner snackbar (e.g. a manual capture that read no VIN). */
+    fun showError(message: String) {
+        _state.update { it.copy(errorMessage = message) }
+    }
+
     private fun dismissResult() {
         recycleBitmapAsync(_state.value.latestRoiCroppedBitmap, "dismiss")
 
@@ -95,6 +107,7 @@ internal class ScannerViewModel(
                 showVinResult = false,
                 detectedVin = null,
                 roiBorderState = RoiBorderState.NO_DETECTION,
+                scanGuidance = ScanGuidance.NONE,
                 latestRoiCroppedBitmap = null, // Clear reference
             )
         }
@@ -216,7 +229,25 @@ internal class ScannerViewModel(
     }
 
     private fun updateRoiBorderState(state: RoiBorderState) {
-        _state.update { it.copy(roiBorderState = state) }
+        // Hysteresis: detection flickers frame-to-frame, so don't flash the red "no detection"
+        // border on momentary gaps. Boxes-present (NEUTRAL/VALID) applies immediately and refreshes
+        // the timer; NO_DETECTION only applies after boxes have been absent for the debounce window.
+        when (state) {
+            RoiBorderState.NEUTRAL, RoiBorderState.VALID_VIN_DETECTED -> {
+                lastBoxesSeenMs = System.currentTimeMillis()
+                _state.update { it.copy(roiBorderState = state) }
+            }
+            RoiBorderState.NO_DETECTION -> {
+                if (System.currentTimeMillis() - lastBoxesSeenMs >= NO_DETECTION_DEBOUNCE_MS) {
+                    _state.update { it.copy(roiBorderState = state) }
+                }
+            }
+        }
+    }
+
+    fun onScanGuidanceChanged(guidance: ScanGuidance) {
+        if (_state.value.scanGuidance == guidance) return
+        _state.update { it.copy(scanGuidance = guidance) }
     }
 
     /**
